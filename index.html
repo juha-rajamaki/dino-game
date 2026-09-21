@@ -405,6 +405,34 @@
 
   .sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
 
+  /* ---------- the way in ---------- */
+  .start{
+    position:fixed; inset:0; z-index:40; display:grid; place-items:center;
+    padding:20px; background:rgba(4,9,6,.5);
+    -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px);
+  }
+  .start[hidden]{display:none}
+  .start-card{
+    width:min(430px,100%); text-align:center;
+    background:rgba(10,18,12,.92); border:1px solid var(--edge); border-radius:20px;
+    padding:26px 22px 22px; box-shadow:0 30px 70px -24px #000;
+    -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px);
+  }
+  .start h1{
+    font-family:"Fredoka",sans-serif; font-weight:600; font-size:clamp(30px,8vw,40px);
+    color:var(--amber); margin:0 0 6px; line-height:1.05;
+  }
+  .start .lead{margin:0 0 20px; color:var(--bone-dim); font-size:14.5px; line-height:1.5}
+  .start .row{margin:0 0 15px}
+  .start .row-label{
+    font-size:10.5px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;
+    color:var(--bone-faint); margin:0 0 7px;
+  }
+  .start .seg{width:100%}
+  .start .seg button{flex:1; display:flex; flex-direction:column; gap:1px; padding:9px 6px}
+  .start .seg button small{font-size:10.5px; opacity:.75; font-family:"Nunito",sans-serif; font-weight:700}
+  .start .go{width:100%; margin-top:10px; font-size:19px; padding:14px}
+
   /* ---------- phones and small tablets ---------- */
   .menu-btn{display:none}
   .cards-tab{
@@ -488,18 +516,35 @@
   <img class="velo2" src="img/velo2.webp" alt="">
 </div>
 
+<div class="start" id="start">
+  <div class="start-card">
+    <h1>Dinomemory</h1>
+    <p class="lead">Turn over two cards. If they are the same dinosaur, you keep them.</p>
+
+    <div class="row">
+      <p class="row-label">How many pairs</p>
+      <div class="seg" role="radiogroup" aria-label="How many pairs" id="start-size">
+        <button type="button" role="radio" data-pairs="6" aria-checked="false">Easy<small>6</small></button>
+        <button type="button" role="radio" data-pairs="10" aria-checked="true">Medium<small>10</small></button>
+        <button type="button" role="radio" data-pairs="24" aria-checked="false">Hard<small>24</small></button>
+      </div>
+    </div>
+
+    <div class="row">
+      <p class="row-label">Who is playing</p>
+      <div class="seg" role="radiogroup" aria-label="How many players" id="start-players">
+        <button type="button" role="radio" data-players="1" aria-checked="true">1 player</button>
+        <button type="button" role="radio" data-players="2" aria-checked="false">2 players</button>
+      </div>
+    </div>
+
+    <button type="button" class="btn go" id="start-btn">Start</button>
+  </div>
+</div>
+
 <div class="wrap">
   <div class="bar">
     <button type="button" class="btn quiet menu-btn" id="menu-btn" aria-expanded="false">Menu</button>
-    <div class="seg" role="radiogroup" aria-label="How many pairs" id="size-group">
-      <button type="button" role="radio" data-pairs="6" aria-checked="false">Easy</button>
-      <button type="button" role="radio" data-pairs="10" aria-checked="true">Medium</button>
-      <button type="button" role="radio" data-pairs="24" aria-checked="false">Hard</button>
-    </div>
-    <div class="seg" role="radiogroup" aria-label="How many players" id="players-group">
-      <button type="button" role="radio" data-players="1" aria-checked="true">1 player</button>
-      <button type="button" role="radio" data-players="2" aria-checked="false">2 players</button>
-    </div>
     <div class="spacer"></div>
     <div class="score" id="score"></div>
     <button type="button" class="btn quiet" id="album-btn" aria-pressed="false">All cards</button>
@@ -1528,7 +1573,7 @@
   board.addEventListener("pointerout", function(event){
     if(!event.relatedTarget || !board.contains(event.relatedTarget)) hoverCard = null;
   });
-  document.getElementById("new-btn").addEventListener("click", function(){ newGame(); });
+  document.getElementById("new-btn").addEventListener("click", openStart);
 
   albumBtn.addEventListener("click", function(){
     if(state.mode === "album") newGame();
@@ -1587,19 +1632,44 @@
     });
   }
 
-  function wireGroup(id, attr, apply){
+  /* The way in: the one tap that both sets the game up and wakes the forest,
+     since a browser will not start audio until the player has done something. */
+  var startOverlay = document.getElementById("start");
+  var startPairs = 10, startPlayers = 1;
+
+  function wirePick(id, attr, set){
     var group = document.getElementById(id);
     group.addEventListener("click", function(event){
       var btn = event.target.closest("button[role=radio]");
-      if(!btn || btn.getAttribute("aria-checked") === "true") return;
+      if(!btn) return;
       Array.prototype.forEach.call(group.querySelectorAll("button"), function(el){
         el.setAttribute("aria-checked", String(el === btn));
       });
-      apply(Number(btn.dataset[attr]));
+      set(Number(btn.dataset[attr]));
     });
   }
-  wireGroup("size-group", "pairs", function(pairs){ newGame({pairs: pairs}); });
-  wireGroup("players-group", "players", function(players){ newGame({players: players}); });
+  wirePick("start-size", "pairs", function(v){ startPairs = v; });
+  wirePick("start-players", "players", function(v){ startPlayers = v; });
+
+  /* Coming back to it keeps whatever was last played selected. */
+  function openStart(){
+    stopSpeech();
+    stopClock();
+    if(state){ startPairs = state.pairs; startPlayers = state.players; }
+    Array.prototype.forEach.call(document.querySelectorAll("#start-size button"), function(el){
+      el.setAttribute("aria-checked", String(Number(el.dataset.pairs) === startPairs));
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("#start-players button"), function(el){
+      el.setAttribute("aria-checked", String(Number(el.dataset.players) === startPlayers));
+    });
+    startOverlay.hidden = false;
+  }
+
+  document.getElementById("start-btn").addEventListener("click", function(){
+    startOverlay.hidden = true;
+    jungleStart();
+    newGame({pairs: startPairs, players: startPlayers});
+  });
 
   /* ---------- boot ---------- */
   function boot(data){
@@ -1608,12 +1678,7 @@
       soundOn = data.soundOn !== false;
       soundBtn.setAttribute("aria-pressed", String(soundOn));
       soundBtn.setAttribute("aria-label", soundOn ? "Sounds on" : "Sounds off");
-      Array.prototype.forEach.call(document.querySelectorAll("#size-group button"), function(el){
-        el.setAttribute("aria-checked", String(Number(el.dataset.pairs) === state.pairs));
-      });
-      Array.prototype.forEach.call(document.querySelectorAll("#players-group button"), function(el){
-        el.setAttribute("aria-checked", String(Number(el.dataset.players) === state.players));
-      });
+      startOverlay.hidden = true;
       renderBoard(); renderScore(); renderFacts(); renderBanner();
     } else {
       newGame({pairs: 10, players: 1});

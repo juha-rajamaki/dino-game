@@ -12,6 +12,10 @@ works for a child who cannot read yet.
 - **24 animals** — 21 dinosaurs, 4 pterosaurs and 1 marine reptile. The three
   that are not dinosaurs say so on their card, because Pteranodon and Mosasaurus
   are mistaken for dinosaurs more often than almost anything else in this set.
+- **A start screen** where the size and the number of players are chosen. It is
+  also what wakes the forest: a browser will not play audio until the player has
+  done something, so the one tap that starts the game starts the sound with it.
+  **New game** brings the screen back.
 - **Three sizes** — Easy (6 pairs), Medium (10) and Hard (all 24). The animals
   in a game are drawn at random each time, so the same size plays differently.
 - **One or two players.** In two-player mode a match keeps your turn and a miss
