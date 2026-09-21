@@ -701,7 +701,35 @@
     }catch(e){}
   }
 
+  /* A leaf rustle for the card under the pointer: one cached noise burst,
+     re-filtered each time so it never sounds mechanical. */
+  var rustleBuf = null;
+  function rustle(){
+    if(!soundOn) return;
+    try{
+      if(!audio) audio = new (window.AudioContext || window.webkitAudioContext)();
+      if(audio.state === "suspended") audio.resume();
+      if(!rustleBuf){
+        var len = Math.floor(audio.sampleRate * 0.07);
+        rustleBuf = audio.createBuffer(1, len, audio.sampleRate);
+        var d = rustleBuf.getChannelData(0);
+        for(var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.2);
+      }
+      var src = audio.createBufferSource();
+      src.buffer = rustleBuf;
+      var bp = audio.createBiquadFilter();
+      bp.type = "bandpass";
+      bp.frequency.value = 2100 + Math.random() * 1400;
+      bp.Q.value = 1.1;
+      var g = audio.createGain();
+      g.gain.value = 0.045;
+      src.connect(bp); bp.connect(g); g.connect(audio.destination);
+      src.start();
+    }catch(e){}
+  }
+
   var sfx = {
+    hover: rustle,
     flip:  function(){ tone(340, 0.07, "square", 0.05); },
     match: roar,
     miss:  function(){ tone(160, 0.2, "sawtooth", 0.05); },
@@ -1369,6 +1397,23 @@
 
   /* ---------- controls ---------- */
   board.addEventListener("click", onCardClick);
+
+  /* the card under the mouse whispers; touch and pen stay silent */
+  var hoverCard = null, hoverAt = 0;
+  board.addEventListener("pointerover", function(event){
+    if(event.pointerType && event.pointerType !== "mouse") return;
+    var card = event.target.closest(".card");
+    if(!card || card === hoverCard) return;
+    hoverCard = card;
+    if(card.disabled || card.dataset.face === "up") return;
+    var now = Date.now();
+    if(now - hoverAt < 70) return;   // a quick sweep across the board must not chatter
+    hoverAt = now;
+    sfx.hover();
+  });
+  board.addEventListener("pointerout", function(event){
+    if(!event.relatedTarget || !board.contains(event.relatedTarget)) hoverCard = null;
+  });
   document.getElementById("new-btn").addEventListener("click", function(){ newGame(); });
 
   albumBtn.addEventListener("click", function(){
