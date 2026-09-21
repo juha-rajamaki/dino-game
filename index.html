@@ -951,6 +951,24 @@
     if(nameClip){ try{ nameClip.pause(); }catch(e){} nameClip = null; }
   }
 
+  /* The word at the end. The score itself is any number at all, so it cannot
+     be recorded - the spoken line gives the pairs and the stars, which are
+     bounded, and the number stays on the screen. */
+  function sayWin(){
+    if(!soundOn) return;
+    var file = state.players === 2
+      ? (state.scores[0] === state.scores[1] ? "tie" : (state.scores[0] > state.scores[1] ? "p1" : "p2"))
+      : state.pairs + "_" + starsOf(state);
+    try{
+      stopName(); stopSpeech();
+      jungleDuck(true);
+      var a = new Audio("audio/win/" + file + ".mp3");
+      a.volume = 0.95;
+      a.addEventListener("ended", function(){ jungleDuck(false); });
+      a.play().catch(function(){ jungleDuck(false); });
+    }catch(e){ jungleDuck(false); }
+  }
+
   /* ---------- reading the card aloud ---------- */
   var playBtn = document.getElementById("facts-play");
   var speech = null;
@@ -1549,6 +1567,7 @@
         stopClock();
         if(state.players === 1) recordBest();
         setTimeout(sfx.win, 280);
+        setTimeout(sayWin, 1150);   // after the fanfare has rung out
         live.textContent = "You found them all!";
       }
       renderScore(); renderFacts(); renderBanner();
