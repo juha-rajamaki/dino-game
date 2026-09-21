@@ -1,4 +1,4 @@
-# Mesozoic Match
+# Dinomemory
 
 A dinosaur memory game for children. Turn over two cards; if they match you keep
 the pair, and the animal you found opens on the left with its picture, its stats
