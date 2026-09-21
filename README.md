@@ -19,6 +19,9 @@ works for a child who cannot read yet.
 - **Narration.** Every card has a spoken version of its text, recorded with
   [Piper](https://github.com/rhasspy/piper) using the `en_GB-jenny_dioco-medium` voice.
   If a clip is ever missing the page falls back to the browser's own speech.
+- **Jungle ambience.** A looping bed of birds and insects behind the game, with
+  its own on/off switch in the top bar that is remembered between visits. It
+  ducks out of the way while a card is being read aloud.
 - **A card pile.** Every pair you find drops a card into the pile, and any card
   can be opened again from there at any time.
 - **All cards** — browse the whole collection without playing.
@@ -33,7 +36,7 @@ It is a single static page with no build step and no dependencies:
 ```
 index.html      the whole game - markup, styles and logic
 img/            24 card plates plus the background and the two foreground animals
-audio/          24 narration clips, one per animal
+audio/          24 narration clips, one per animal, plus the jungle loop
 ```
 
 Open `index.html` in a browser, or serve the folder with anything:
@@ -48,3 +51,7 @@ Card art, the jungle background and the two foreground animals are the author's
 own images. Speeds and weights are scientists' best estimates — bones cannot be
 made to run — but they are the right order of magnitude, from Stegosaurus at
 7 km/h to Gallimimus at 60.
+
+The jungle ambience is *forest ambience* by nille, public domain, via Wikimedia
+Commons. It is cut into a 100-second seamless loop: the tail crossfades into the
+head, so the restart cannot be heard.

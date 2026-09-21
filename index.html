@@ -75,12 +75,15 @@
     appearance:none; cursor:pointer; white-space:nowrap;
     font-family:"Fredoka",system-ui,sans-serif; font-size:15px; font-weight:600;
     background:var(--amber); color:#241603; border:1px solid var(--amber);
-    padding:10px 20px; border-radius:11px;
+    padding:9px 16px; border-radius:11px;
   }
   .btn:hover{background:#FFBE57; border-color:#FFBE57}
   .btn.quiet{background:rgba(10,18,12,.7); color:var(--bone-dim); border-color:var(--edge);
     -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px)}
   .btn.quiet:hover{background:var(--panel-2); color:var(--bone); border-color:var(--edge)}
+  /* a toggle says on or off by its colour, not by a longer word */
+  .btn.toggle[aria-pressed="true"]{color:var(--amber); border-color:rgba(242,171,62,.55)}
+  .btn.toggle[aria-pressed="false"]{color:var(--bone-faint)}
   .spacer{flex:1 1 auto}
   :focus-visible{outline:3px solid var(--amber); outline-offset:3px}
 
@@ -444,7 +447,8 @@
     <div class="score" id="score"></div>
     <button type="button" class="btn quiet" id="album-btn" aria-pressed="false">All cards</button>
     <button type="button" class="btn quiet" id="full-btn" hidden>Fullscreen</button>
-    <button type="button" class="btn quiet" id="sound-btn" aria-pressed="true">Sound on</button>
+    <button type="button" class="btn quiet toggle" id="jungle-btn" aria-pressed="true">Jungle</button>
+    <button type="button" class="btn quiet toggle" id="sound-btn" aria-pressed="true">Sound</button>
     <button type="button" class="btn" id="new-btn">New game</button>
   </div>
 
@@ -706,8 +710,44 @@
   soundBtn.addEventListener("click", function(){
     soundOn = !soundOn;
     soundBtn.setAttribute("aria-pressed", String(soundOn));
-    soundBtn.textContent = soundOn ? "Sound on" : "Sound off";
+    soundBtn.setAttribute("aria-label", soundOn ? "Sounds on" : "Sounds off");
     if(!soundOn) stopSpeech();
+  });
+
+  /* ---------- the forest itself: a looping ambience of birds and insects ---------- */
+  var ambience = null, jungleOn = true;
+  var JUNGLE_KEY = "dino-jungle-v1", JUNGLE_VOL = 0.32;
+  try{ jungleOn = localStorage.getItem(JUNGLE_KEY) !== "off"; }catch(e){}
+
+  var jungleBtn = document.getElementById("jungle-btn");
+
+  function jungleStart(){
+    if(!jungleOn) return;
+    if(!ambience){
+      ambience = new Audio("audio/jungle.mp3");
+      ambience.loop = true;
+      ambience.volume = JUNGLE_VOL;
+    }
+    /* Browsers refuse to start audio before a gesture, so this is retried
+       on every card turn until one of the attempts is allowed. */
+    if(ambience.paused) ambience.play().catch(function(){});
+  }
+  function jungleStop(){ if(ambience) ambience.pause(); }
+  function jungleDuck(quiet){
+    if(ambience) ambience.volume = quiet ? JUNGLE_VOL * 0.35 : JUNGLE_VOL;
+  }
+
+  function paintJungleBtn(){
+    jungleBtn.setAttribute("aria-pressed", String(jungleOn));
+    jungleBtn.setAttribute("aria-label", jungleOn ? "Jungle sounds on" : "Jungle sounds off");
+  }
+  paintJungleBtn();
+
+  jungleBtn.addEventListener("click", function(){
+    jungleOn = !jungleOn;
+    paintJungleBtn();
+    try{ localStorage.setItem(JUNGLE_KEY, jungleOn ? "on" : "off"); }catch(e){}
+    if(jungleOn) jungleStart(); else jungleStop();
   });
 
   /* ---------- reading the card aloud ---------- */
@@ -717,12 +757,14 @@
   function stopSpeech(){
     if(speech){ try{ speech.pause(); speech.currentTime = 0; }catch(e){} speech = null; }
     try{ if(window.speechSynthesis) speechSynthesis.cancel(); }catch(e){}
+    jungleDuck(false);
     playBtn.dataset.playing = "false";
     playBtn.innerHTML = "&#9654;";
     playBtn.setAttribute("aria-label", "Read this card aloud");
   }
 
   function playing(){
+    jungleDuck(true);
     playBtn.dataset.playing = "true";
     playBtn.innerHTML = "&#9632;";
     playBtn.setAttribute("aria-label", "Stop reading");
@@ -1254,6 +1296,7 @@
         delete el.dataset.picked;
       });
       card.dataset.picked = "true";
+      jungleStart();
       state.last = state.deck[Number(card.dataset.index)].id;
       state.factsOpen = true;
       sfx.flip();
@@ -1267,6 +1310,7 @@
     if(slot.matched || card.dataset.face === "up") return;
 
     startClock();
+    jungleStart();
     card.dataset.face = "up";
     setLabel(card, slot);
     sfx.flip();
@@ -1376,7 +1420,7 @@
       state = data.state;
       soundOn = data.soundOn !== false;
       soundBtn.setAttribute("aria-pressed", String(soundOn));
-      soundBtn.textContent = soundOn ? "Sound on" : "Sound off";
+      soundBtn.setAttribute("aria-label", soundOn ? "Sounds on" : "Sounds off");
       Array.prototype.forEach.call(document.querySelectorAll("#size-group button"), function(el){
         el.setAttribute("aria-checked", String(Number(el.dataset.pairs) === state.pairs));
       });
