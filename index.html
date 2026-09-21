@@ -690,6 +690,83 @@
     }catch(e){}
   }
 
+  /* A leaf rustle for the card under the pointer: one cached noise burst,
+     re-filtered each time so it never sounds mechanical. */
+  var rustleBuf = null;
+  function rustle(){
+    if(!soundOn) return;
+    try{
+      if(!audio) audio = new (window.AudioContext || window.webkitAudioContext)();
+      if(audio.state === "suspended") audio.resume();
+      if(!rustleBuf){
+        var len = Math.floor(audio.sampleRate * 0.07);
+        rustleBuf = audio.createBuffer(1, len, audio.sampleRate);
+        var d = rustleBuf.getChannelData(0);
+        for(var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.2);
+      }
+      var src = audio.createBufferSource();
+      src.buffer = rustleBuf;
+      var bp = audio.createBiquadFilter();
+      bp.type = "bandpass";
+      bp.frequency.value = 2100 + Math.random() * 1400;
+      bp.Q.value = 1.1;
+      var g = audio.createGain();
+      g.gain.value = 0.045;
+      src.connect(bp); bp.connect(g); g.connect(audio.destination);
+      src.start();
+    }catch(e){}
+  }
+
+  /* A card turning: a short rush of air as it swings, then the tap of its
+     corner on the table. The tap is noise, not a note - a pitched one at this
+     length reads as a little horn, which is not how card on wood sounds. */
+  var flipBuf = null;
+  function flipSound(){
+    if(!soundOn) return;
+    try{
+      if(!audio) audio = new (window.AudioContext || window.webkitAudioContext)();
+      if(audio.state === "suspended") audio.resume();
+      var t0 = audio.currentTime;
+
+      if(!flipBuf){
+        var len = Math.floor(audio.sampleRate * 0.13);
+        flipBuf = audio.createBuffer(1, len, audio.sampleRate);
+        var d = flipBuf.getChannelData(0);
+        for(var i = 0; i < len; i++){
+          var x = i / len;
+          d[i] = (Math.random() * 2 - 1) * Math.sin(Math.PI * x) * (1 - x * 0.35);
+        }
+      }
+
+      var air = audio.createBufferSource();
+      air.buffer = flipBuf;
+      air.playbackRate.value = 0.92 + Math.random() * 0.16;
+      var sweep = audio.createBiquadFilter();
+      sweep.type = "bandpass";
+      sweep.Q.value = 0.9;
+      sweep.frequency.setValueAtTime(700, t0);
+      sweep.frequency.exponentialRampToValueAtTime(2600, t0 + 0.1);
+      var ag = audio.createGain();
+      ag.gain.value = 0.075;
+      air.connect(sweep); sweep.connect(ag); ag.connect(audio.destination);
+      air.start(t0);
+
+      var tap = audio.createBufferSource();
+      tap.buffer = flipBuf;
+      tap.playbackRate.value = 2.6;
+      var bodyf = audio.createBiquadFilter();
+      bodyf.type = "bandpass";
+      bodyf.frequency.value = 1150 + Math.random() * 350;
+      bodyf.Q.value = 0.8;
+      var tg = audio.createGain();
+      tg.gain.setValueAtTime(0.0001, t0 + 0.082);
+      tg.gain.exponentialRampToValueAtTime(0.11, t0 + 0.09);
+      tg.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.15);
+      tap.connect(bodyf); bodyf.connect(tg); tg.connect(audio.destination);
+      tap.start(t0 + 0.082);
+    }catch(e){}
+  }
+
   var sfx = {
     hover: rustle,
     flip:  flipSound,
