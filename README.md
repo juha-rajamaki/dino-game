@@ -17,7 +17,7 @@ works for a child who cannot read yet.
 - **One or two players.** In two-player mode a match keeps your turn and a miss
   passes it.
 - **Narration.** Every card has a spoken version of its text, recorded with
-  [Piper](https://github.com/rhasspy/piper) using the `en_US-libritts-high` voice.
+  [Piper](https://github.com/rhasspy/piper) using the `en_GB-jenny_dioco-medium` voice.
   If a clip is ever missing the page falls back to the browser's own speech.
 - **A card pile.** Every pair you find drops a card into the pile, and any card
   can be opened again from there at any time.
