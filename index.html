@@ -841,17 +841,36 @@
 
   var jungleBtn = document.getElementById("jungle-btn");
 
-  function jungleStart(){
-    if(!jungleOn) return;
+  /* Built at load time so the file is already downloading while the player
+     looks at the board - otherwise the forest arrives a second or two late. */
+  function ensureAmbience(){
     if(!ambience){
       ambience = new Audio("audio/jungle.mp3");
       ambience.loop = true;
+      ambience.preload = "auto";
       ambience.volume = JUNGLE_VOL;
     }
-    /* Browsers refuse to start audio before a gesture, so this is retried
-       on every card turn until one of the attempts is allowed. */
-    if(ambience.paused) ambience.play().catch(function(){});
+    return ambience;
   }
+  function jungleStart(){
+    if(!jungleOn) return;
+    var a = ensureAmbience();
+    if(a.paused) a.play().catch(function(){});
+  }
+
+  /* A browser will not start audio before the first gesture, whatever it is.
+     Listening for any of them means the forest begins on the very first tap,
+     not only when a card is turned. */
+  function primeJungle(){
+    jungleStart();
+    if(ambience && !ambience.paused){
+      document.removeEventListener("pointerdown", primeJungle);
+      document.removeEventListener("keydown", primeJungle);
+    }
+  }
+  document.addEventListener("pointerdown", primeJungle, {passive: true});
+  document.addEventListener("keydown", primeJungle, {passive: true});
+  ensureAmbience();
   function jungleStop(){ if(ambience) ambience.pause(); }
   function jungleDuck(quiet){
     if(ambience) ambience.volume = quiet ? JUNGLE_VOL * 0.35 : JUNGLE_VOL;
