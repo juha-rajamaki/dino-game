@@ -934,6 +934,23 @@
     if(jungleOn) jungleStart(); else jungleStop();
   });
 
+  /* The name of whatever has just been turned over. Short clips in the same
+     voice as the full narration, so the two never sound like two people. */
+  var nameClip = null;
+  function sayName(id){
+    if(!soundOn) return;
+    try{
+      if(nameClip){ nameClip.pause(); nameClip = null; }
+      var a = new Audio("audio/name/" + id + ".mp3");
+      a.volume = 0.9;
+      nameClip = a;
+      a.play().catch(function(){});
+    }catch(e){}
+  }
+  function stopName(){
+    if(nameClip){ try{ nameClip.pause(); }catch(e){} nameClip = null; }
+  }
+
   /* ---------- reading the card aloud ---------- */
   var playBtn = document.getElementById("facts-play");
   var speech = null;
@@ -968,6 +985,7 @@
 
   function speak(id){
     stopSpeech();
+    stopName();
     if(!soundOn) return;
     var dino = byId(id);
     if(!dino) return;
@@ -1456,6 +1474,7 @@
 
   function newGame(opts){
     stopSpeech();
+    stopName();
     opts = opts || {};
     var pairs = opts.pairs || (state ? state.pairs : 10);
     var players = opts.players || (state ? state.players : 1);
@@ -1501,6 +1520,7 @@
     card.dataset.face = "up";
     setLabel(card, slot);
     sfx.flip();
+    setTimeout(function(){ sayName(slot.id); }, 190);
 
     var open = Array.prototype.filter.call(
       board.querySelectorAll('.card[data-face="up"]'),
