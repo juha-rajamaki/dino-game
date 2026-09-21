@@ -644,49 +644,40 @@
       o.start(); o.stop(audio.currentTime + dur + 0.02);
     }catch(e){}
   }
-  /* A found pair: two bright notes so the child knows at once, and under them
-     a short rising call from the animal itself. The old sound was a long
-     descending growl, which wore thin by the tenth pair. */
+  /* A found pair: a fast bright arpeggio on a square wave, the way an arcade
+     game rewards you for picking something up. Sine waves alone sounded
+     polite; the square edge is what makes it read as a prize. */
   function matchCall(){
     if(!soundOn) return;
     try{
       if(!audio) audio = new (window.AudioContext || window.webkitAudioContext)();
       if(audio.state === "suspended") audio.resume();
-      var t0 = audio.currentTime, dur = 0.62;
+      var t0 = audio.currentTime;
 
-      var out = audio.createGain();
-      out.gain.setValueAtTime(0.0001, t0);
-      out.gain.exponentialRampToValueAtTime(0.5, t0 + 0.05);
-      out.gain.setValueAtTime(0.5, t0 + 0.3);
-      out.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
-      out.connect(audio.destination);
-
-      var throat = audio.createBiquadFilter();
-      throat.type = "lowpass";
-      throat.Q.value = 3;
-      throat.frequency.setValueAtTime(900, t0);
-      throat.frequency.exponentialRampToValueAtTime(2400, t0 + 0.22);
-      throat.frequency.exponentialRampToValueAtTime(950, t0 + dur);
-      throat.connect(out);
-
-      /* the call climbs, hangs, then settles - a greeting, not a threat */
-      [{type: "sawtooth", f: 196, g: 0.22, det: 0},
-       {type: "sawtooth", f: 294, g: 0.11, det: 9},
-       {type: "triangle", f: 98,  g: 0.16, det: 0}].forEach(function(v){
+      function bling(freq, at, dur, gain){
         var o = audio.createOscillator(), g = audio.createGain();
-        o.type = v.type;
-        o.detune.value = v.det;
-        o.frequency.setValueAtTime(v.f, t0);
-        o.frequency.exponentialRampToValueAtTime(v.f * 1.9, t0 + 0.2);
-        o.frequency.exponentialRampToValueAtTime(v.f * 1.5, t0 + dur);
-        g.gain.value = v.g;
-        o.connect(g); g.connect(throat);
-        o.start(t0); o.stop(t0 + dur + 0.05);
-      });
+        o.type = "square";
+        o.frequency.value = freq;
+        g.gain.setValueAtTime(0.0001, t0 + at);
+        g.gain.exponentialRampToValueAtTime(gain, t0 + at + 0.006);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + at + dur);
+        o.connect(g); g.connect(audio.destination);
+        o.start(t0 + at); o.stop(t0 + at + dur + 0.02);
 
-      /* two notes on top, a rising fifth - the part that says "yes" */
-      tone(784, 0.15, "triangle", 0.085);
-      setTimeout(function(){ tone(1175, 0.34, "triangle", 0.075); }, 95);
+        var w = audio.createOscillator(), wg = audio.createGain();   // a little body
+        w.type = "sine";
+        w.frequency.value = freq / 2;
+        wg.gain.setValueAtTime(0.0001, t0 + at);
+        wg.gain.exponentialRampToValueAtTime(gain * 0.5, t0 + at + 0.006);
+        wg.gain.exponentialRampToValueAtTime(0.0001, t0 + at + dur);
+        w.connect(wg); wg.connect(audio.destination);
+        w.start(t0 + at); w.stop(t0 + at + dur + 0.02);
+      }
+
+      bling(1047, 0.000, 0.10, 0.055);   // C
+      bling(1319, 0.052, 0.10, 0.055);   // E
+      bling(1568, 0.104, 0.10, 0.060);   // G
+      bling(2093, 0.156, 0.42, 0.070);   // C on top, left ringing
     }catch(e){}
   }
 
