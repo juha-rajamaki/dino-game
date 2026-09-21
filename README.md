@@ -52,8 +52,7 @@ own images. Speeds and weights are scientists' best estimates — bones cannot b
 made to run — but they are the right order of magnitude, from Stegosaurus at
 7 km/h to Gallimimus at 60.
 
-The jungle ambience is a public-domain dawn chorus recording from Wikimedia
-Commons, nearly an hour long. A steady six-minute stretch is cut from the middle
-and turned into a 5:50 seamless loop by crossfading its tail into its head, so
-the restart cannot be heard. The source is mono; the right channel is delayed a
-few milliseconds to give it some width.
+The jungle ambience is *forest ambience* by nille, public domain, via Wikimedia
+Commons. It is cut into a 1:40 seamless loop by crossfading its tail into its
+head, so the restart cannot be heard, then lightly compressed so the quiet parts
+still carry under the game.
