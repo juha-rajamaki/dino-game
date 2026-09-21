@@ -1,0 +1,1400 @@
+<title>Mesozoic Match</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+  /* A single committed world: night jungle lit from above. */
+  :root{
+    --night:#070B08; --deep:#0C120D; --panel:rgba(12,20,14,.84); --panel-2:rgba(28,40,30,.9);
+    --edge:rgba(140,168,140,.30); --edge-soft:rgba(130,158,130,.22);
+    --bone:#F0E9D9; --bone-dim:#A2AE9E; --bone-faint:#6E7A6C;
+    --amber:#F2AB3E; --amber-deep:#C07C1C; --amber-glow:rgba(242,171,62,.22);
+    --fern:#46C98A; --rust:#CB5731;
+    --card-face:#F7F2E5; --card-ink:#1A2016;
+    --back-1:#17402C; --back-2:#07160E;
+    --jurassic:#4EC0D6; --cretaceous:#8BD05C;
+    --plate-bg:radial-gradient(68% 60% at 50% 40%, #4A3520 0%, #241A0D 44%, #0C0B08 100%);
+  }
+
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; overflow:hidden;
+    background:var(--night); color:var(--bone);
+    font-family:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;
+    font-size:15px; line-height:1.5;
+  }
+  .jungle{position:fixed; inset:0; z-index:-2; pointer-events:none; overflow:hidden}
+  /* the forest drifts, very slowly, the way a long lens breathes */
+  .jungle::before{
+    content:""; position:absolute; inset:-5%;
+    background:url("img/jungle.webp") center/cover no-repeat;
+    animation:drift 54s ease-in-out infinite alternate;
+    will-change:transform;
+  }
+  @keyframes drift{
+    from{transform:scale(1.05) translate3d(-1%,-0.6%,0)}
+    to{transform:scale(1.13) translate3d(1.2%,0.7%,0)}
+  }
+  /* sunlight shifting through the canopy */
+  .sunlight{
+    position:absolute; inset:0;
+    background:radial-gradient(46% 36% at 47% 32%, rgba(255,205,120,.16), transparent 70%);
+    animation:sunshift 17s ease-in-out infinite alternate;
+  }
+  @keyframes sunshift{
+    from{opacity:.55; transform:translate3d(-1.5%,0,0)}
+    to{opacity:1; transform:translate3d(1.5%,1%,0)}
+  }
+  /* depth: dark at the edges, warm light falling through the canopy onto the board */
+  .jungle::after{
+    content:""; position:absolute; inset:0;
+    background:
+      radial-gradient(130% 100% at 50% 45%, transparent 38%, rgba(5,12,7,.26) 80%, rgba(3,8,5,.48) 100%),
+      linear-gradient(180deg, rgba(4,9,6,.20) 0%, transparent 26%, rgba(3,8,5,.30) 100%);
+  }
+
+  .wrap{
+    height:100%; width:100%; padding:0 clamp(10px,1vw,18px); padding-block:clamp(8px,1vw,13px);
+    display:flex; flex-direction:column; gap:clamp(10px,1.1vw,16px);
+  }
+
+  /* ---------- top bar: only what a child needs ---------- */
+  .bar{display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; flex:none}
+  .seg{
+    display:flex; gap:4px; background:var(--panel); border:1px solid var(--edge-soft); border-radius:12px; padding:4px;
+    -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
+  }
+  .seg button{
+    appearance:none; border:0; background:transparent; color:var(--bone-dim);
+    font-family:"Fredoka",system-ui,sans-serif; font-size:15px; font-weight:500;
+    padding:8px 16px; border-radius:9px; cursor:pointer; white-space:nowrap;
+  }
+  .seg button:hover{color:var(--bone)}
+  .seg button[aria-checked="true"]{background:var(--amber); color:#241603; font-weight:600}
+  .btn{
+    appearance:none; cursor:pointer; white-space:nowrap;
+    font-family:"Fredoka",system-ui,sans-serif; font-size:15px; font-weight:600;
+    background:var(--amber); color:#241603; border:1px solid var(--amber);
+    padding:10px 20px; border-radius:11px;
+  }
+  .btn:hover{background:#FFBE57; border-color:#FFBE57}
+  .btn.quiet{background:rgba(10,18,12,.7); color:var(--bone-dim); border-color:var(--edge);
+    -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px)}
+  .btn.quiet:hover{background:var(--panel-2); color:var(--bone); border-color:var(--edge)}
+  .spacer{flex:1 1 auto}
+  :focus-visible{outline:3px solid var(--amber); outline-offset:3px}
+
+  /* ---------- the one score that matters ---------- */
+  .score{display:flex; align-items:center; gap:12px; flex-wrap:wrap}
+  .found-chip{
+    display:flex; align-items:center; gap:10px;
+    background:var(--panel); border:1px solid var(--edge-soft); border-radius:12px; padding:7px 14px;
+    -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
+  }
+  .found-chip .n{font-family:"Fredoka",sans-serif; font-size:23px; font-weight:600; color:var(--amber); line-height:1}
+  .found-chip .of{font-size:13px; color:var(--bone-dim); font-weight:700}
+  .pips{display:flex; gap:4px}
+  .pip{width:9px; height:9px; border-radius:50%; background:var(--edge); transition:background .25s, transform .25s}
+  .pip.on{background:var(--amber); transform:scale(1.25)}
+
+  .album-chip{
+    display:flex; align-items:center; gap:9px; padding:8px 15px; border-radius:12px;
+    background:var(--panel); border:1px solid var(--edge-soft); color:var(--bone-dim);
+    font-size:13.5px; font-weight:700;
+    -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
+  }
+  .album-chip b{font-family:"Fredoka",sans-serif; font-size:19px; font-weight:600; color:var(--amber); line-height:1}
+  .board[data-album="true"] .card{cursor:pointer}
+  .board[data-album="true"] .card .side.up{box-shadow:inset 0 0 0 2px rgba(196,158,86,.85), inset 0 0 22px rgba(0,0,0,.55)}
+  .board[data-album="true"] .card[data-picked="true"] .side.up{
+    box-shadow:0 0 0 3px var(--amber), 0 0 26px rgba(242,171,62,.5);
+  }
+
+  .timer-chip{
+    display:flex; align-items:center; gap:8px; padding:7px 14px; border-radius:12px;
+    background:var(--panel); border:1px solid var(--edge-soft);
+    -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
+  }
+  .timer-chip .t-ico{font-size:14px; opacity:.75}
+  .timer-chip .t-val{
+    font-family:"Fredoka",sans-serif; font-size:19px; font-weight:600; color:var(--bone);
+    font-variant-numeric:tabular-nums; line-height:1; min-width:46px;
+  }
+  .timer-chip[data-running="true"] .t-ico{color:var(--amber); opacity:1}
+
+  .turn-plate{
+    display:flex; align-items:center; gap:9px; padding:7px 15px; border-radius:12px;
+    background:var(--panel); border:1px solid var(--edge-soft); transition:.25s;
+    -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
+  }
+  .turn-plate .who{font-family:"Fredoka",sans-serif; font-size:15px; font-weight:500; color:var(--bone-dim)}
+  .turn-plate .pairs{font-family:"Fredoka",sans-serif; font-size:21px; font-weight:600; color:var(--bone); line-height:1}
+  .turn-plate[data-turn="true"]{
+    background:var(--amber); border-color:var(--amber); box-shadow:0 0 0 4px rgba(242,171,62,.18);
+  }
+  .turn-plate[data-turn="true"] .who,.turn-plate[data-turn="true"] .pairs{color:#241603}
+
+  /* ---------- board ---------- */
+  .layout{
+    flex:1 1 auto; min-height:0;
+    display:grid; gap:clamp(10px,1vw,16px);
+    grid-template-columns:clamp(212px,16vw,288px) minmax(0,1fr) clamp(212px,16vw,288px);
+  }
+  .board-area{position:relative; min-width:0; min-height:0}
+  .board{
+    display:grid; gap:var(--gap,12px); height:100%; width:100%;
+    grid-template-columns:repeat(var(--cols,4), var(--card-w,120px));
+    justify-content:center; align-content:center;
+  }
+  .card{
+    appearance:none; border:0; padding:0; background:transparent; cursor:pointer;
+    width:var(--card-w,120px); height:var(--card-h,90px); perspective:1200px; display:block;
+    position:relative; z-index:1;
+    transition:z-index 0s linear .5s;   /* on the way down, wait for the flip to finish */
+  }
+  /* a turned card comes up in front of the animals */
+  .card[data-face="up"]{z-index:5; transition-delay:0s}
+  .card:disabled{cursor:default}
+  .inner{
+    position:relative; width:100%; height:100%; transform-style:preserve-3d;
+    transition:transform .5s cubic-bezier(.3,.85,.35,1);
+  }
+  .card[data-face="up"] .inner{transform:rotateY(180deg)}
+  .side{
+    position:absolute; inset:0; backface-visibility:hidden; border-radius:14px; overflow:hidden;
+    box-shadow:0 2px 3px rgba(0,0,0,.5), 0 14px 30px -14px rgba(0,0,0,.9);
+  }
+
+  .side.down{
+    background:linear-gradient(160deg, rgba(16,46,31,.62), rgba(4,13,8,.74));
+    -webkit-backdrop-filter:blur(2px) saturate(1.25);
+    backdrop-filter:blur(2px) saturate(1.25);
+    border:1px solid rgba(190,225,190,.30); display:grid; place-items:center;
+  }
+  .side.down::after{
+    content:""; position:absolute; inset:7px; border:1.5px solid rgba(242,171,62,.28); border-radius:8px;
+  }
+  .track{width:52%; height:52%; opacity:.85; transition:opacity .25s, transform .25s;
+         filter:drop-shadow(0 2px 4px rgba(0,0,0,.8))}
+  .track path,.track ellipse{fill:var(--amber)}
+  .card:hover:not(:disabled) .side.down{border-color:var(--amber); box-shadow:0 0 0 2px rgba(242,171,62,.4), 0 16px 32px -14px #000}
+  .card:hover:not(:disabled) .track{opacity:1; transform:scale(1.06)}
+
+  /* a collector's plate: the animal in its landscape, inside a bronze frame */
+  .side.up{
+    transform:rotateY(180deg);
+    background:#0A140D;
+    border:1px solid #6E5626;
+    box-shadow:inset 0 0 0 2px rgba(196,158,86,.85), inset 0 0 22px rgba(0,0,0,.55);
+    display:flex; flex-direction:column; justify-content:flex-end; padding:0;
+  }
+  .scene{position:absolute; inset:0; z-index:0; background:var(--plate-bg)}
+  .scene::after{               /* a pool of warm light, then dark to the edges */
+    content:""; position:absolute; inset:0;
+    background:
+      radial-gradient(46% 40% at 50% 38%, rgba(242,190,110,.16), transparent 70%),
+      radial-gradient(120% 92% at 50% 44%, transparent 40%, rgba(4,4,3,.62) 100%);
+  }
+  /* the plate art is built 4:3, backdrop baked in, so it fills the card exactly */
+  .art{position:absolute; inset:0; z-index:2}   /* the animal covers the star */
+  .art img{width:100%; height:100%; object-fit:contain; display:block}
+  .art::after{                 /* shade under the name banner */
+    content:""; position:absolute; left:0; right:0; bottom:0; height:34%;
+    background:linear-gradient(180deg, transparent, rgba(4,4,3,.55));
+  }
+  .plate{
+    position:relative; z-index:3; text-align:center; margin:0 5% 4.5%; padding:3px 9px 4px;
+    background:linear-gradient(180deg, #1B1B13, #070805);
+    box-shadow:inset 0 0 0 1px rgba(196,158,86,.5);
+    clip-path:polygon(5% 0, 95% 0, 100% 50%, 95% 100%, 5% 100%, 0 50%);
+  }
+  .plate .name{
+    display:block; font-family:"Fredoka",sans-serif; font-weight:500; color:#F4EEE0;
+    font-size:clamp(7px, calc(var(--card-h,90px) * .098), 18px); line-height:1.2;
+    text-transform:uppercase; letter-spacing:.07em;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    text-shadow:0 1px 2px rgba(0,0,0,.85);
+  }
+  .plate .name.long{           /* Pachycephalosaurus needs the room */
+    font-size:clamp(6px, calc(var(--card-h,90px) * .078), 15px); letter-spacing:.035em;
+  }
+
+  .card[data-state="matched"] .side.up{box-shadow:0 0 0 3px var(--amber), 0 0 26px rgba(242,171,62,.5)}
+  .card[data-state="matched"] .side.up::after{
+    content:"\2605"; position:absolute; top:4%; right:5%; z-index:1;   /* behind the animal */
+    color:var(--amber); line-height:1;
+    font-size:clamp(13px, calc(var(--card-h,90px) * .2), 36px);
+    text-shadow:0 0 14px rgba(242,171,62,.55), 0 2px 5px rgba(0,0,0,.65);
+  }
+  .card[data-state="matched"] .inner{animation:pop .45s ease}
+  .card[data-state="wrong"] .side.up{box-shadow:0 0 0 3px var(--rust)}
+  .card[data-state="wrong"] .inner{animation:shake .4s ease}
+  @keyframes pop{0%{transform:rotateY(180deg) scale(1)}45%{transform:rotateY(180deg) scale(1.09)}100%{transform:rotateY(180deg) scale(1)}}
+  @keyframes shake{0%,100%{transform:rotateY(180deg) translateX(0)}25%{transform:rotateY(180deg) translateX(-5px)}75%{transform:rotateY(180deg) translateX(5px)}}
+
+  /* ---------- rail ---------- */
+  .rail{
+    display:flex; flex-direction:column; gap:12px; min-height:0; overflow-y:auto;
+    position:relative; z-index:4;        /* above the animals, below a turned card */
+  }
+  .panel{
+    background:var(--panel); border:1px solid var(--edge-soft); border-radius:14px;
+    -webkit-backdrop-filter:blur(12px) saturate(1.1); backdrop-filter:blur(12px) saturate(1.1);
+  }
+
+
+  .facts{padding:16px 17px 17px}
+  .facts h2{
+    font-family:"Fredoka",sans-serif; font-size:11.5px; font-weight:600; letter-spacing:.13em;
+    text-transform:uppercase; color:var(--bone-faint); margin:0 0 13px;
+  }
+  .portrait{ /* 16:9 keeps the panel short enough for the longest text */
+    display:block; width:100%; aspect-ratio:16/9; object-fit:contain; border-radius:12px;
+    background:var(--plate-bg);
+    border:2px solid rgba(196,158,86,.85); margin:0 0 14px;
+    box-shadow:0 14px 26px -12px rgba(0,0,0,.9);
+  }
+  .facts .name{
+    font-family:"Fredoka",sans-serif; font-size:24px; font-weight:600; color:var(--amber);
+    margin:0; line-height:1.1; overflow-wrap:anywhere;   /* Rhamphorhynchus needs it */
+  }
+  .tags{display:flex; flex-wrap:wrap; gap:6px; margin:12px 0}
+  .tag{
+    display:flex; align-items:center; gap:6px; font-size:12px; font-weight:700;
+    background:var(--panel-2); border-radius:999px; padding:4px 11px; color:var(--bone-dim);
+  }
+  .tag .dot{width:8px; height:8px; border-radius:50%; background:var(--bone-faint)}
+  .tag .dot.Jurassic{background:var(--jurassic)} .tag .dot.Cretaceous{background:var(--cretaceous)}
+  .facts .means{
+    margin:4px 0 0; font-size:14.5px; color:var(--bone-dim); font-style:italic;
+  }
+  .facts .fact{margin:0; font-size:15px; color:var(--bone); line-height:1.58}
+  #facts{animation:reveal .35s ease}
+  @keyframes reveal{from{opacity:0; transform:translateY(-6px)}to{opacity:1; transform:none}}
+  .stats{display:grid; gap:10px; margin:13px 0 13px}
+  .stat-row{display:grid; grid-template-columns:56px 1fr auto; align-items:center; gap:11px}
+  .stat-row .lab{font-size:10.5px; font-weight:800; letter-spacing:.11em; text-transform:uppercase; color:var(--bone-faint)}
+  .meter{height:9px; border-radius:99px; background:rgba(255,255,255,.09); overflow:hidden}
+  .meter span{display:block; height:100%; border-radius:99px; background:linear-gradient(90deg, var(--amber-deep), var(--amber))}
+  .stat-row .val{
+    font-family:"Fredoka",sans-serif; font-size:15px; font-weight:600; color:var(--bone);
+    font-variant-numeric:tabular-nums; white-space:nowrap;
+  }
+  .diet{
+    display:inline-flex; align-items:center; gap:6px; padding:4px 11px; border-radius:999px;
+    font-size:13px; font-weight:800; letter-spacing:.02em; white-space:nowrap;
+  }
+  .diet[data-food="Meat"]{background:rgba(203,87,49,.22); color:#F2A184; border:1px solid rgba(203,87,49,.5)}
+  .diet[data-food="Plants"]{background:rgba(70,201,138,.15); color:#84E2B4; border:1px solid rgba(70,201,138,.42)}
+  .diet[data-food="Fish"]{background:rgba(78,192,214,.15); color:#8CDBEB; border:1px solid rgba(78,192,214,.42)}
+  .diet[data-food="Insects"]{background:rgba(176,132,226,.15); color:#C8A6EC; border:1px solid rgba(176,132,226,.42)}
+  .diet[data-food="Anything"]{background:rgba(242,171,62,.15); color:var(--amber); border:1px solid rgba(242,171,62,.42)}
+  .not-dino{
+    display:inline-block; margin:9px 0 0; padding:5px 12px; border-radius:999px;
+    background:rgba(78,192,214,.14); border:1px solid rgba(78,192,214,.45); color:#8CDBEB;
+    font-size:12.5px; font-weight:800;
+  }
+
+  .rows{display:grid; grid-template-columns:auto 1fr; gap:6px 12px; margin:12px 0 14px; font-size:13.5px}
+  .rows dt{color:var(--bone-faint); font-size:10.5px; font-weight:800; letter-spacing:.11em; text-transform:uppercase; padding-top:3px}
+  .rows dd{margin:0; color:var(--bone); font-weight:700}
+  .rows .per{display:flex; align-items:center; gap:6px}
+  .facts .hello{margin:0; font-size:15px; color:var(--bone-dim); line-height:1.6}
+  .facts .hello b{color:var(--bone); font-weight:800}
+  .facts{position:relative}
+  /* the play button rides beside the name */
+  .name-row{display:flex; align-items:center; gap:10px; margin:0}
+  .name-row .name{flex:0 1 auto}
+  .play-x{
+    flex:none; width:32px; height:32px; border-radius:50%;
+    background:var(--amber); border:1px solid var(--amber); color:#241603;
+    font-size:13px; line-height:1; cursor:pointer; display:grid; place-items:center; padding:0;
+    font-family:"Nunito",sans-serif;
+  }
+  .play-x:hover{background:#FFBE57; border-color:#FFBE57}
+  .play-x[data-playing="true"]{background:transparent; color:var(--amber)}
+  .close-x{
+    position:absolute; top:13px; right:13px; width:30px; height:30px; border-radius:50%;
+    background:rgba(255,255,255,.07); border:1px solid var(--edge-soft); color:var(--bone-dim);
+    font-size:19px; line-height:1; cursor:pointer; display:grid; place-items:center; padding:0;
+    font-family:"Nunito",sans-serif;
+  }
+  .close-x:hover{background:var(--amber); color:#241603; border-color:var(--amber)}
+
+  /* the pile every found card goes into */
+  .pile{padding:15px 16px 17px; flex:none}
+  .pile h2{
+    font-family:"Fredoka",sans-serif; font-size:11.5px; font-weight:600; letter-spacing:.13em;
+    text-transform:uppercase; color:var(--bone-faint); margin:0 0 12px;
+  }
+  .pile-n{color:var(--amber)}
+  .pile-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(56px,1fr)); gap:7px}
+  .pile-card{
+    appearance:none; padding:0; display:block; cursor:pointer; background:var(--plate-bg);
+    aspect-ratio:5/3; border-radius:8px; overflow:hidden;
+    border:2px solid rgba(196,158,86,.55); transition:.18s;
+  }
+  .pile-card img{width:100%; height:100%; object-fit:contain; display:block}
+  .pile-card:hover{border-color:var(--amber); transform:translateY(-2px)}
+  .pile-card[data-open="true"]{border-color:var(--amber); box-shadow:0 0 0 2px rgba(242,171,62,.45)}
+  /* the two of them stand in the scene, one at each side of the board */
+  /* both animals stand at the foot of the page, stepping a little over the cards */
+  .beast{position:fixed; bottom:0; z-index:3; pointer-events:none}
+  .beast img{
+    display:block; width:auto; max-width:none;
+    filter:brightness(.94) saturate(1.02) contrast(1.02) drop-shadow(0 16px 26px rgba(0,0,0,.6));
+  }
+  .beast-left{left:0}
+  .beast-left img{
+    height:min(58vh, 580px); margin:0 0 -2.5% -3%;
+    transform-origin:0 100%;
+    animation:loom 36s ease-in-out infinite alternate;
+  }
+  .beast-right{right:0; display:flex; align-items:flex-end}
+  .beast-right .velo1{
+    height:min(23vh, 228px); margin:0 -3.5vw -1.5% 0;   /* slides right, closer to the rock */
+    transform-origin:100% 100%;
+    animation:stalk 27s ease-in-out infinite alternate;
+  }
+  .beast-right .velo2{
+    height:min(34vh, 340px); margin:0 -1% -2% -2%;
+    transform-origin:100% 100%;
+    animation:perch 31s ease-in-out infinite alternate;
+  }
+  @keyframes perch{
+    from{transform:scale(1) translate3d(1.5%,0,0)}
+    to{transform:scale(1.05) translate3d(-1%,0,0)}
+  }
+  @media (max-width:980px){
+    .beast-left img{height:min(34vh,270px)}
+    .beast-right .velo1{height:min(15vh,120px)}
+    .beast-right .velo2{height:min(21vh,170px)}
+  }
+  @keyframes loom{
+    from{transform:scale(1) translate3d(-1%,0,0)}
+    to{transform:scale(1.06) translate3d(1.5%,0,0)}
+  }
+  @keyframes stalk{
+    from{transform:scale(1.04) translate3d(2%,0,0)}
+    to{transform:scale(1) translate3d(-1.5%,0,0)}
+  }
+
+  /* ---------- win ---------- */
+  .banner{
+    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); z-index:6; text-align:center;
+    width:min(420px,92%); background:rgba(18,27,20,.94); border:2px solid var(--amber); border-radius:18px;
+    -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px);
+    padding:26px 26px 24px; box-shadow:0 0 60px rgba(242,171,62,.28), 0 30px 70px -20px #000;
+  }
+  .banner h2{font-family:"Fredoka",sans-serif; font-size:30px; font-weight:600; margin:0; color:var(--amber)}
+  .banner p{margin:8px 0 18px; color:var(--bone-dim); font-size:15px}
+  .stars{display:flex; justify-content:center; gap:8px; margin:14px 0 4px; font-size:34px; line-height:1}
+  .stars .s{color:rgba(240,233,217,.18)}
+  .stars .s.on{color:var(--amber); text-shadow:0 0 18px rgba(242,171,62,.55); animation:starPop .45s ease backwards}
+  .stars .s.on:nth-child(2){animation-delay:.16s}
+  .stars .s.on:nth-child(3){animation-delay:.32s}
+  @keyframes starPop{0%{transform:scale(.2); opacity:0}60%{transform:scale(1.25)}100%{transform:scale(1); opacity:1}}
+  .final-score{
+    font-family:"Fredoka",sans-serif; font-size:42px; font-weight:600; color:var(--bone);
+    line-height:1; margin:12px 0 0; font-variant-numeric:tabular-nums;
+  }
+  .final-score small{
+    display:block; font-family:"Nunito",sans-serif; font-size:10.5px; font-weight:800;
+    letter-spacing:.16em; text-transform:uppercase; color:var(--bone-faint); margin-top:7px;
+  }
+  .best-line{margin:12px 0 0; font-size:12.5px; color:var(--amber); font-weight:700}
+
+  .sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
+
+  @media (max-width:980px){
+    html,body{height:auto} body{overflow:auto}
+    .wrap{height:auto}
+    .layout{grid-template-columns:minmax(0,1fr)}
+    .gutter{display:none}
+    .board-area{min-height:62vh; order:1}
+    .rail{order:2}
+    .rail{overflow:visible}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .inner,.pip{transition:none}
+    .card[data-state="matched"] .inner,.card[data-state="wrong"] .inner{animation:none}
+    .jungle::before,.sunlight,.beast img{animation:none}
+  }
+</style>
+
+<div class="jungle" id="jungle" aria-hidden="true"><div class="sunlight"></div></div>
+<div class="beast beast-left" aria-hidden="true"><img src="img/trex-bg.webp" alt=""></div>
+<div class="beast beast-right" aria-hidden="true">
+  <img class="velo1" src="img/velo.webp" alt="">
+  <img class="velo2" src="img/velo2.webp" alt="">
+</div>
+
+<div class="wrap">
+  <div class="bar">
+    <div class="seg" role="radiogroup" aria-label="How many pairs" id="size-group">
+      <button type="button" role="radio" data-pairs="6" aria-checked="false">Easy</button>
+      <button type="button" role="radio" data-pairs="10" aria-checked="true">Medium</button>
+      <button type="button" role="radio" data-pairs="24" aria-checked="false">Hard</button>
+    </div>
+    <div class="seg" role="radiogroup" aria-label="How many players" id="players-group">
+      <button type="button" role="radio" data-players="1" aria-checked="true">1 player</button>
+      <button type="button" role="radio" data-players="2" aria-checked="false">2 players</button>
+    </div>
+    <div class="spacer"></div>
+    <div class="score" id="score"></div>
+    <button type="button" class="btn quiet" id="album-btn" aria-pressed="false">All cards</button>
+    <button type="button" class="btn quiet" id="full-btn" hidden>Fullscreen</button>
+    <button type="button" class="btn quiet" id="sound-btn" aria-pressed="true">Sound on</button>
+    <button type="button" class="btn" id="new-btn">New game</button>
+  </div>
+
+  <main class="layout">
+    <div class="rail">
+      <section class="panel facts" id="facts-panel" hidden>
+        <button type="button" class="play-x" id="facts-play" aria-label="Read this card aloud">&#9654;</button>
+        <button type="button" class="close-x" id="facts-close" aria-label="Put this card back in the pile">&times;</button>
+        <h2>What you found</h2>
+        <div id="facts"></div>
+      </section>
+
+      <section class="panel pile" id="pile-panel" hidden>
+        <h2>Your cards <span class="pile-n" id="pile-count"></span></h2>
+        <div class="pile-grid" id="pile"></div>
+      </section>
+    </div>
+
+    <div class="board-area" id="board-area">
+      <div class="board" id="board"></div>
+      <div id="banner-slot"></div>
+    </div>
+
+    <div class="gutter" aria-hidden="true"></div>
+  </main>
+
+  <p class="sr" role="status" aria-live="polite" id="live"></p>
+
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var SPECIES = [
+    {id:"tyrannosaurus", speed:25, tonnes:8, name:"Tyrannosaurus rex", means:"\u201CTyrant lizard king\u201D",
+     period:"Cretaceous", ago:"68\u201366 million years ago", size:"12 m long \u2014 as long as a bus",
+     weight:"8 tonnes \u2014 like two elephants", food:"Meat", place:"North America",
+     fact:"Its bite was the strongest of any animal that has ever walked on land. It crunched straight through bone — fossil dung has been found with splinters of bone still in it. Its eyes faced forwards like ours, so it could judge distances while hunting."},
+    {id:"triceratops", speed:25, tonnes:8, name:"Triceratops", means:"\u201CThree-horned face\u201D",
+     period:"Cretaceous", ago:"68\u201366 million years ago", size:"9 m long \u2014 as long as a big van",
+     weight:"8 tonnes", food:"Plants", place:"North America",
+     fact:"Its skull was one of the biggest of any land animal ever, up to 2.5 metres from beak to frill. The two horns above its eyes could each be longer than a metre. Many frills carry healed scars, so they probably fought each other and not only Tyrannosaurus."},
+    {id:"stegosaurus", speed:7, tonnes:5, name:"Stegosaurus", means:"\u201CRoof lizard\u201D",
+     period:"Jurassic", ago:"155\u2013145 million years ago", size:"9 m long \u2014 as long as a big van",
+     weight:"5 tonnes", food:"Plants", place:"North America",
+     fact:"The four spikes on its tail have a real, slightly silly name: the thagomizer. The plates along its back were not solid armour but thin bone full of blood vessels, probably for showing off or letting off heat. Its brain weighed about as much as a plum."},
+    {id:"velociraptor", speed:40, tonnes:0.015, name:"Velociraptor", means:"\u201CSwift thief\u201D",
+     period:"Cretaceous", ago:"75\u201371 million years ago", size:"2 m long \u2014 about the size of a bike",
+     weight:"15 kg \u2014 like a big turkey", food:"Meat", place:"Mongolia",
+     fact:"Real ones were only the size of a turkey, not the man-sized hunters from the films. Bumps along a fossil forearm show exactly where long wing feathers were attached. One famous fossil caught one fighting a Protoceratops, both buried by a collapsing dune."},
+    {id:"brachiosaurus", speed:12, tonnes:35, name:"Brachiosaurus", means:"\u201CArm lizard\u201D",
+     period:"Jurassic", ago:"154\u2013150 million years ago", size:"22 m long \u2014 as long as two buses",
+     weight:"35 tonnes", food:"Plants", place:"North America",
+     fact:"Its front legs were longer than its back legs, so it stood tilted up like an enormous giraffe. That let it reach leaves nine metres above the ground, higher than anything else alive at the time. Its nostrils sat high up on its head, which puzzled scientists for years."},
+    {id:"ankylosaurus", speed:10, tonnes:6, name:"Ankylosaurus", means:"\u201CFused lizard\u201D",
+     period:"Cretaceous", ago:"68\u201366 million years ago", size:"8 m long \u2014 as long as a small bus",
+     weight:"6 tonnes", food:"Plants", place:"North America",
+     fact:"It was armoured like a tank, with bony plates even over its eyelids. Its tail ended in a club of solid bone that could swing hard enough to break a hunter's leg. Its soft belly was the only weak spot, so it probably crouched flat when attacked."},
+    {id:"spinosaurus", speed:20, tonnes:7, name:"Spinosaurus", means:"\u201CSpine lizard\u201D",
+     period:"Cretaceous", ago:"99\u201393 million years ago", size:"15 m long \u2014 longer than a bus",
+     weight:"7 tonnes", food:"Fish", place:"North Africa",
+     fact:"It was the longest meat-eating dinosaur of them all, longer even than Tyrannosaurus. It swam, driving itself after fish with a tall paddle-shaped tail. The sail on its back was held up by spines almost two metres high."},
+    {id:"parasaurolophus", speed:25, tonnes:2.5, name:"Parasaurolophus", means:"\u201CNear crested lizard\u201D",
+     period:"Cretaceous", ago:"76\u201373 million years ago", size:"10 m long \u2014 as long as a bus",
+     weight:"2.5 tonnes", food:"Plants", place:"North America",
+     fact:"The tube on its head was 1.8 metres long and completely hollow. Scientists built a working copy and blew through it: it honks like an enormous trumpet. The herd probably used those calls to talk to one another across the forest."},
+    {id:"allosaurus", speed:30, tonnes:2, name:"Allosaurus", means:"\u201CDifferent lizard\u201D",
+     period:"Jurassic", ago:"155\u2013145 million years ago", size:"9 m long \u2014 as long as a big van",
+     weight:"2 tonnes", food:"Meat", place:"North America",
+     fact:"It was the top hunter of its time, a hundred million years before Tyrannosaurus existed. One quarry in Utah held the bones of 46 of them jumbled together. Its jaws opened extraordinarily wide, so it may have struck downwards like an axe."},
+    {id:"pachycephalosaurus", speed:25, tonnes:0.45, name:"Pachycephalosaurus", means:"\u201CThick-headed lizard\u201D",
+     period:"Cretaceous", ago:"70\u201366 million years ago", size:"4.5 m long \u2014 as long as a car",
+     weight:"450 kg", food:"Plants", place:"North America",
+     fact:"The roof of its skull was 25 centimetres of solid bone — a crash helmet made of head. Healed injuries on some domes suggest they really did shove and butt each other. A ring of small bony spikes ran around the dome, so it wore something like a crown."},
+    {id:"therizinosaurus", speed:15, tonnes:5, name:"Therizinosaurus", means:"\u201CScythe lizard\u201D",
+     period:"Cretaceous", ago:"70 million years ago", size:"10 m long \u2014 as long as a bus",
+     weight:"5 tonnes", food:"Plants", place:"Mongolia",
+     fact:"It had the longest claws of any animal that has ever lived, half a metre each. For years nobody knew what they belonged to; the first find was just the claws, and scientists guessed a giant turtle. It turned out to be a slow plant-eater that used them to pull branches down."},
+    {id:"diplodocus", speed:12, tonnes:15, name:"Diplodocus", means:"\u201CDouble beam\u201D",
+     period:"Jurassic", ago:"154\u2013152 million years ago", size:"25 m long \u2014 as long as three buses",
+     weight:"15 tonnes", food:"Plants", place:"North America",
+     fact:"Its tail held around 80 bones and tapered away to a thin whip. Scientists think the very tip could crack through the air faster than sound, making a bang to warn off predators. Its pencil-shaped teeth grew only at the front, so it raked leaves off branches."},
+    {id:"carnotaurus", speed:50, tonnes:1.5, name:"Carnotaurus", means:"\u201CMeat-eating bull\u201D",
+     period:"Cretaceous", ago:"72\u201370 million years ago", size:"8 m long \u2014 as long as a small bus",
+     weight:"1.5 tonnes", food:"Meat", place:"Argentina",
+     fact:"Two thick horns sat above its eyes like a bull's, which is how it got its name — “meat-eating bull”. Its arms were so short that the forearm was smaller than the hand. Its legs were built for running, and it may have been the fastest large hunter of all."},
+    {id:"dilophosaurus", speed:35, tonnes:0.4, name:"Dilophosaurus", means:"\u201CTwo-crested lizard\u201D",
+     period:"Jurassic", ago:"193 million years ago", size:"7 m long \u2014 as long as a car and a half",
+     weight:"400 kg", food:"Meat", place:"North America",
+     fact:"The two thin crests on its head are real, and were probably for showing off. The neck frill and the spitting venom were invented for the films. It was also far bigger than the films show — about seven metres long, and taller than a grown-up."},
+    {id:"iguanodon", speed:24, tonnes:3, name:"Iguanodon", means:"\u201CIguana tooth\u201D",
+     period:"Cretaceous", ago:"126\u2013122 million years ago", size:"10 m long \u2014 as long as a bus",
+     weight:"3 tonnes", food:"Plants", place:"Belgium",
+     fact:"It had a big cone-shaped spike where its thumb should be, most likely for defence. The first scientists to find one stuck the spike on the animal's nose by mistake, like a rhinoceros horn. It was also one of the very first dinosaurs ever given a name, back in 1825."},
+    {id:"styracosaurus", speed:25, tonnes:3, name:"Styracosaurus", means:"\u201CSpiked lizard\u201D",
+     period:"Cretaceous", ago:"75.5\u201374.5 million years ago", size:"6 m long \u2014 longer than a car",
+     weight:"3 tonnes", food:"Plants", place:"Canada",
+     fact:"Six long spikes stuck out of the frill around its neck like a crown, each as long as your arm. The horn on its nose could reach 60 centimetres, longer than any horn on Triceratops. The frill itself was surprisingly thin, so it was made for showing off."},
+    {id:"pteranodon", speed:50, tonnes:0.025, group:"Pterosaur", name:"Pteranodon", means:"\u201CToothless wing\u201D",
+     period:"Cretaceous", ago:"85 million years ago", size:"6.5 m wingspan \u2014 wider than a car is long",
+     weight:"25 kg \u2014 as light as a big dog", food:"Fish", place:"North America",
+     fact:"It had no teeth at all — its name means “toothless wing”. The long crest sweeping back from its head may have worked like a rudder, helping it steer as it soared. It weighed only about 25 kilos despite wings six metres across."},
+    {id:"rhamphorhynchus", speed:35, tonnes:0.002, group:"Pterosaur", name:"Rhamphorhynchus", means:"\u201CBeak snout\u201D",
+     period:"Jurassic", ago:"150 million years ago", size:"1.8 m wingspan \u2014 as wide as a door",
+     weight:"2 kg \u2014 like a small cat", food:"Fish", place:"Germany",
+     fact:"Its long tail ended in a diamond-shaped flap that worked like the flights on a dart. Its needle-like teeth pointed forwards, perfect for spearing fish and holding them still. Some fossils are so well preserved that you can still see the fish inside the stomach."},
+    {id:"dimorphodon", speed:30, tonnes:0.002, group:"Pterosaur", name:"Dimorphodon", means:"\u201CTwo-form tooth\u201D",
+     period:"Jurassic", ago:"195 million years ago", size:"1.4 m wingspan \u2014 as wide as a bicycle is long",
+     weight:"2 kg \u2014 like a small cat", food:"Insects", place:"England",
+     fact:"Its name means “two-form tooth”: long fangs at the front of the jaw and small ones behind. Almost no other reptile has two different kinds of teeth like that. Its head was tall and deep like a puffin's, and looked far too big for the rest of it."},
+    {id:"ornithocheirus", speed:45, tonnes:0.02, group:"Pterosaur", name:"Ornithocheirus", means:"\u201CBird hand\u201D",
+     period:"Cretaceous", ago:"110 million years ago", size:"5 m wingspan \u2014 as wide as a small bus is long",
+     weight:"20 kg", food:"Fish", place:"Brazil and England",
+     fact:"It had a bony keel on the tip of both jaws, like the prow of a boat. Those keels probably cut through the water as it snatched fish from the waves without ever landing. With wings five metres across it could cross open ocean on rising air."},
+    {id:"mosasaurus", speed:40, tonnes:15, group:"Marine reptile", name:"Mosasaurus", means:"\u201CMeuse lizard\u201D",
+     period:"Cretaceous", ago:"70\u201366 million years ago", size:"17 m long \u2014 as long as two buses",
+     weight:"15 tonnes", food:"Meat", place:"Oceans worldwide",
+     fact:"It was not a dinosaur but an enormous sea lizard, a cousin of today's monitor lizards and snakes. It drove itself along with a shark-like tail and could swallow turtles and even other mosasaurs. The very first one was dug out of a Dutch chalk mine in 1764."},
+    {id:"argentinosaurus", speed:8, tonnes:70, name:"Argentinosaurus", means:"\u201CArgentina lizard\u201D",
+     period:"Cretaceous", ago:"95 million years ago", size:"35 m long \u2014 longer than three buses",
+     weight:"70 tonnes \u2014 like ten elephants", food:"Plants", place:"Argentina",
+     fact:"It is the heaviest animal ever known to have walked on land. A single bone from its back stood taller than a grown-up, and its thigh bone was over two metres long. Nobody has ever found a complete skeleton — everything we know comes from a handful of gigantic bones."},
+    {id:"gallimimus", speed:60, tonnes:0.45, name:"Gallimimus", means:"\u201CChicken mimic\u201D",
+     period:"Cretaceous", ago:"70 million years ago", size:"6 m long \u2014 as long as a car and a half",
+     weight:"450 kg", food:"Anything", place:"Mongolia",
+     fact:"It was built like an ostrich, with long legs, a long neck and a toothless beak, and it is the fastest animal in this collection. Its name means “chicken mimic”, which is funny for something six metres long. Having no teeth, it probably ate whatever it came across."},
+    {id:"compsognathus", speed:40, tonnes:0.003, name:"Compsognathus", means:"\u201CElegant jaw\u201D",
+     period:"Jurassic", ago:"150 million years ago", size:"1 m long \u2014 about the size of a turkey",
+     weight:"3 kg \u2014 light enough to pick up", food:"Meat", place:"Germany and France",
+     fact:"It is one of the smallest dinosaurs ever found, small enough to lift with one hand. One fossil still has the skeleton of a lizard inside its stomach, swallowed whole. It lived in the same place and time as Archaeopteryx, the earliest known bird."}
+  ];
+
+  var board = document.getElementById("board");
+  var boardArea = document.getElementById("board-area");
+  var scoreEl = document.getElementById("score");
+  var factsEl = document.getElementById("facts");
+  var factsPanel = document.getElementById("facts-panel");
+  var pilePanel = document.getElementById("pile-panel");
+  var pileEl = document.getElementById("pile");
+  var pileCount = document.getElementById("pile-count");
+  var bannerSlot = document.getElementById("banner-slot");
+  var live = document.getElementById("live");
+  var soundBtn = document.getElementById("sound-btn");
+  var albumBtn = document.getElementById("album-btn");
+
+  var state = null, lock = false, flipHandle = null, tickHandle = null, timerValue = null;
+  var BEST_KEY = "dino-match-best-v1";
+
+  function timeText(sec){
+    var m = Math.floor(sec / 60), r = sec % 60;
+    return m + ":" + (r < 10 ? "0" : "") + r;
+  }
+  function loadBest(){
+    try { return JSON.parse(localStorage.getItem(BEST_KEY)) || {}; } catch(e){ return {}; }
+  }
+  function saveBest(all){
+    try { localStorage.setItem(BEST_KEY, JSON.stringify(all)); } catch(e){}
+  }
+
+  /* Score: a point for every pair, a bonus for guessing well, a bonus for being quick. */
+  function scoreOf(st){
+    var accuracy = st.turns ? st.found.length / st.turns : 0;
+    return {
+      accuracy: accuracy,
+      match: st.found.length * 100,
+      sharp: Math.round(accuracy * 500),
+      quick: Math.max(0, 400 - st.seconds * 2),
+      get total(){ return this.match + this.sharp + this.quick; }
+    };
+  }
+  function starsOf(st){
+    var turnRatio = st.turns / Math.max(1, st.found.length);
+    var perPair = st.seconds / Math.max(1, st.found.length);
+    if(turnRatio <= 1.6 && perPair <= 9) return 3;
+    if(turnRatio <= 2.4 && perPair <= 16) return 2;
+    return 1;
+  }
+
+  /* ---------- sound ---------- */
+  var audio = null, soundOn = true;
+  function tone(freq, dur, type, gain){
+    if(!soundOn) return;
+    try{
+      if(!audio) audio = new (window.AudioContext || window.webkitAudioContext)();
+      if(audio.state === "suspended") audio.resume();
+      var o = audio.createOscillator(), g = audio.createGain();
+      o.type = type || "triangle"; o.frequency.value = freq;
+      g.gain.setValueAtTime(0.0001, audio.currentTime);
+      g.gain.exponentialRampToValueAtTime(gain || 0.09, audio.currentTime + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, audio.currentTime + dur);
+      o.connect(g); g.connect(audio.destination);
+      o.start(); o.stop(audio.currentTime + dur + 0.02);
+    }catch(e){}
+  }
+  /* A roar, built from scratch: three detuned growl voices sweeping down through a
+     closing filter, with a breath of noise over the top. No two are quite the same. */
+  function roar(){
+    if(!soundOn) return;
+    try{
+      if(!audio) audio = new (window.AudioContext || window.webkitAudioContext)();
+      if(audio.state === "suspended") audio.resume();
+      var t0 = audio.currentTime, dur = 1.15, k = 0.9 + Math.random() * 0.25;
+
+      var out = audio.createGain();
+      out.gain.setValueAtTime(0.0001, t0);
+      out.gain.exponentialRampToValueAtTime(0.55, t0 + 0.09);
+      out.gain.setValueAtTime(0.55, t0 + 0.6);
+      out.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+      out.connect(audio.destination);
+
+      var throat = audio.createBiquadFilter();
+      throat.type = "lowpass";
+      throat.Q.value = 5;
+      throat.frequency.setValueAtTime(1500, t0);
+      throat.frequency.exponentialRampToValueAtTime(300, t0 + dur);
+      throat.connect(out);
+
+      var lfo = audio.createOscillator(), lfoAmt = audio.createGain();
+      lfo.frequency.value = 14 + Math.random() * 8;   // the growl flutter
+      lfoAmt.gain.value = 34;
+      lfo.connect(lfoAmt);
+      lfo.start(t0); lfo.stop(t0 + dur + 0.05);
+
+      [{f0: 124, f1: 74, type: "sawtooth", g: 0.30},
+       {f0: 186, f1: 110, type: "sawtooth", g: 0.15},
+       {f0: 62,  f1: 37,  type: "square",   g: 0.22}].forEach(function(v){
+        var o = audio.createOscillator(), g = audio.createGain();
+        o.type = v.type;
+        o.frequency.setValueAtTime(v.f0 * k, t0);
+        o.frequency.exponentialRampToValueAtTime(v.f1 * k, t0 + dur);
+        lfoAmt.connect(o.detune);
+        g.gain.value = v.g;
+        o.connect(g); g.connect(throat);
+        o.start(t0); o.stop(t0 + dur + 0.05);
+      });
+
+      var len = Math.floor(audio.sampleRate * dur);
+      var buf = audio.createBuffer(1, len, audio.sampleRate);
+      var data = buf.getChannelData(0);
+      for(var i = 0; i < len; i++) data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 1.6);
+      var breath = audio.createBufferSource();
+      breath.buffer = buf;
+      var bf = audio.createBiquadFilter();
+      bf.type = "bandpass"; bf.frequency.value = 780; bf.Q.value = 0.7;
+      var bg = audio.createGain();
+      bg.gain.value = 0.16;
+      breath.connect(bf); bf.connect(bg); bg.connect(out);
+      breath.start(t0);
+    }catch(e){}
+  }
+
+  var sfx = {
+    flip:  function(){ tone(340, 0.07, "square", 0.05); },
+    match: roar,
+    miss:  function(){ tone(160, 0.2, "sawtooth", 0.05); },
+    win:   function(){ [523,659,784,1047,1319].forEach(function(f,i){ setTimeout(function(){ tone(f, 0.36, "triangle", 0.09); }, i*135); }); }
+  };
+  soundBtn.addEventListener("click", function(){
+    soundOn = !soundOn;
+    soundBtn.setAttribute("aria-pressed", String(soundOn));
+    soundBtn.textContent = soundOn ? "Sound on" : "Sound off";
+    if(!soundOn) stopSpeech();
+  });
+
+  /* ---------- reading the card aloud ---------- */
+  var playBtn = document.getElementById("facts-play");
+  var speech = null;
+
+  function stopSpeech(){
+    if(speech){ try{ speech.pause(); speech.currentTime = 0; }catch(e){} speech = null; }
+    try{ if(window.speechSynthesis) speechSynthesis.cancel(); }catch(e){}
+    playBtn.dataset.playing = "false";
+    playBtn.innerHTML = "&#9654;";
+    playBtn.setAttribute("aria-label", "Read this card aloud");
+  }
+
+  function playing(){
+    playBtn.dataset.playing = "true";
+    playBtn.innerHTML = "&#9632;";
+    playBtn.setAttribute("aria-label", "Stop reading");
+  }
+
+  /* The recorded clip if it is there, otherwise whatever voice the browser has. */
+  function browserVoice(dino){
+    try{
+      if(!window.speechSynthesis) return;
+      var u = new SpeechSynthesisUtterance(dino.name + ". " + dino.fact);
+      u.lang = "en-GB"; u.rate = 0.95;
+      u.onend = stopSpeech;
+      speechSynthesis.speak(u);
+      playing();
+    }catch(e){ stopSpeech(); }
+  }
+
+  function speak(id){
+    stopSpeech();
+    if(!soundOn) return;
+    var dino = byId(id);
+    if(!dino) return;
+    var clip = new Audio("audio/" + id + ".mp3");
+    speech = clip;
+    clip.addEventListener("ended", stopSpeech);
+    clip.addEventListener("error", function(){ speech = null; browserVoice(dino); });
+    clip.play().then(playing).catch(function(){ speech = null; browserVoice(dino); });
+  }
+
+  playBtn.addEventListener("click", function(){
+    if(playBtn.dataset.playing === "true"){ stopSpeech(); return; }
+    if(state && state.last) speak(state.last);
+  });
+
+  /* ---------- card back: a three-toed theropod track ---------- */
+  var trackNode = (function(){
+    var NS = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(NS, "svg");
+    svg.setAttribute("viewBox", "-50 -58 100 116");
+    svg.setAttribute("class", "track");
+    svg.setAttribute("aria-hidden", "true");
+
+    var heel = document.createElementNS(NS, "ellipse");
+    heel.setAttribute("cx", "0"); heel.setAttribute("cy", "34");
+    heel.setAttribute("rx", "17"); heel.setAttribute("ry", "15");
+    svg.appendChild(heel);
+
+    // a theropod track: the middle toe runs longest, every toe ends in a claw
+    [[-40, 0.86], [0, 1.18], [40, 0.86]].forEach(function(toe){
+      var deg = toe[0], k = toe[1];
+      var a = deg * Math.PI / 180;
+      var dx = Math.sin(a), dy = -Math.cos(a);
+      var base = {x: 0, y: 26};
+      var cx = base.x + dx * 24 * k, cy = base.y + dy * 24 * k;
+      var pad = document.createElementNS(NS, "ellipse");
+      pad.setAttribute("cx", cx.toFixed(1)); pad.setAttribute("cy", cy.toFixed(1));
+      pad.setAttribute("rx", "7.5"); pad.setAttribute("ry", (21 * k).toFixed(1));
+      pad.setAttribute("transform", "rotate(" + deg + " " + cx.toFixed(1) + " " + cy.toFixed(1) + ")");
+      svg.appendChild(pad);
+
+      var tx = base.x + dx * 44 * k, ty = base.y + dy * 44 * k;   // claw, growing off the toe tip
+      var px = -dy, py = dx;
+      var claw = document.createElementNS(NS, "path");
+      claw.setAttribute("d",
+        "M" + (tx + px * 6.5).toFixed(1) + " " + (ty + py * 6.5).toFixed(1) +
+        "Q" + (tx + dx * 8).toFixed(1) + " " + (ty + dy * 8).toFixed(1) + " " +
+              (tx + dx * 17).toFixed(1) + " " + (ty + dy * 17).toFixed(1) +
+        "Q" + (tx + dx * 6 - px * 3).toFixed(1) + " " + (ty + dy * 6 - py * 3).toFixed(1) + " " +
+              (tx - px * 6.5).toFixed(1) + " " + (ty - py * 6.5).toFixed(1) + "Z");
+      svg.appendChild(claw);
+    });
+    return svg;
+  })();
+
+  /* ---------- helpers ---------- */
+  function shuffle(list){
+    var arr = list.slice();
+    for(var i = arr.length - 1; i > 0; i--){
+      var j = Math.floor(Math.random() * (i + 1));
+      var t = arr[i]; arr[i] = arr[j]; arr[j] = t;
+    }
+    return arr;
+  }
+  function byId(id){
+    for(var i = 0; i < SPECIES.length; i++) if(SPECIES[i].id === id) return SPECIES[i];
+    return null;
+  }
+
+  /* ---------- board sizing: cards take the whole area ---------- */
+  function layoutBoard(){
+    if(!state) return;
+    var W = boardArea.clientWidth, H = boardArea.clientHeight;
+    if(!W || !H) return;
+    var n = state.deck.length, ratio = 4 / 3;
+    var gap = Math.max(7, Math.min(16, Math.round(Math.min(W, H) * 0.016)));
+    var best = null;
+
+    /* the album is always a 4 by 6 sheet, except on a narrow screen */
+    if(state.mode === "album" && W > 620){
+      best = {w: Math.min((W - 3 * gap) / 4, ((H - 5 * gap) / 6) * ratio), cols: 4};
+    } else {
+      best = {w: 0, cols: 1};
+      for(var cols = 1; cols <= n; cols++){
+        var rows = Math.ceil(n / cols);
+        var cw = (W - (cols - 1) * gap) / cols;
+        var ch = (H - (rows - 1) * gap) / rows;
+        if(cw <= 0 || ch <= 0) continue;
+        var w = Math.min(cw, ch * ratio);
+        if(w > best.w) best = {w: w, cols: cols};
+      }
+    }
+    var cardW = Math.max(56, Math.floor(Math.min(best.w, 470)));
+    board.style.setProperty("--cols", best.cols);
+    board.style.setProperty("--gap", gap + "px");
+    board.style.setProperty("--card-w", cardW + "px");
+    board.style.setProperty("--card-h", Math.round(cardW / ratio) + "px");
+  }
+  if(window.ResizeObserver) new ResizeObserver(layoutBoard).observe(boardArea);
+  else window.addEventListener("resize", layoutBoard);
+
+  /* ---------- rendering ---------- */
+  function renderBoard(){
+    board.textContent = "";
+    board.setAttribute("data-album", String(state.mode === "album"));
+    var frag = document.createDocumentFragment();
+
+    state.deck.forEach(function(slot, index){
+      var dino = byId(slot.id);
+      var card = document.createElement("button");
+      card.type = "button";
+      card.className = "card";
+      card.dataset.index = String(index);
+      if(state.mode === "album"){
+        card.dataset.face = "up";
+        card.setAttribute("aria-label", dino.name);
+      } else {
+        card.dataset.face = slot.matched ? "up" : "down";
+        if(slot.matched){ card.dataset.state = "matched"; card.disabled = true; }
+      }
+
+      var inner = document.createElement("div");
+      inner.className = "inner";
+
+      var down = document.createElement("div");
+      down.className = "side down";
+      down.appendChild(trackNode.cloneNode(true));
+
+      var up = document.createElement("div");
+      up.className = "side up";
+      var scene = document.createElement("div");
+      scene.className = "scene";
+      up.appendChild(scene);
+
+      var art = document.createElement("div");
+      art.className = "art";
+      var img = document.createElement("img");
+      img.src = "img/" + dino.id + ".webp";
+      img.alt = dino.name;
+      art.appendChild(img);
+      var plate = document.createElement("div");
+      plate.className = "plate";
+      var nm = document.createElement("span");
+      nm.className = "name";
+      nm.textContent = dino.name;
+      if(dino.name.length > 14) nm.classList.add("long");
+      plate.appendChild(nm);
+      up.appendChild(art); up.appendChild(plate);
+
+      inner.appendChild(down); inner.appendChild(up);
+      card.appendChild(inner);
+      if(state.mode !== "album") setLabel(card, slot);
+      frag.appendChild(card);
+    });
+
+    board.appendChild(frag);
+    layoutBoard();
+  }
+
+  function setLabel(card, slot){
+    var dino = byId(slot.id);
+    if(slot.matched) card.setAttribute("aria-label", dino.name + ", found");
+    else if(card.dataset.face === "up") card.setAttribute("aria-label", dino.name);
+    else card.setAttribute("aria-label", "Card " + (Number(card.dataset.index) + 1) + ", face down");
+  }
+
+  function renderScore(){
+    scoreEl.textContent = "";
+    timerValue = null;
+
+    if(state.mode === "album"){
+      var a = document.createElement("div");
+      a.className = "album-chip";
+      var b = document.createElement("b");
+      b.textContent = String(SPECIES.length);
+      a.appendChild(b);
+      a.appendChild(document.createTextNode("animals — tap one to read about it"));
+      scoreEl.appendChild(a);
+      return;
+    }
+
+    if(state.players === 2){
+      [0, 1].forEach(function(i){
+        var plate = document.createElement("div");
+        plate.className = "turn-plate";
+        plate.dataset.turn = String(state.turn === i);
+        var who = document.createElement("span");
+        who.className = "who";
+        who.textContent = "Player " + (i + 1);
+        var pairs = document.createElement("span");
+        pairs.className = "pairs";
+        pairs.textContent = String(state.scores[i]);
+        plate.appendChild(who); plate.appendChild(pairs);
+        scoreEl.appendChild(plate);
+      });
+      addTimer();
+      return;
+    }
+
+    var chip = document.createElement("div");
+    chip.className = "found-chip";
+    var n = document.createElement("span");
+    n.className = "n";
+    n.textContent = String(state.found.length);
+    var of = document.createElement("span");
+    of.className = "of";
+    of.textContent = "of " + state.pairs + " pairs found";
+    var pips = document.createElement("span");
+    pips.className = "pips";
+    for(var i = 0; i < state.pairs; i++){
+      var pip = document.createElement("span");
+      pip.className = "pip" + (i < state.found.length ? " on" : "");
+      pips.appendChild(pip);
+    }
+    chip.appendChild(n); chip.appendChild(of); chip.appendChild(pips);
+    scoreEl.appendChild(chip);
+    addTimer();
+  }
+
+  function addTimer(){
+    var t = document.createElement("div");
+    t.className = "timer-chip";
+    t.dataset.running = String(!!state.running);
+    var ico = document.createElement("span");
+    ico.className = "t-ico";
+    ico.textContent = "\u23F1";
+    var val = document.createElement("span");
+    val.className = "t-val";
+    val.textContent = timeText(state.seconds);
+    t.appendChild(ico); t.appendChild(val);
+    scoreEl.appendChild(t);
+    timerValue = val;
+  }
+
+  function renderFacts(){
+    stopSpeech();
+    factsEl.textContent = "";
+    var dino = state.last ? byId(state.last) : null;
+
+    /* Shut until a pair is found, and shut again when the card is put back. */
+    factsPanel.hidden = !(dino && state.factsOpen);
+    if(dino){ factsEl.style.animation = "none"; void factsEl.offsetWidth; factsEl.style.animation = ""; }
+    if(dino){
+      var shot = document.createElement("img");
+      shot.className = "portrait";
+      shot.src = "img/" + dino.id + ".webp";
+      shot.alt = dino.name;
+
+      var name = document.createElement("p");
+      name.className = "name";
+      name.textContent = dino.name;
+
+      var means = document.createElement("p");
+      means.className = "means";
+      means.textContent = dino.means;
+
+      var NOTE = {
+        "Pterosaur": "Pterosaur \u2014 a flying reptile, not a dinosaur",
+        "Marine reptile": "Marine reptile \u2014 a giant sea lizard, not a dinosaur"
+      };
+      var badge = null;
+      if(dino.group && NOTE[dino.group]){
+        badge = document.createElement("p");
+        badge.className = "not-dino";
+        badge.textContent = NOTE[dino.group];
+      }
+
+      /* the stats: how fast, how heavy, what it ate */
+      var stats = document.createElement("div");
+      stats.className = "stats";
+
+      function meterRow(label, fraction, value){
+        var row = document.createElement("div");
+        row.className = "stat-row";
+        var lab = document.createElement("span");
+        lab.className = "lab"; lab.textContent = label;
+        var bar = document.createElement("div");
+        bar.className = "meter";
+        var fill = document.createElement("span");
+        fill.style.width = Math.max(4, Math.min(100, fraction * 100)) + "%";
+        bar.appendChild(fill);
+        var val = document.createElement("span");
+        val.className = "val"; val.textContent = value;
+        row.appendChild(lab); row.appendChild(bar); row.appendChild(val);
+        return row;
+      }
+
+      stats.appendChild(meterRow("Speed", dino.speed / 62, dino.speed + " km/h"));
+      stats.appendChild(meterRow("Weight", Math.sqrt(dino.tonnes / 70),
+        dino.tonnes < 1 ? Math.round(dino.tonnes * 1000) + " kg" : dino.tonnes + " t"));
+
+      var dietRow = document.createElement("div");
+      dietRow.className = "stat-row";
+      var dl2 = document.createElement("span");
+      dl2.className = "lab"; dl2.textContent = "Ate";
+      var pill = document.createElement("span");
+      pill.className = "diet";
+      pill.dataset.food = dino.food;
+      pill.textContent = dino.food === "Meat"    ? "Meat \u2014 a hunter"
+                       : dino.food === "Fish"    ? "Fish \u2014 a fisher"
+                       : dino.food === "Insects"  ? "Insects \u2014 a bug catcher"
+                       : dino.food === "Anything" ? "Anything \u2014 a nibbler"
+                       : "Plants \u2014 a grazer";
+      dietRow.appendChild(dl2); dietRow.appendChild(pill);
+      stats.appendChild(dietRow);
+
+      var rows = document.createElement("dl");
+      rows.className = "rows";
+
+      var per = document.createElement("span");
+      per.className = "per";
+      var dot = document.createElement("span");
+      dot.className = "dot " + dino.period;
+      per.appendChild(dot);
+      per.appendChild(document.createTextNode(dino.period + ", " + dino.ago));
+
+      [["Lived", per], ["Length", dino.size],
+       ["Found in", dino.place]].forEach(function(row){
+        var dt = document.createElement("dt"); dt.textContent = row[0];
+        var dd = document.createElement("dd");
+        if(typeof row[1] === "string") dd.textContent = row[1];
+        else dd.appendChild(row[1]);
+        rows.appendChild(dt); rows.appendChild(dd);
+      });
+
+      var fact = document.createElement("p");
+      fact.className = "fact";
+      fact.textContent = dino.fact;
+
+      var nameRow = document.createElement("div");
+      nameRow.className = "name-row";
+      nameRow.appendChild(name);
+      nameRow.appendChild(playBtn);
+
+      factsEl.appendChild(shot);
+      factsEl.appendChild(nameRow);
+      factsEl.appendChild(means);
+      if(badge) factsEl.appendChild(badge);
+      factsEl.appendChild(stats);
+      factsEl.appendChild(rows);
+      factsEl.appendChild(fact);
+    }
+
+    renderPile();
+  }
+
+  /* Every card you have collected, smallest first look, click to read it again. */
+  function renderPile(){
+    pileEl.textContent = "";
+    var show = state.mode !== "album" && state.found.length > 0;
+    pilePanel.hidden = !show;
+    if(!show) return;
+
+    pileCount.textContent = String(state.found.length);
+    state.found.forEach(function(id){
+      var dino = byId(id);
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "pile-card";
+      b.title = dino.name;
+      b.setAttribute("aria-label", "Read about " + dino.name);
+      if(state.factsOpen && state.last === id) b.dataset.open = "true";
+      var im = document.createElement("img");
+      im.src = "img/" + dino.id + ".webp";
+      im.alt = "";
+      b.appendChild(im);
+      b.addEventListener("click", function(){
+        state.last = id;
+        state.factsOpen = true;
+        sfx.flip();
+        renderFacts();
+      });
+      pileEl.appendChild(b);
+    });
+  }
+
+  function recordBest(){
+    var all = loadBest(), total = scoreOf(state).total, prev = all[state.pairs];
+    if(!prev || total > prev.score){
+      all[state.pairs] = {score: total, seconds: state.seconds, turns: state.turns};
+      saveBest(all);
+      state.newBest = true;
+    }
+  }
+
+  function renderBanner(){
+    bannerSlot.textContent = "";
+    if(!state.won) return;
+
+    var banner = document.createElement("div");
+    banner.className = "banner";
+    var h = document.createElement("h2");
+    var p = document.createElement("p");
+
+    banner.appendChild(h);
+
+    if(state.players === 2){
+      var a = state.scores[0], b = state.scores[1];
+      h.textContent = a === b ? "It's a tie!" : "Player " + (a > b ? 1 : 2) + " wins!";
+      p.textContent = a + " pairs to " + b + ", in " + timeText(state.seconds) + ".";
+      banner.appendChild(p);
+    } else {
+      h.textContent = "You found them all!";
+      var stars = starsOf(state), sc = scoreOf(state);
+
+      var row = document.createElement("div");
+      row.className = "stars";
+      for(var i = 0; i < 3; i++){
+        var st = document.createElement("span");
+        st.className = "s" + (i < stars ? " on" : "");
+        st.textContent = "\u2605";
+        row.appendChild(st);
+      }
+      banner.appendChild(row);
+
+      var big = document.createElement("p");
+      big.className = "final-score";
+      big.textContent = sc.total.toLocaleString();
+      var cap = document.createElement("small");
+      cap.textContent = "points";
+      big.appendChild(cap);
+      banner.appendChild(big);
+
+      p.textContent = timeText(state.seconds) + " · " + state.turns + " turns · " +
+                      Math.round(sc.accuracy * 100) + "% right";
+      banner.appendChild(p);
+
+      var best = loadBest()[state.pairs];
+      if(state.newBest){
+        var nb = document.createElement("p");
+        nb.className = "best-line";
+        nb.textContent = "New best score!";
+        banner.appendChild(nb);
+      } else if(best){
+        var bl = document.createElement("p");
+        bl.className = "best-line";
+        bl.textContent = "Your best: " + best.score.toLocaleString();
+        banner.appendChild(bl);
+      }
+    }
+
+    var again = document.createElement("button");
+    again.type = "button"; again.className = "btn"; again.textContent = "Play again";
+    again.addEventListener("click", function(){ newGame(); });
+    banner.appendChild(again);
+    bannerSlot.appendChild(banner);
+    again.focus();
+  }
+
+  /* ---------- game ---------- */
+  function clearFlipTimer(){
+    if(flipHandle){ clearTimeout(flipHandle); flipHandle = null; }
+  }
+  function startClock(){
+    if(state.running) return;
+    state.running = true;
+    tickHandle = setInterval(function(){
+      state.seconds++;
+      if(timerValue) timerValue.textContent = timeText(state.seconds);
+    }, 1000);
+  }
+  function stopClock(){
+    if(tickHandle){ clearInterval(tickHandle); tickHandle = null; }
+    if(state) state.running = false;
+  }
+
+  /* The album: every dinosaur face up, nothing to match — just a look at the cards. */
+  function openAlbum(){
+    stopClock();
+    clearFlipTimer();
+    lock = false;
+    state = {
+      mode: "album", pairs: state ? state.pairs : 10, players: state ? state.players : 1,
+      deck: SPECIES.map(function(d){ return {id: d.id, matched: false}; }),
+      found: [], last: null, scores: [0, 0], turn: 0, won: false,
+      seconds: 0, turns: 0, running: false, factsOpen: false
+    };
+    albumBtn.setAttribute("aria-pressed", "true");
+    albumBtn.textContent = "Back to game";
+    renderBoard(); renderScore(); renderFacts(); renderBanner();
+    live.textContent = "Looking at all " + SPECIES.length + " animals. Tap one to read about it.";
+  }
+
+  function newGame(opts){
+    stopSpeech();
+    opts = opts || {};
+    var pairs = opts.pairs || (state ? state.pairs : 10);
+    var players = opts.players || (state ? state.players : 1);
+    var chosen = shuffle(SPECIES).slice(0, pairs);
+    var deck = shuffle(chosen.concat(chosen).map(function(d){ return {id: d.id, matched: false}; }));
+
+    state = {pairs: pairs, players: players, deck: deck, found: [], last: null,
+             scores: [0, 0], turn: 0, won: false,
+             seconds: 0, turns: 0, running: false, mode: "play", factsOpen: false};
+    lock = false;
+    clearFlipTimer();
+    stopClock();
+    albumBtn.setAttribute("aria-pressed", "false");
+    albumBtn.textContent = "All cards";
+    renderBoard(); renderScore(); renderFacts(); renderBanner();
+    live.textContent = pairs + " pairs of cards. " + (players === 2 ? "Player 1 starts." : "Find them all!");
+  }
+
+  function onCardClick(event){
+    var card = event.target.closest(".card");
+    if(!card) return;
+
+    if(state.mode === "album"){
+      Array.prototype.forEach.call(board.querySelectorAll(".card"), function(el){
+        delete el.dataset.picked;
+      });
+      card.dataset.picked = "true";
+      state.last = state.deck[Number(card.dataset.index)].id;
+      state.factsOpen = true;
+      sfx.flip();
+      renderFacts();
+      return;
+    }
+
+    if(lock || state.won) return;
+    var index = Number(card.dataset.index);
+    var slot = state.deck[index];
+    if(slot.matched || card.dataset.face === "up") return;
+
+    startClock();
+    card.dataset.face = "up";
+    setLabel(card, slot);
+    sfx.flip();
+
+    var open = Array.prototype.filter.call(
+      board.querySelectorAll('.card[data-face="up"]'),
+      function(el){ return el.dataset.state !== "matched"; }
+    );
+    if(open.length < 2) return;
+
+    lock = true;
+    state.turns++;
+    var first = open[0], second = open[1];
+    var a = state.deck[Number(first.dataset.index)];
+    var b = state.deck[Number(second.dataset.index)];
+
+    if(a.id === b.id){
+      a.matched = b.matched = true;
+      state.found.push(a.id);
+      state.last = a.id;
+      state.factsOpen = true;
+      if(state.players === 2) state.scores[state.turn]++;
+      [first, second].forEach(function(el){ el.dataset.state = "matched"; el.disabled = true; setLabel(el, a); });
+      sfx.match();
+      live.textContent = "Match! " + byId(a.id).name + ". " + state.found.length + " of " + state.pairs + " found.";
+      lock = false;
+      state.won = state.found.length === state.pairs;
+      if(state.won){
+        stopClock();
+        if(state.players === 1) recordBest();
+        setTimeout(sfx.win, 280);
+        live.textContent = "You found them all!";
+      }
+      renderScore(); renderFacts(); renderBanner();
+    } else {
+      first.dataset.state = second.dataset.state = "wrong";
+      sfx.miss();
+      if(state.players === 2){
+        state.turn = state.turn === 0 ? 1 : 0;
+        live.textContent = "Not a pair. Player " + (state.turn + 1) + "'s turn.";
+      } else {
+        live.textContent = "Not a pair.";
+      }
+      renderScore();
+      flipHandle = setTimeout(function(){
+        flipHandle = null;
+        [first, second].forEach(function(el){
+          el.dataset.face = "down";
+          delete el.dataset.state;
+          setLabel(el, state.deck[Number(el.dataset.index)]);
+        });
+        lock = false;
+      }, 2200);   // children need a good look before the cards turn back
+    }
+  }
+
+  /* ---------- controls ---------- */
+  board.addEventListener("click", onCardClick);
+  document.getElementById("new-btn").addEventListener("click", function(){ newGame(); });
+
+  albumBtn.addEventListener("click", function(){
+    if(state.mode === "album") newGame();
+    else openAlbum();
+  });
+
+  document.getElementById("facts-close").addEventListener("click", function(){
+    state.factsOpen = false;
+    renderFacts();
+  });
+
+  var fullBtn = document.getElementById("full-btn");
+  if(document.fullscreenEnabled || document.webkitFullscreenEnabled){
+    fullBtn.hidden = false;
+    fullBtn.addEventListener("click", function(){
+      var root = document.documentElement;
+      try{
+        if(document.fullscreenElement || document.webkitFullscreenElement){
+          (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+        } else {
+          (root.requestFullscreen || root.webkitRequestFullscreen).call(root);
+        }
+      }catch(e){}
+    });
+    document.addEventListener("fullscreenchange", function(){
+      fullBtn.textContent = document.fullscreenElement ? "Exit fullscreen" : "Fullscreen";
+      setTimeout(layoutBoard, 120);
+    });
+  }
+
+  function wireGroup(id, attr, apply){
+    var group = document.getElementById(id);
+    group.addEventListener("click", function(event){
+      var btn = event.target.closest("button[role=radio]");
+      if(!btn || btn.getAttribute("aria-checked") === "true") return;
+      Array.prototype.forEach.call(group.querySelectorAll("button"), function(el){
+        el.setAttribute("aria-checked", String(el === btn));
+      });
+      apply(Number(btn.dataset[attr]));
+    });
+  }
+  wireGroup("size-group", "pairs", function(pairs){ newGame({pairs: pairs}); });
+  wireGroup("players-group", "players", function(players){ newGame({players: players}); });
+
+  /* ---------- boot ---------- */
+  function boot(data){
+    if(data && data.state && data.state.deck){
+      state = data.state;
+      soundOn = data.soundOn !== false;
+      soundBtn.setAttribute("aria-pressed", String(soundOn));
+      soundBtn.textContent = soundOn ? "Sound on" : "Sound off";
+      Array.prototype.forEach.call(document.querySelectorAll("#size-group button"), function(el){
+        el.setAttribute("aria-checked", String(Number(el.dataset.pairs) === state.pairs));
+      });
+      Array.prototype.forEach.call(document.querySelectorAll("#players-group button"), function(el){
+        el.setAttribute("aria-checked", String(Number(el.dataset.players) === state.players));
+      });
+      renderBoard(); renderScore(); renderFacts(); renderBanner();
+    } else {
+      newGame({pairs: 10, players: 1});
+    }
+  }
+
+  try{
+    if(window.claude && window.claude.hot){
+      if(window.claude.hot.snapshot) window.claude.hot.snapshot(function(){ return {state: state, soundOn: soundOn}; });
+      if(window.claude.hot.ready) window.claude.hot.ready(boot);
+      else boot(window.claude.hot.data);
+    } else { boot(null); }
+  }catch(e){ boot(null); }
+})();
+</script>
