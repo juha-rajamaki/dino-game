@@ -18,7 +18,7 @@
   *,*::before,*::after{box-sizing:border-box}
   html,body{height:100%}
   body{
-    margin:0; overflow:hidden;
+    margin:0; overflow:hidden; touch-action:manipulation;
     background:var(--night); color:var(--bone);
     font-family:"Nunito",system-ui,-apple-system,"Segoe UI",sans-serif;
     font-size:15px; line-height:1.5;
@@ -369,11 +369,6 @@
     from{transform:scale(1) translate3d(1.5%,0,0)}
     to{transform:scale(1.05) translate3d(-1%,0,0)}
   }
-  @media (max-width:980px){
-    .beast-left img{height:min(34vh,270px)}
-    .beast-right .velo1{height:min(15vh,120px)}
-    .beast-right .velo2{height:min(21vh,170px)}
-  }
   @keyframes loom{
     from{transform:scale(1) translate3d(-1%,0,0)}
     to{transform:scale(1.06) translate3d(1.5%,0,0)}
@@ -410,14 +405,74 @@
 
   .sr{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
 
+  /* ---------- phones and small tablets ---------- */
+  .menu-btn{display:none}
+  .cards-tab{
+    display:none; position:fixed; z-index:24;
+    left:50%; transform:translateX(-50%);
+    bottom:calc(10px + env(safe-area-inset-bottom, 0px));
+    background:var(--amber); color:#241603; border:1px solid var(--amber);
+    font-family:"Fredoka",sans-serif; font-size:14px; font-weight:600;
+    padding:10px 20px; border-radius:999px; cursor:pointer;
+    box-shadow:0 10px 24px -10px #000;
+  }
+
   @media (max-width:980px){
-    html,body{height:auto} body{overflow:auto}
-    .wrap{height:auto}
-    .layout{grid-template-columns:minmax(0,1fr)}
+    html,body{height:100%}
+    body{overflow:hidden}
+    .wrap{height:100%}
+    .layout{grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(0,1fr)}
+    .board-area{min-height:0}
     .gutter{display:none}
-    .board-area{min-height:62vh; order:1}
-    .rail{order:2}
-    .rail{overflow:visible}
+
+    /* the whole control row folds behind one button */
+    .menu-btn{display:block}
+    .bar > .seg, .bar > .btn:not(.menu-btn){display:none}
+    body[data-menu="open"] .bar{
+      position:fixed; z-index:30; left:8px; right:8px;
+      top:calc(8px + env(safe-area-inset-top, 0px));
+      flex-direction:column; align-items:stretch; gap:8px;
+      background:rgba(10,18,12,.96); border:1px solid var(--edge); border-radius:16px;
+      padding:10px;
+      -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px);
+    }
+    body[data-menu="open"] .bar > .seg,
+    body[data-menu="open"] .bar > .btn:not(.menu-btn){display:flex; justify-content:center}
+    body[data-menu="open"] .spacer{display:none}
+
+    /* the card slides up over the board instead of sitting under it */
+    .rail{
+      position:fixed; left:0; right:0; bottom:0; z-index:25;
+      max-height:78vh; overflow-y:auto; gap:10px;
+      padding:12px 12px calc(14px + env(safe-area-inset-bottom, 0px));
+      background:rgba(8,14,10,.97); border-top:1px solid var(--edge-soft);
+      border-radius:18px 18px 0 0; box-shadow:0 -14px 40px -16px #000;
+      -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+      transform:translateY(103%); transition:transform .28s ease;
+    }
+    body[data-card="open"] .rail{transform:none}
+    .rail .panel{background:transparent; border:0; -webkit-backdrop-filter:none; backdrop-filter:none}
+    .facts{padding:2px 2px 6px}
+    .pile{padding:10px 2px 2px; border-top:1px solid var(--edge-soft)}
+    .portrait{aspect-ratio:2/1}
+
+    .cards-tab{display:block}
+    .cards-tab[hidden]{display:none}
+    body[data-card="open"] .cards-tab{display:none}
+
+    /* the animals give the cards their room back */
+    .beast-right{display:none}
+    .beast-left img{height:min(26vh,210px); margin:0 0 -2% -14vw}
+  }
+
+  @media (max-width:560px){
+    .beast-left{display:none}
+  }
+
+  /* a finger has no hover, and a stuck hover state looks broken */
+  @media (hover:none){
+    .card:hover:not(:disabled) .side.down{border-color:rgba(190,225,190,.30); box-shadow:none}
+    .card:hover:not(:disabled) .track{opacity:.85; transform:none}
   }
   @media (prefers-reduced-motion: reduce){
     .inner,.pip{transition:none}
@@ -435,6 +490,7 @@
 
 <div class="wrap">
   <div class="bar">
+    <button type="button" class="btn quiet menu-btn" id="menu-btn" aria-expanded="false">Menu</button>
     <div class="seg" role="radiogroup" aria-label="How many pairs" id="size-group">
       <button type="button" role="radio" data-pairs="6" aria-checked="false">Easy</button>
       <button type="button" role="radio" data-pairs="10" aria-checked="true">Medium</button>
@@ -475,6 +531,10 @@
 
     <div class="gutter" aria-hidden="true"></div>
   </main>
+
+  <button type="button" class="cards-tab" id="cards-tab" hidden>
+    Your cards <span id="tab-count"></span>
+  </button>
 
   <p class="sr" role="status" aria-live="polite" id="live"></p>
 
@@ -591,6 +651,8 @@
   var pilePanel = document.getElementById("pile-panel");
   var pileEl = document.getElementById("pile");
   var pileCount = document.getElementById("pile-count");
+  var cardsTab = document.getElementById("cards-tab");
+  var tabCount = document.getElementById("tab-count");
   var bannerSlot = document.getElementById("banner-slot");
   var live = document.getElementById("live");
   var soundBtn = document.getElementById("sound-btn");
@@ -703,7 +765,7 @@
       bp.frequency.value = 2100 + Math.random() * 1400;
       bp.Q.value = 1.1;
       var g = audio.createGain();
-      g.gain.value = 0.045;
+      g.gain.value = 0.07;
       src.connect(bp); bp.connect(g); g.connect(audio.destination);
       src.start();
     }catch(e){}
@@ -739,7 +801,7 @@
       sweep.frequency.setValueAtTime(700, t0);
       sweep.frequency.exponentialRampToValueAtTime(2600, t0 + 0.1);
       var ag = audio.createGain();
-      ag.gain.value = 0.075;
+      ag.gain.value = 0.11;
       air.connect(sweep); sweep.connect(ag); ag.connect(audio.destination);
       air.start(t0);
 
@@ -752,7 +814,7 @@
       bodyf.Q.value = 0.8;
       var tg = audio.createGain();
       tg.gain.setValueAtTime(0.0001, t0 + 0.082);
-      tg.gain.exponentialRampToValueAtTime(0.11, t0 + 0.09);
+      tg.gain.exponentialRampToValueAtTime(0.16, t0 + 0.09);
       tg.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.15);
       tap.connect(bodyf); bodyf.connect(tg); tg.connect(audio.destination);
       tap.start(t0 + 0.082);
@@ -774,7 +836,7 @@
 
   /* ---------- the forest itself: a looping ambience of birds and insects ---------- */
   var ambience = null, jungleOn = true;
-  var JUNGLE_KEY = "dino-jungle-v1", JUNGLE_VOL = 0.40;
+  var JUNGLE_KEY = "dino-jungle-v1", JUNGLE_VOL = 0.20;   /* a bed, not a foreground */
   try{ jungleOn = localStorage.getItem(JUNGLE_KEY) !== "off"; }catch(e){}
 
   var jungleBtn = document.getElementById("jungle-btn");
@@ -1083,6 +1145,7 @@
 
     /* Shut until a pair is found, and shut again when the card is put back. */
     factsPanel.hidden = !(dino && state.factsOpen);
+    document.body.dataset.card = (dino && state.factsOpen) ? "open" : "shut";
     if(dino){ factsEl.style.animation = "none"; void factsEl.offsetWidth; factsEl.style.animation = ""; }
     if(dino){
       var shot = document.createElement("img");
@@ -1193,6 +1256,8 @@
     pileEl.textContent = "";
     var show = state.mode !== "album" && state.found.length > 0;
     pilePanel.hidden = !show;
+    cardsTab.hidden = !show;
+    tabCount.textContent = String(state.found.length);
     if(!show) return;
 
     pileCount.textContent = String(state.found.length);
@@ -1453,6 +1518,34 @@
 
   document.getElementById("facts-close").addEventListener("click", function(){
     state.factsOpen = false;
+    renderFacts();
+  });
+
+  /* On a phone the control row lives behind one button. Picking anything
+     inside it closes the menu again, so the board comes straight back. */
+  var menuBtn = document.getElementById("menu-btn"), bar = document.querySelector(".bar");
+  function setMenu(open){
+    document.body.dataset.menu = open ? "open" : "shut";
+    menuBtn.setAttribute("aria-expanded", String(open));
+    menuBtn.textContent = open ? "Close" : "Menu";
+  }
+  setMenu(false);
+  menuBtn.addEventListener("click", function(e){
+    e.stopPropagation();
+    setMenu(document.body.dataset.menu !== "open");
+  });
+  bar.addEventListener("click", function(e){
+    if(e.target === menuBtn) return;
+    if(e.target.closest("button")) setMenu(false);
+  });
+  document.addEventListener("click", function(e){
+    if(document.body.dataset.menu === "open" && !bar.contains(e.target)) setMenu(false);
+  });
+
+  cardsTab.addEventListener("click", function(){
+    if(!state.found.length) return;
+    if(!state.last) state.last = state.found[state.found.length - 1];
+    state.factsOpen = true;
     renderFacts();
   });
 

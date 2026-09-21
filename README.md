@@ -29,6 +29,10 @@ works for a child who cannot read yet.
   pair. The score rewards guessing well and being quick, and gives one to three
   stars scaled to how many pairs were in play.
 
+On a phone the control row folds behind a single **Menu** button, the found card
+slides up as a sheet over the board instead of sitting beneath it, and the board
+is sized to fit the screen so every card is visible without scrolling.
+
 ## Running it
 
 It is a single static page with no build step and no dependencies:
