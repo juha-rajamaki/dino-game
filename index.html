@@ -417,9 +417,11 @@
 
   /* the pile every found card goes into */
   .pile{padding:15px 16px 17px; flex:none}
+  /* the name to the left, how many they have won away to the right */
   .pile h2{
     font-family:"Fredoka",sans-serif; font-size:11.5px; font-weight:600; letter-spacing:.13em;
     text-transform:uppercase; color:var(--bone-faint); margin:0 0 12px;
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
   }
   .pile{--pile-c:var(--amber); --pile-edge:rgba(196,158,86,.55); --pile-soft:rgba(242,171,62,.45)}
   .pile[data-owner="1"]{--pile-c:var(--p1); --pile-edge:rgba(77,163,255,.6); --pile-soft:var(--p1-glow)}
@@ -427,10 +429,12 @@
   .pile[data-owner="3"]{--pile-c:var(--p3); --pile-edge:rgba(79,217,143,.6); --pile-soft:var(--p3-glow)}
   .pile[data-owner="4"]{--pile-c:var(--p4); --pile-edge:rgba(255,218,71,.6); --pile-soft:var(--p4-glow)}
   .pile[data-owner] h2{color:var(--pile-c)}
-  /* the count reads as a badge, so "Player 1  3" cannot be read as "Player 13" */
+  /* how many are in the pile: a plain numeral in the player's own colour,
+     away to the right, the size the single-player count has always been */
   .pile-n{
-    display:inline-block; margin-left:3px; padding:1px 7px 2px; border-radius:999px;
-    background:var(--pile-c); color:#101A12; letter-spacing:.04em; font-weight:800;
+    flex:none; font-family:"Fredoka",sans-serif; font-size:23px; font-weight:600;
+    line-height:1; letter-spacing:0; color:var(--pile-c);
+    font-variant-numeric:tabular-nums; text-shadow:0 0 16px var(--pile-soft);
   }
   .pile-grid{display:flex; flex-wrap:wrap; gap:8px}
   .pile-card{
@@ -1087,7 +1091,7 @@
     soundOn = !soundOn;
     soundBtn.setAttribute("aria-pressed", String(soundOn));
     soundBtn.setAttribute("aria-label", soundOn ? "Sounds on" : "Sounds off");
-    if(!soundOn) stopSpeech();
+    if(!soundOn){ stopSpeech(); stopTurn(); }
   });
 
   /* ---------- the forest itself: a looping ambience of birds and insects ---------- */
@@ -1162,22 +1166,71 @@
     if(nameClip){ try{ nameClip.pause(); }catch(e){} nameClip = null; }
   }
 
-  /* Whose turn it is, said out loud. There is no recording of it - the players
-     are numbers, not animals - so this is the browser's own voice. It keeps
-     quiet while a card is being read aloud rather than talking over it. */
-  function sayTurn(){
-    if(!soundOn || !state || state.won || state.players < 2) return;
-    if(speech) return;
-    try{
-      if(!window.speechSynthesis) return;
-      var u = new SpeechSynthesisUtterance("Player " + (state.turn + 1));
-      u.lang = "en-GB"; u.rate = 0.95; u.volume = 0.9;
-      speechSynthesis.speak(u);
-    }catch(e){}
+  var turnClip = null;
+  function stopTurn(){
+    if(turnClip){ try{ turnClip.pause(); }catch(e){} turnClip = null; }
   }
 
-  function passTurn(){
-    state.turn = (state.turn + 1) % state.players;
+  /* What the table is told between turns, in the same voice as the cards: who
+     is next, or that the finder may go again. It calls back when it has
+     finished speaking, since the plate waits for that. The forest steps back
+     for it, and it stays quiet rather than talking over a card being read. */
+  function sayClip(file, spoken, done){
+    var finished = false, tried = false;
+    function end(){
+      if(finished) return;
+      finished = true;
+      if(!speech) jungleDuck(false);
+      if(done) done();
+    }
+    function browserVoiceSays(){
+      if(tried){ end(); return; }
+      tried = true;
+      try{
+        if(!window.speechSynthesis){ end(); return; }
+        var u = new SpeechSynthesisUtterance(spoken);
+        u.lang = "en-GB"; u.rate = 0.92; u.volume = 0.9;   /* a shade under the cards */
+        u.onend = end; u.onerror = end;
+        setTimeout(end, 2500);
+        speechSynthesis.speak(u);
+      }catch(e){ end(); }
+    }
+    if(!soundOn || speech){ end(); return; }
+    stopTurn();
+    jungleDuck(true);
+    try{
+      var a = new Audio("audio/turn/" + file + ".wav");
+      a.volume = 0.9;   /* a shade under the cards, which are the point */
+      turnClip = a;
+      a.addEventListener("ended", function(){ if(turnClip === a) turnClip = null; end(); });
+      a.addEventListener("error", browserVoiceSays);
+      a.play().catch(browserVoiceSays);
+      setTimeout(end, 4000);   /* never leave the game waiting on a clip */
+    }catch(e){ browserVoiceSays(); }
+  }
+
+  function sayTurn(n, done){
+    sayClip("p" + (n + 1), "Player " + (n + 1), done);
+  }
+  /* the finder keeps the turn, which a child cannot see happen: say so */
+  function sayAgain(){
+    sayClip("again", "Go again!", null);
+  }
+
+  /* Handing the turn on. The next player is named first; only once the naming
+     has finished does the plate light up for them, their clock start and the
+     board come unlocked - so nobody plays a card into somebody else's turn. */
+  function handOver(){
+    var next = (state.turn + 1) % state.players, game = state;
+    state.holding = true;
+    lock = true;
+    sayTurn(next, function(){
+      if(state !== game || state.won) return;
+      state.turn = next;
+      state.holding = false;
+      lock = false;
+      renderScore();
+    });
   }
 
   /* The word at the end. The score itself is any number at all, so it cannot
@@ -1185,24 +1238,43 @@
      bounded, and the number stays on the screen. */
   function sayWin(){
     if(!soundOn) return;
-    var file;
+    var file, spoken = "";
     if(state.players >= 2){
       var st = standings();
-      /* only "player one", "player two" and the tie were ever recorded */
-      file = st.winners.length > 1 ? "tie"
-           : st.winners[0] < 2 ? "p" + (st.winners[0] + 1) : null;
-      if(!file) return;
+      if(st.winners.length > 1){ file = "tie.mp3"; spoken = "It's a tie!"; }
+      else {
+        var w = st.winners[0] + 1;
+        spoken = "Player " + w + " wins!";
+        /* players one and two were recorded early, three and four later */
+        file = "p" + w + (w < 3 ? ".mp3" : ".wav");
+      }
     } else {
-      file = state.pairs + "_" + starsOf(state);
+      file = state.pairs + "_" + starsOf(state) + ".mp3";
+    }
+    var done = false, fell = false;
+    function back(){ if(!done){ done = true; jungleDuck(false); } }
+    function fallback(){
+      if(fell){ back(); return; }
+      fell = true;
+      /* a missing clip should still be heard, in whatever voice there is */
+      if(!spoken || !window.speechSynthesis){ back(); return; }
+      try{
+        var u = new SpeechSynthesisUtterance(spoken);
+        u.lang = "en-GB"; u.rate = 0.95;
+        u.onend = back; u.onerror = back;
+        setTimeout(back, 4000);
+        speechSynthesis.speak(u);
+      }catch(e){ back(); }
     }
     try{
-      stopName(); stopSpeech();
+      stopName(); stopSpeech(); stopTurn();
       jungleDuck(true);
-      var a = new Audio("audio/win/" + file + ".mp3");
+      var a = new Audio("audio/win/" + file);
       a.volume = 0.95;
-      a.addEventListener("ended", function(){ jungleDuck(false); });
-      a.play().catch(function(){ jungleDuck(false); });
-    }catch(e){ jungleDuck(false); }
+      a.addEventListener("ended", back);
+      a.addEventListener("error", fallback);
+      a.play().catch(fallback);
+    }catch(e){ fallback(); }
   }
 
   /* ---------- reading the card aloud ---------- */
@@ -1245,6 +1317,7 @@
   function speak(id){
     stopSpeech();
     stopName();
+    stopTurn();
     if(!soundOn) return;
     var dino = byId(id);
     if(!dino) return;
@@ -1699,12 +1772,21 @@
   function placeSeats(){
     var narrow = oneSide.matches;
     markSeats();
-    SEATS.forEach(function(seat, i){
-      (narrow ? rail : ((i % 2) ? rail2 : rail)).appendChild(seat.pilePanel);
-    });
-    /* the box goes under the piles of the players who share it */
+    if(narrow){
+      /* one side of the table: every pile, then the one box below them */
+      SEATS.forEach(function(seat){ rail.appendChild(seat.pilePanel); });
+      rail.appendChild(BOXES[0].panel);
+      rail.appendChild(BOXES[1].panel);
+      return;
+    }
+    /* Each side reads the way the two of them sit: the first player's cards,
+       then the box they share, then the other player's cards below it. */
+    rail.appendChild(SEATS[0].pilePanel);
     rail.appendChild(BOXES[0].panel);
-    (narrow ? rail : rail2).appendChild(BOXES[1].panel);
+    rail.appendChild(SEATS[2].pilePanel);
+    rail2.appendChild(SEATS[1].pilePanel);
+    rail2.appendChild(BOXES[1].panel);
+    rail2.appendChild(SEATS[3].pilePanel);
   }
   if(oneSide.addEventListener) oneSide.addEventListener("change", placeSeats);
   else if(oneSide.addListener) oneSide.addListener(placeSeats);
@@ -1803,14 +1885,24 @@
       h.textContent = won.length === 1 ? "Player " + (won[0] + 1) + " wins!" : "It's a tie!";
       if(won.length === 1) banner.dataset.win = String(won[0] + 1);
 
-      var tally = state.players === 2
-        ? state.scores[0] + " pairs to " + state.scores[1]
-        : state.scores.slice(0, state.players).map(function(n, i){
-            return "P" + (i + 1) + " " + n;
-          }).join(" \u00B7 ");
+      /* The plates along the top already carry everybody's number, so the
+         banner says the thing a child wants to hear: who won, and with how
+         many animals. */
+      var animals = st.best + (st.best === 1 ? " dinosaur" : " dinosaurs");
+      var said;
+      if(won.length === 1){
+        said = "Player " + (won[0] + 1) + " wins with " + animals + ".";
+      } else if(won.length === state.players){
+        said = (state.players === 2 ? "Both found " : "Everybody found ") + animals + ".";
+      } else {
+        var names = won.map(function(i){ return "Player " + (i + 1); });
+        said = names.slice(0, -1).join(", ") + " and " + names[names.length - 1] +
+               " both found " + animals + ".";
+        if(names.length > 2) said = said.replace(" both found ", " all found ");
+      }
       p.textContent = (state.timeout !== null && state.timeout !== undefined
-          ? "Player " + (state.timeout + 1) + " ran out of time \u2014 " : "") +
-        tally + ", in " + timeText(state.seconds) + ".";
+          ? "Player " + (state.timeout + 1) + " ran out of time. " : "") +
+        said + " It took " + timeText(state.seconds) + ".";
       banner.appendChild(p);
     } else {
       h.textContent = "You found them all!";
@@ -1915,6 +2007,7 @@
 
   /* The album: every dinosaur face up, nothing to match — just a look at the cards. */
   function openAlbum(){
+    stopTurn();
     stopClock();
     clearFlipTimer();
     lock = false;
@@ -1940,6 +2033,7 @@
   function newGame(opts){
     stopSpeech();
     stopName();
+    stopTurn();
     opts = opts || {};
     var pairs = opts.pairs || (state ? state.pairs : 10);
     var players = opts.players || (state ? state.players : 1);
@@ -1965,6 +2059,13 @@
     albumBtn.textContent = "All cards";
     renderBoard(); renderScore(); renderFacts(); renderBanner();
     live.textContent = pairs + " pairs of cards. " + (players >= 2 ? "Player 1 starts." : "Find them all!");
+    /* and said out loud, so the table knows who begins */
+    if(players >= 2){
+      var opening = state;
+      setTimeout(function(){
+        if(state === opening && !state.won) sayClip("start", "Player 1 starts!", null);
+      }, 550);
+    }
   }
 
   function onCardClick(event){
@@ -2010,11 +2111,11 @@
     if(a.id === b.id){
       a.matched = b.matched = true;
       state.found.push(a.id);
+      /* an older saved game has no rule of its own: it goes again, as it always did */
+      var handing = state.players >= 2 && state.keepTurn === false;
       if(state.players >= 2){
         state.scores[state.turn]++;
         a.by = b.by = state.turn + 1;
-        /* an older saved game has no rule of its own: it goes again, as it always did */
-        if(state.keepTurn === false){ passTurn(); setTimeout(sayTurn, 1250); }
       }
       [first, second].forEach(function(el){
         el.dataset.state = "matched"; el.disabled = true;
@@ -2022,10 +2123,13 @@
         setLabel(el, a);
       });
       sfx.match();
+      var nextUp = handing ? ((state.turn + 1) % state.players) : state.turn;
       live.textContent = "Match! " + byId(a.id).name + ". " +
         state.found.length + " of " + state.pairs + " found." +
-        (state.players >= 2 ? " Player " + (state.turn + 1) + "'s turn." : "");
-      lock = false;
+        (state.players < 2 ? ""
+         : handing ? " Player " + (nextUp + 1) + "'s turn."
+         : " Player " + (state.turn + 1) + " goes again.");
+      lock = handing;          /* held until the next player has been named */
       state.won = state.found.length === state.pairs;
       if(state.won){
         stopClock();
@@ -2033,13 +2137,19 @@
         setTimeout(sfx.win, 280);
         setTimeout(sayWin, 1150);   // after the fanfare has rung out
         live.textContent = "You found them all!";
+      } else if(handing){
+        /* after the animal's own name has been said, not over the top of it */
+        state.holding = true;
+        setTimeout(handOver, 850);
+      } else if(state.players >= 2){
+        setTimeout(sayAgain, 850);
       }
       renderScore(); openCard(a.id); renderBanner();
     } else {
       first.dataset.state = second.dataset.state = "wrong";
       if(state.players >= 2){
-        passTurn();
-        live.textContent = "Not a pair. Player " + (state.turn + 1) + "'s turn.";
+        live.textContent = "Not a pair. Player " +
+          (((state.turn + 1) % state.players) + 1) + "'s turn.";
       } else {
         live.textContent = "Not a pair.";
       }
@@ -2047,15 +2157,15 @@
       state.holding = true;
       flipHandle = setTimeout(function(){
         flipHandle = null;
-        state.holding = false;
         sfx.flip();
-        setTimeout(sayTurn, 260);
         [first, second].forEach(function(el){
           el.dataset.face = "down";
           delete el.dataset.state;
           setLabel(el, state.deck[Number(el.dataset.index)]);
         });
-        lock = false;
+        /* the board stays shut until the next player has been named */
+        if(state.players >= 2) handOver();
+        else { state.holding = false; lock = false; }
       }, 2200);   // children need a good look before the cards turn back
     }
   }

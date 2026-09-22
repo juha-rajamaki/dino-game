@@ -18,8 +18,9 @@ works for a child who cannot read yet.
   **New game** brings the screen back.
 - **Three sizes** — Easy (6 pairs), Medium (10) and Hard (all 24). The animals
   in a game are drawn at random each time, so the same size plays differently.
-- **One to four players.** A miss always passes the turn, and the browser says
-  aloud whose turn it now is. What a *pair* does is the players' own choice,
+- **One to four players.** A miss always passes the turn, and the next player is
+  named out loud — the plate only lights up for them once the naming has
+  finished, so nobody plays a card into somebody else's turn. What a *pair* does is the players' own choice,
   made on the start screen: **Hand over** passes the turn along, which is how it
   starts, or **Go again** lets the finder keep it. Everyone gets a colour —
   player one blue, two red, three green, four yellow — and every pair won is
@@ -34,14 +35,17 @@ works for a child who cannot read yet.
   ahead you were.
 - **Narration.** Every card has a spoken version of its text, recorded with
   [Piper](https://github.com/rhasspy/piper) using the `en_GB-jenny_dioco-medium` voice.
-  If a clip is ever missing the page falls back to the browser's own speech.
+  So is everything said between turns: who starts, whose turn it is now, *go
+  again* when a pair lets the finder keep the turn, and who has won. If a clip
+  is ever missing the page falls back to the browser's own speech.
 - **Jungle ambience.** A looping bed of birds and insects behind the game, with
   its own on/off switch in the top bar that is remembered between visits. It
   ducks out of the way while a card is being read aloud.
 - **A card pile.** Every pair you find drops a round badge into the pile at the
   top of your own place at the table — players one and three down the left side,
   two and four down the right — and any card can be opened again from there at
-  any time. Under the piles each side has one **What you found** box, shared by
+  any time. Each side has one **What you found** box sitting between its two
+  piles, shared by
   the two players sitting there and wearing the colour of whoever's card is in
   it. The two sides are independent: opening a card on the left never shuts, or
   silences, the one on the right. A phone has one side of the table, so there
