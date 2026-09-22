@@ -9,6 +9,8 @@
     --bone:#F0E9D9; --bone-dim:#A2AE9E; --bone-faint:#6E7A6C;
     --amber:#F2AB3E; --amber-deep:#C07C1C; --amber-glow:rgba(242,171,62,.22);
     --fern:#46C98A; --rust:#CB5731;
+    --p1:#4DA3FF; --p1-deep:#1B5CA4; --p1-glow:rgba(77,163,255,.5);   /* player one */
+    --p2:#FF6152; --p2-deep:#AC2D20; --p2-glow:rgba(255,97,82,.5);    /* player two */
     --card-face:#F7F2E5; --card-ink:#1A2016;
     --back-1:#17402C; --back-2:#07160E;
     --jurassic:#4EC0D6; --cretaceous:#8BD05C;
@@ -125,17 +127,57 @@
   }
   .timer-chip[data-running="true"] .t-ico{color:var(--amber); opacity:1}
 
+  /* Whose turn it is has to be readable by a child who cannot read, so the two
+     plates never look merely different - one of them is plainly awake and the
+     other is plainly asleep. Four things move at once: the waiting plate dims,
+     desaturates and shrinks back, while the playing one lights up in its own
+     colour, steps forward, beats slowly and turns its dot into an arrow. */
   .turn-plate{
-    display:flex; align-items:center; gap:9px; padding:7px 15px; border-radius:12px;
-    background:var(--panel); border:1px solid var(--edge-soft); transition:.25s;
+    display:flex; align-items:center; gap:8px; padding:7px 14px; border-radius:12px;
+    background:var(--panel); border:1px solid var(--edge-soft);
     -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
+    --pc:var(--amber); --pc-soft:rgba(242,171,62,.22); --pc-ink:#241603;
+    opacity:.4; filter:saturate(.3); transform:scale(.92);
+    transition:opacity .28s, filter .28s, transform .28s, background .28s, border-color .28s;
   }
-  .turn-plate .who{font-family:"Fredoka",sans-serif; font-size:15px; font-weight:500; color:var(--bone-dim)}
+  .turn-plate[data-player="1"]{--pc:var(--p1); --pc-soft:rgba(77,163,255,.3); --pc-ink:#04203C}
+  .turn-plate[data-player="2"]{--pc:var(--p2); --pc-soft:rgba(255,97,82,.3); --pc-ink:#380A05}
+  .turn-plate .mark{font-size:11px; line-height:1; color:var(--pc)}
+  .turn-plate .mark::before{content:"\25CF"}          /* waiting: a quiet dot */
+  .turn-plate .who{font-family:"Fredoka",sans-serif; font-size:15px; font-weight:500; color:var(--pc)}
   .turn-plate .pairs{font-family:"Fredoka",sans-serif; font-size:21px; font-weight:600; color:var(--bone); line-height:1}
+
   .turn-plate[data-turn="true"]{
-    background:var(--amber); border-color:var(--amber); box-shadow:0 0 0 4px rgba(242,171,62,.18);
+    opacity:1; filter:none; transform:scale(1.05);
+    background:var(--pc); border-color:var(--pc);
+    animation:turn-beat 2.1s ease-in-out infinite;
   }
-  .turn-plate[data-turn="true"] .who,.turn-plate[data-turn="true"] .pairs{color:#241603}
+  /* the game is over: nobody is waiting on anybody */
+  body[data-won="true"] .turn-plate[data-turn="true"]{
+    animation:none; box-shadow:0 0 0 4px var(--pc-soft);
+  }
+  .turn-plate[data-turn="true"] .who{font-weight:600}
+  .turn-plate[data-turn="true"] .who,
+  .turn-plate[data-turn="true"] .pairs,
+  .turn-plate[data-turn="true"] .mark{color:var(--pc-ink)}
+  .turn-plate[data-turn="true"] .mark{font-size:13px}
+  .turn-plate[data-turn="true"] .mark::before{content:"\25B6"}   /* playing: pointing at you */
+  /* each player's own clock, running only while the arrow points at them */
+  .turn-plate .clock{
+    font-family:"Fredoka",sans-serif; font-size:14px; font-weight:600; line-height:1;
+    color:var(--bone-dim); font-variant-numeric:tabular-nums;
+    margin-left:2px; padding-left:9px; border-left:1px solid var(--edge-soft);
+  }
+  .turn-plate[data-turn="true"] .clock{color:var(--pc-ink); border-left-color:rgba(0,0,0,.28)}
+  .turn-plate[data-low="true"] .clock{color:var(--rust)}
+  .turn-plate[data-turn="true"][data-low="true"] .clock{
+    color:#2A0603; animation:clock-warn 1s steps(1) infinite;   /* the last half-minute */
+  }
+  @keyframes clock-warn{0%,55%{opacity:1} 56%,100%{opacity:.3}}
+  @keyframes turn-beat{
+    0%,100%{box-shadow:0 0 0 4px var(--pc-soft), 0 7px 22px -9px var(--pc)}
+    55%{box-shadow:0 0 0 11px transparent, 0 7px 22px -9px var(--pc)}
+  }
 
   /* ---------- board ---------- */
   .layout{
@@ -146,6 +188,7 @@
   .board-area{position:relative; min-width:0; min-height:0}
   .board{
     display:grid; gap:var(--gap,12px); height:100%; width:100%;
+    position:relative; z-index:1;   /* in the scene, behind the animals, until play begins */
     grid-template-columns:repeat(var(--cols,4), var(--card-w,120px));
     justify-content:center; align-content:center;
   }
@@ -155,8 +198,22 @@
     position:relative; z-index:1;
     transition:z-index 0s linear .5s;   /* on the way down, wait for the flip to finish */
   }
-  /* a turned card comes up in front of the animals */
+  /* a turned card comes up in front of its neighbours */
   .card[data-face="up"]{z-index:5; transition-delay:0s}
+
+  /* The animals stand over the board while it waits, which is half the picture.
+     The first card turned calls the board forward: the cards fade up out of the
+     trees in a ripple spreading from the one that was touched, and from then on
+     nothing stands between a child and the cards. */
+  .board[data-forward="true"]{z-index:3}   /* over the animals, still under the rails */
+  .board[data-forward="true"] .card{
+    animation:step-up .46s cubic-bezier(.22,.9,.3,1) backwards;
+    animation-delay:var(--in,0ms);
+  }
+  @keyframes step-up{
+    from{opacity:.3; transform:translateY(9px) scale(.955)}
+    to{opacity:1; transform:none}
+  }
   .card:disabled{cursor:default}
   .inner{
     position:relative; width:100%; height:100%; transform-style:preserve-3d;
@@ -222,13 +279,21 @@
     font-size:clamp(6px, calc(var(--card-h,90px) * .078), 15px); letter-spacing:.035em;
   }
 
-  .card[data-state="matched"] .side.up{box-shadow:0 0 0 3px var(--amber), 0 0 26px rgba(242,171,62,.5)}
+  .card[data-state="matched"] .side.up{box-shadow:0 0 0 3px var(--own,var(--amber)), 0 0 26px var(--own-glow,rgba(242,171,62,.5))}
   .card[data-state="matched"] .side.up::after{
     content:"\2605"; position:absolute; top:4%; right:5%; z-index:1;   /* behind the animal */
     color:var(--amber); line-height:1;
     font-size:clamp(13px, calc(var(--card-h,90px) * .2), 36px);
     text-shadow:0 0 14px rgba(242,171,62,.55), 0 2px 5px rgba(0,0,0,.65);
   }
+
+  /* In a two-player game a pair keeps the colour of whoever found it - player
+     one blue, player two red - so the board itself says how the game stands.
+     The frame turns; the star stays gold and the animal's name keeps its bronze
+     plate, so the card still reads as a collector's card first. */
+  .card[data-owner="1"]{--own:var(--p1); --own-glow:var(--p1-glow)}
+  .card[data-owner="2"]{--own:var(--p2); --own-glow:var(--p2-glow)}
+  .card[data-owner] .side.up{border-color:var(--own)}
   .card[data-state="matched"] .inner{animation:pop .45s ease}
   .card[data-state="wrong"] .side.up{box-shadow:0 0 0 3px var(--rust)}
   .card[data-state="wrong"] .inner{animation:shake .4s ease}
@@ -240,6 +305,7 @@
     display:flex; flex-direction:column; gap:12px; min-height:0; overflow-y:auto;
     position:relative; z-index:4;        /* above the animals, below a turned card */
   }
+  .rail[hidden]{display:none}
   .panel{
     background:var(--panel); border:1px solid var(--edge-soft); border-radius:14px;
     -webkit-backdrop-filter:blur(12px) saturate(1.1); backdrop-filter:blur(12px) saturate(1.1);
@@ -331,19 +397,31 @@
     font-family:"Fredoka",sans-serif; font-size:11.5px; font-weight:600; letter-spacing:.13em;
     text-transform:uppercase; color:var(--bone-faint); margin:0 0 12px;
   }
-  .pile-n{color:var(--amber)}
-  .pile-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(56px,1fr)); gap:7px}
+  .pile{--pile-c:var(--amber); --pile-edge:rgba(196,158,86,.55); --pile-soft:rgba(242,171,62,.45)}
+  .pile[data-owner="1"]{--pile-c:var(--p1); --pile-edge:rgba(77,163,255,.6); --pile-soft:var(--p1-glow)}
+  .pile[data-owner="2"]{--pile-c:var(--p2); --pile-edge:rgba(255,97,82,.6); --pile-soft:var(--p2-glow)}
+  .pile[data-owner] h2{color:var(--pile-c)}
+  /* the count reads as a badge, so "Player 1  3" cannot be read as "Player 13" */
+  .pile-n{
+    display:inline-block; margin-left:3px; padding:1px 7px 2px; border-radius:999px;
+    background:var(--pile-c); color:#101A12; letter-spacing:.04em; font-weight:800;
+  }
+  .pile-grid{display:flex; flex-wrap:wrap; gap:8px}
   .pile-card{
     appearance:none; padding:0; display:block; cursor:pointer; background:var(--plate-bg);
-    aspect-ratio:5/3; border-radius:8px; overflow:hidden;
-    border:2px solid rgba(196,158,86,.55); transition:.18s;
+    width:clamp(42px, 3.4vw, 58px); aspect-ratio:1; border-radius:50%; overflow:hidden;
+    border:2px solid var(--pile-edge); transition:.18s;
+    box-shadow:0 5px 12px -6px #000;
   }
-  .pile-card img{width:100%; height:100%; object-fit:contain; display:block}
-  .pile-card:hover{border-color:var(--amber); transform:translateY(-2px)}
-  .pile-card[data-open="true"]{border-color:var(--amber); box-shadow:0 0 0 2px rgba(242,171,62,.45)}
+  .pile-card.fresh{animation:badge-in .34s cubic-bezier(.2,1.2,.4,1) backwards}
+  /* the art is a wide plate: fill the circle from it and keep the animal centred */
+  .pile-card img{width:100%; height:100%; object-fit:cover; display:block; transform:scale(1.06)}
+  .pile-card:hover{border-color:var(--pile-c); transform:translateY(-2px) scale(1.06)}
+  .pile-card[data-open="true"]{border-color:var(--pile-c); box-shadow:0 0 0 3px var(--pile-soft), 0 5px 12px -6px #000}
+  @keyframes badge-in{from{opacity:0; transform:scale(.4)} to{opacity:1; transform:none}}
   /* the two of them stand in the scene, one at each side of the board */
-  /* both animals stand at the foot of the page, stepping a little over the cards */
-  .beast{position:fixed; bottom:0; z-index:3; pointer-events:none}
+  /* both animals stand at the foot of the page, over the cards until play begins */
+  .beast{position:fixed; bottom:0; z-index:2; pointer-events:none}
   .beast img{
     display:block; width:auto; max-width:none;
     filter:brightness(.94) saturate(1.02) contrast(1.02) drop-shadow(0 16px 26px rgba(0,0,0,.6));
@@ -378,6 +456,30 @@
     to{transform:scale(1) translate3d(-1.5%,0,0)}
   }
 
+  /* The game is over and the board is no longer anybody's: the animals come
+     back over the cards, the way they stood before the first one was turned.
+     They arrive at their own speeds, the way three animals would. */
+  body[data-won="true"] .beast-left img{
+    animation:trex-takes-it 1.6s cubic-bezier(.16,.9,.3,1) forwards;
+  }
+  body[data-won="true"] .beast-right .velo1{
+    animation:velo-takes-it 1.35s cubic-bezier(.16,.9,.3,1) .12s backwards;
+    animation-fill-mode:forwards;
+  }
+  body[data-won="true"] .beast-right .velo2{
+    animation:velo-takes-it 1.5s cubic-bezier(.16,.9,.3,1) forwards;
+  }
+  @keyframes trex-takes-it{
+    0%{transform:scale(1) translate3d(0,0,0)}
+    62%{transform:scale(1.3) translate3d(10%,0,0)}
+    100%{transform:scale(1.24) translate3d(8%,0,0)}
+  }
+  @keyframes velo-takes-it{
+    0%{transform:scale(1) translate3d(0,0,0)}
+    62%{transform:scale(1.32) translate3d(-17%,0,0)}
+    100%{transform:scale(1.26) translate3d(-13%,0,0)}
+  }
+
   /* ---------- win ---------- */
   .banner{
     position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); z-index:6; text-align:center;
@@ -386,6 +488,8 @@
     padding:26px 26px 24px; box-shadow:0 0 60px rgba(242,171,62,.28), 0 30px 70px -20px #000;
   }
   .banner h2{font-family:"Fredoka",sans-serif; font-size:30px; font-weight:600; margin:0; color:var(--amber)}
+  .banner[data-win="1"]{border-color:var(--p1)} .banner[data-win="1"] h2{color:var(--p1)}
+  .banner[data-win="2"]{border-color:var(--p2)} .banner[data-win="2"] h2{color:var(--p2)}
   .banner p{margin:8px 0 18px; color:var(--bone-dim); font-size:15px}
   .stars{display:flex; justify-content:center; gap:8px; margin:14px 0 4px; font-size:34px; line-height:1}
   .stars .s{color:rgba(240,233,217,.18)}
@@ -451,7 +555,8 @@
     .wrap{height:100%}
     .layout{grid-template-columns:minmax(0,1fr); grid-template-rows:minmax(0,1fr)}
     .board-area{min-height:0}
-    .gutter{display:none}
+    /* one screen, one sheet: player two's pile moves in beside player one's */
+    .rail-2{display:none}
 
     /* the whole control row folds behind one button */
     .menu-btn{display:block}
@@ -480,8 +585,8 @@
     }
     body[data-card="open"] .rail{transform:none}
     .rail .panel{background:transparent; border:0; -webkit-backdrop-filter:none; backdrop-filter:none}
-    .facts{padding:2px 2px 6px}
-    .pile{padding:10px 2px 2px; border-top:1px solid var(--edge-soft)}
+    .facts{padding:6px 2px 6px}
+    .pile{padding:2px 2px 10px; border-bottom:1px solid var(--edge-soft)}
     .portrait{aspect-ratio:2/1}
 
     .cards-tab{display:block}
@@ -506,6 +611,11 @@
     .inner,.pip{transition:none}
     .card[data-state="matched"] .inner,.card[data-state="wrong"] .inner{animation:none}
     .jungle::before,.sunlight,.beast img{animation:none}
+    body[data-won="true"] .beast img{animation:none}
+    .board[data-forward="true"] .card{animation:none}
+    .pile-card.fresh{animation:none}
+    .turn-plate[data-turn="true"]{animation:none; box-shadow:0 0 0 4px var(--pc-soft)}
+    .turn-plate[data-turn="true"][data-low="true"] .clock{animation:none}
   }
 </style>
 
@@ -538,6 +648,22 @@
       </div>
     </div>
 
+    <div class="row" id="start-keep-row" hidden>
+      <p class="row-label">When you find a pair</p>
+      <div class="seg" role="radiogroup" aria-label="When you find a pair" id="start-keep">
+        <button type="button" role="radio" data-keep="0" aria-checked="true">Hand over<small>the turn passes</small></button>
+        <button type="button" role="radio" data-keep="1" aria-checked="false">Go again<small>keep your turn</small></button>
+      </div>
+    </div>
+
+    <div class="row" id="start-timer-row" hidden>
+      <p class="row-label">The clock</p>
+      <div class="seg" role="radiogroup" aria-label="The clock" id="start-timer">
+        <button type="button" role="radio" data-clock="0" aria-checked="true">Off<small>no time limit</small></button>
+        <button type="button" role="radio" data-clock="1" aria-checked="false">Countdown<small>a clock each</small></button>
+      </div>
+    </div>
+
     <button type="button" class="btn go" id="start-btn">Start</button>
   </div>
 </div>
@@ -555,17 +681,17 @@
   </div>
 
   <main class="layout">
-    <div class="rail">
+    <div class="rail" id="rail">
+      <section class="panel pile" id="pile-panel" hidden>
+        <h2><span id="pile-title">Your cards</span> <span class="pile-n" id="pile-count"></span></h2>
+        <div class="pile-grid" id="pile"></div>
+      </section>
+
       <section class="panel facts" id="facts-panel" hidden>
         <button type="button" class="play-x" id="facts-play" aria-label="Read this card aloud">&#9654;</button>
         <button type="button" class="close-x" id="facts-close" aria-label="Put this card back in the pile">&times;</button>
         <h2>What you found</h2>
         <div id="facts"></div>
-      </section>
-
-      <section class="panel pile" id="pile-panel" hidden>
-        <h2>Your cards <span class="pile-n" id="pile-count"></span></h2>
-        <div class="pile-grid" id="pile"></div>
       </section>
     </div>
 
@@ -574,7 +700,20 @@
       <div id="banner-slot"></div>
     </div>
 
-    <div class="gutter" aria-hidden="true"></div>
+    <!-- player two keeps their cards on their own side of the table -->
+    <div class="rail rail-2" id="rail-2" hidden>
+      <section class="panel pile" id="pile-panel-2" data-owner="2" hidden>
+        <h2>Player 2 <span class="pile-n" id="pile-count-2"></span></h2>
+        <div class="pile-grid" id="pile-2"></div>
+      </section>
+
+      <section class="panel facts" id="facts-panel-2" hidden>
+        <button type="button" class="play-x" id="facts-play-2" aria-label="Read this card aloud">&#9654;</button>
+        <button type="button" class="close-x" id="facts-close-2" aria-label="Put this card back in the pile">&times;</button>
+        <h2>What you found</h2>
+        <div id="facts-2"></div>
+      </section>
+    </div>
   </main>
 
   <button type="button" class="cards-tab" id="cards-tab" hidden>
@@ -693,9 +832,17 @@
   var scoreEl = document.getElementById("score");
   var factsEl = document.getElementById("facts");
   var factsPanel = document.getElementById("facts-panel");
+  var factsPanel2 = document.getElementById("facts-panel-2");
+  var factsEl2 = document.getElementById("facts-2");
   var pilePanel = document.getElementById("pile-panel");
   var pileEl = document.getElementById("pile");
   var pileCount = document.getElementById("pile-count");
+  var pileTitle = document.getElementById("pile-title");
+  var rail = document.getElementById("rail");
+  var rail2 = document.getElementById("rail-2");
+  var pilePanel2 = document.getElementById("pile-panel-2");
+  var pileEl2 = document.getElementById("pile-2");
+  var pileCount2 = document.getElementById("pile-count-2");
   var cardsTab = document.getElementById("cards-tab");
   var tabCount = document.getElementById("tab-count");
   var bannerSlot = document.getElementById("banner-slot");
@@ -704,6 +851,7 @@
   var albumBtn = document.getElementById("album-btn");
 
   var state = null, lock = false, flipHandle = null, tickHandle = null, timerValue = null;
+  var clockVal = [null, null];
   var BEST_KEY = "dino-match-best-v1";
 
   function timeText(sec){
@@ -957,7 +1105,8 @@
   function sayWin(){
     if(!soundOn) return;
     var file = state.players === 2
-      ? (state.scores[0] === state.scores[1] ? "tie" : (state.scores[0] > state.scores[1] ? "p1" : "p2"))
+      ? (state.timeout === 0 ? "p2" : state.timeout === 1 ? "p1"
+         : state.scores[0] === state.scores[1] ? "tie" : (state.scores[0] > state.scores[1] ? "p1" : "p2"))
       : state.pairs + "_" + starsOf(state);
     try{
       stopName(); stopSpeech();
@@ -971,22 +1120,28 @@
 
   /* ---------- reading the card aloud ---------- */
   var playBtn = document.getElementById("facts-play");
+  var playBtn2 = document.getElementById("facts-play-2");
+  var playBtns = [playBtn, playBtn2], speakingSide = 0, speakingId = null;
   var speech = null;
 
   function stopSpeech(){
     if(speech){ try{ speech.pause(); speech.currentTime = 0; }catch(e){} speech = null; }
     try{ if(window.speechSynthesis) speechSynthesis.cancel(); }catch(e){}
     jungleDuck(false);
-    playBtn.dataset.playing = "false";
-    playBtn.innerHTML = "&#9654;";
-    playBtn.setAttribute("aria-label", "Read this card aloud");
+    speakingId = null;
+    playBtns.forEach(function(btn){
+      btn.dataset.playing = "false";
+      btn.innerHTML = "&#9654;";
+      btn.setAttribute("aria-label", "Read this card aloud");
+    });
   }
 
   function playing(){
     jungleDuck(true);
-    playBtn.dataset.playing = "true";
-    playBtn.innerHTML = "&#9632;";
-    playBtn.setAttribute("aria-label", "Stop reading");
+    var btn = playBtns[speakingSide];
+    btn.dataset.playing = "true";
+    btn.innerHTML = "&#9632;";
+    btn.setAttribute("aria-label", "Stop reading");
   }
 
   /* The recorded clip if it is there, otherwise whatever voice the browser has. */
@@ -1014,9 +1169,13 @@
     clip.play().then(playing).catch(function(){ speech = null; browserVoice(dino); });
   }
 
-  playBtn.addEventListener("click", function(){
-    if(playBtn.dataset.playing === "true"){ stopSpeech(); return; }
-    if(state && state.last) speak(state.last);
+  playBtns.forEach(function(btn, i){
+    btn.addEventListener("click", function(){
+      if(btn.dataset.playing === "true"){ stopSpeech(); return; }
+      var open = state && state.sides && state.sides[i].last;
+      /* speak() clears the last reading first, so the new one is claimed after it */
+      if(open){ speakingSide = i; speak(open); speakingId = open; }
+    });
   });
 
   /* ---------- card back: a three-toed theropod track ---------- */
@@ -1105,10 +1264,28 @@
   if(window.ResizeObserver) new ResizeObserver(layoutBoard).observe(boardArea);
   else window.addEventListener("resize", layoutBoard);
 
+  /* The board waits behind the animals; the first card turned brings it forward.
+     Each card fades up after a delay set by how far it sits from that card, so
+     the change spreads out from the child's own finger. */
+  function stepForward(card){
+    if(board.dataset.forward === "true") return;
+    var cols = Number(board.style.getPropertyValue("--cols")) || 1;
+    var from = Number(card.dataset.index), fx = from % cols, fy = Math.floor(from / cols);
+    Array.prototype.forEach.call(board.querySelectorAll(".card"), function(el){
+      var i = Number(el.dataset.index), dx = (i % cols) - fx, dy = Math.floor(i / cols) - fy;
+      var away = Math.sqrt(dx * dx + dy * dy);
+      el.style.setProperty("--in", Math.min(Math.round(away * 42), 330) + "ms");
+    });
+    board.dataset.forward = "true";
+  }
+
   /* ---------- rendering ---------- */
   function renderBoard(){
     board.textContent = "";
     board.setAttribute("data-album", String(state.mode === "album"));
+    /* the album is all face up and there to be read, so it comes forward at once */
+    if(state.mode === "album") board.dataset.forward = "true";
+    else delete board.dataset.forward;
     var frag = document.createDocumentFragment();
 
     state.deck.forEach(function(slot, index){
@@ -1122,7 +1299,10 @@
         card.setAttribute("aria-label", dino.name);
       } else {
         card.dataset.face = slot.matched ? "up" : "down";
-        if(slot.matched){ card.dataset.state = "matched"; card.disabled = true; }
+        if(slot.matched){
+          card.dataset.state = "matched"; card.disabled = true;
+          if(slot.by) card.dataset.owner = String(slot.by);
+        }
       }
 
       var inner = document.createElement("div");
@@ -1165,7 +1345,8 @@
 
   function setLabel(card, slot){
     var dino = byId(slot.id);
-    if(slot.matched) card.setAttribute("aria-label", dino.name + ", found");
+    if(slot.matched) card.setAttribute("aria-label",
+      dino.name + (slot.by ? ", found by player " + slot.by : ", found"));
     else if(card.dataset.face === "up") card.setAttribute("aria-label", dino.name);
     else card.setAttribute("aria-label", "Card " + (Number(card.dataset.index) + 1) + ", face down");
   }
@@ -1173,6 +1354,7 @@
   function renderScore(){
     scoreEl.textContent = "";
     timerValue = null;
+    clockVal = [null, null];
 
     if(state.mode === "album"){
       var a = document.createElement("div");
@@ -1189,17 +1371,32 @@
       [0, 1].forEach(function(i){
         var plate = document.createElement("div");
         plate.className = "turn-plate";
+        plate.dataset.player = String(i + 1);
         plate.dataset.turn = String(state.turn === i);
+        var mark = document.createElement("span");
+        mark.className = "mark";
+        mark.setAttribute("aria-hidden", "true");
         var who = document.createElement("span");
         who.className = "who";
         who.textContent = "Player " + (i + 1);
         var pairs = document.createElement("span");
         pairs.className = "pairs";
         pairs.textContent = String(state.scores[i]);
-        plate.appendChild(who); plate.appendChild(pairs);
+        plate.appendChild(mark); plate.appendChild(who); plate.appendChild(pairs);
+
+        if(state.clocks){
+          var clock = document.createElement("span");
+          clock.className = "clock";
+          clock.textContent = timeText(state.clocks[i]);
+          clock.setAttribute("aria-label",
+            "Player " + (i + 1) + " has " + timeText(state.clocks[i]) + " left");
+          plate.appendChild(clock);
+          clockVal[i] = clock;
+        }
+
         scoreEl.appendChild(plate);
       });
-      addTimer();
+      if(state.clocks) paintClocks(); else addTimer();
       return;
     }
 
@@ -1238,15 +1435,44 @@
     timerValue = val;
   }
 
+  /* A card belongs to the side of the table that won it: player one to the
+     left, player two to the right. Each side keeps its own box, so opening one
+     player's dinosaur never shuts the other player's. A phone has one side of
+     the table, and it is the left. */
+  function sideFor(id){
+    if(!state || state.players !== 2 || oneSide.matches) return 0;
+    return finderOf(id) === 2 ? 1 : 0;
+  }
+  function openCard(id){
+    var i = sideFor(id);
+    state.sides[i].last = id;
+    state.sides[i].open = true;
+    renderFacts();
+  }
+
   function renderFacts(){
-    stopSpeech();
-    factsEl.textContent = "";
-    var dino = state.last ? byId(state.last) : null;
+    paintFacts(0);
+    paintFacts(1);
+    /* on a phone the left box is the sheet that slides up over the board */
+    document.body.dataset.card = !factsPanel.hidden ? "open" : "shut";
+    renderPile();
+  }
+
+  function paintFacts(i){
+    var panel = i ? factsPanel2 : factsPanel;
+    var box = i ? factsEl2 : factsEl;
+    var playBtn = playBtns[i];
+    var seat = state.sides ? state.sides[i] : {last: null, open: false};
+    box.textContent = "";
+    var dino = seat.last ? byId(seat.last) : null;
+
+    /* Only the side whose card is going loses its voice. A match on one side of
+       the table must not cut off a card being read aloud on the other. */
+    if(speakingSide === i && (!(dino && seat.open) || seat.last !== speakingId)) stopSpeech();
 
     /* Shut until a pair is found, and shut again when the card is put back. */
-    factsPanel.hidden = !(dino && state.factsOpen);
-    document.body.dataset.card = (dino && state.factsOpen) ? "open" : "shut";
-    if(dino){ factsEl.style.animation = "none"; void factsEl.offsetWidth; factsEl.style.animation = ""; }
+    panel.hidden = !(dino && seat.open);
+    if(dino){ box.style.animation = "none"; void box.offsetWidth; box.style.animation = ""; }
     if(dino){
       var shot = document.createElement("img");
       shot.className = "portrait";
@@ -1339,48 +1565,86 @@
       nameRow.appendChild(name);
       nameRow.appendChild(playBtn);
 
-      factsEl.appendChild(shot);
-      factsEl.appendChild(nameRow);
-      factsEl.appendChild(means);
-      if(badge) factsEl.appendChild(badge);
-      factsEl.appendChild(stats);
-      factsEl.appendChild(rows);
-      factsEl.appendChild(fact);
+      box.appendChild(shot);
+      box.appendChild(nameRow);
+      box.appendChild(means);
+      if(badge) box.appendChild(badge);
+      box.appendChild(stats);
+      box.appendChild(rows);
+      box.appendChild(fact);
     }
-
-    renderPile();
   }
 
-  /* Every card you have collected, smallest first look, click to read it again. */
-  function renderPile(){
-    pileEl.textContent = "";
-    var show = state.mode !== "album" && state.found.length > 0;
-    pilePanel.hidden = !show;
-    cardsTab.hidden = !show;
-    tabCount.textContent = String(state.found.length);
-    if(!show) return;
+  var popped = {};   /* a badge pops in once, the first time it is drawn */
 
-    pileCount.textContent = String(state.found.length);
-    state.found.forEach(function(id){
+  /* who won a pair, read back off the deck the pair came from */
+  function finderOf(id){
+    for(var i = 0; i < state.deck.length; i++){
+      if(state.deck[i].id === id) return state.deck[i].by || 0;
+    }
+    return 0;
+  }
+
+  /* On a wide screen the two players sit across the table from each other and
+     their cards lie on their own side. A phone has only one side, so the second
+     pile moves in under the first. */
+  var oneSide = window.matchMedia("(max-width:980px)");   /* the stylesheet's own breakpoint, word for word */
+  function placePiles(){
+    var narrow = oneSide.matches, home = narrow ? rail : rail2;
+    if(pilePanel2.parentNode !== home) home.insertBefore(pilePanel2, narrow ? factsPanel : null);
+  }
+  if(oneSide.addEventListener) oneSide.addEventListener("change", placePiles);
+  else if(oneSide.addListener) oneSide.addListener(placePiles);
+  placePiles();
+
+  /* Every card you have collected, smallest first look, click to read it again. */
+  function fillPile(panel, grid, count, who){
+    grid.textContent = "";
+    var mine = state.found.filter(function(id){ return !who || finderOf(id) === who; });
+    panel.hidden = mine.length === 0;
+    if(!mine.length) return;
+
+    count.textContent = String(mine.length);
+    mine.forEach(function(id){
       var dino = byId(id);
       var b = document.createElement("button");
       b.type = "button";
       b.className = "pile-card";
       b.title = dino.name;
       b.setAttribute("aria-label", "Read about " + dino.name);
-      if(state.factsOpen && state.last === id) b.dataset.open = "true";
+      if(!popped[id]){ b.className += " fresh"; popped[id] = true; }
+      var seat = state.sides[sideFor(id)];
+      if(seat.open && seat.last === id) b.dataset.open = "true";
       var im = document.createElement("img");
       im.src = "img/" + dino.id + ".webp";
       im.alt = "";
       b.appendChild(im);
       b.addEventListener("click", function(){
-        state.last = id;
-        state.factsOpen = true;
         sfx.flip();
-        renderFacts();
+        openCard(id);
       });
-      pileEl.appendChild(b);
+      grid.appendChild(b);
     });
+  }
+
+  function renderPile(){
+    var two = state.players === 2;
+    var show = state.mode !== "album" && state.found.length > 0;
+    cardsTab.hidden = !show;
+    tabCount.textContent = String(state.found.length);
+    rail2.hidden = !(show && two);
+
+    if(!show){
+      pilePanel.hidden = pilePanel2.hidden = true;
+      pileEl.textContent = pileEl2.textContent = "";
+      return;
+    }
+
+    pileTitle.textContent = two ? "Player 1" : "Your cards";
+    if(two) pilePanel.dataset.owner = "1"; else delete pilePanel.dataset.owner;
+    fillPile(pilePanel, pileEl, pileCount, two ? 1 : 0);
+    if(two) fillPile(pilePanel2, pileEl2, pileCount2, 2);
+    else { pilePanel2.hidden = true; pileEl2.textContent = ""; }
   }
 
   function recordBest(){
@@ -1394,6 +1658,10 @@
 
   function renderBanner(){
     bannerSlot.textContent = "";
+    /* won or lost, the game is over: the board steps back and the animals
+       come forward over the cards again */
+    document.body.dataset.won = String(!!state.won);
+    if(state.won) delete board.dataset.forward;
     if(!state.won) return;
 
     var banner = document.createElement("div");
@@ -1405,8 +1673,17 @@
 
     if(state.players === 2){
       var a = state.scores[0], b = state.scores[1];
-      h.textContent = a === b ? "It's a tie!" : "Player " + (a > b ? 1 : 2) + " wins!";
-      p.textContent = a + " pairs to " + b + ", in " + timeText(state.seconds) + ".";
+      if(state.timeout === 0 || state.timeout === 1){
+        var w = state.timeout === 0 ? 2 : 1;
+        h.textContent = "Player " + w + " wins!";
+        p.textContent = "Player " + (state.timeout + 1) + " ran out of time \u2014 " +
+                        a + " pairs to " + b + ".";
+        banner.dataset.win = String(w);
+      } else {
+        h.textContent = a === b ? "It's a tie!" : "Player " + (a > b ? 1 : 2) + " wins!";
+        if(a !== b) banner.dataset.win = String(a > b ? 1 : 2);
+        p.textContent = a + " pairs to " + b + ", in " + timeText(state.seconds) + ".";
+      }
       banner.appendChild(p);
     } else {
       h.textContent = "You found them all!";
@@ -1458,14 +1735,50 @@
 
   /* ---------- game ---------- */
   function clearFlipTimer(){
+    if(state) state.holding = false;
     if(flipHandle){ clearTimeout(flipHandle); flipHandle = null; }
   }
+  /* Two players share the board but not the clock: each has a budget of their
+     own, and it only runs down while the turn is theirs. Run it out and the
+     game is over, however many pairs you were ahead by. */
+  function paintClocks(){
+    if(!state || state.players !== 2 || !state.clocks) return;
+    for(var i = 0; i < 2; i++){
+      if(!clockVal[i]) continue;
+      clockVal[i].textContent = timeText(state.clocks[i]);
+      clockVal[i].setAttribute("aria-label",
+        "Player " + (i + 1) + " has " + timeText(state.clocks[i]) + " left");
+      clockVal[i].parentNode.dataset.low = String(state.clocks[i] <= 30);
+    }
+  }
+
+  function timeUp(){
+    stopClock();
+    clearFlipTimer();
+    lock = true;
+    state.won = true;
+    state.timeout = state.turn;
+    var winner = state.turn === 0 ? 2 : 1;
+    live.textContent = "Player " + (state.turn + 1) + " has run out of time. Player " +
+                       winner + " wins!";
+    renderScore(); renderBanner();
+    setTimeout(sfx.win, 260);
+    setTimeout(sayWin, 1150);
+  }
+
   function startClock(){
     if(state.running) return;
     state.running = true;
     tickHandle = setInterval(function(){
       state.seconds++;
       if(timerValue) timerValue.textContent = timeText(state.seconds);
+      /* nobody's clock runs while the two cards of a miss are still face up:
+         the player who turned them is done, and the next one cannot move yet */
+      if(state.players === 2 && state.clocks && !state.won && !state.holding){
+        state.clocks[state.turn] = Math.max(0, state.clocks[state.turn] - 1);
+        paintClocks();
+        if(state.clocks[state.turn] === 0) timeUp();
+      }
     }, 1000);
   }
   function stopClock(){
@@ -1480,9 +1793,12 @@
     lock = false;
     state = {
       mode: "album", pairs: state ? state.pairs : 10, players: state ? state.players : 1,
+      keepTurn: state ? state.keepTurn : true, holding: false,
+      timed: state ? state.timed : false, clocks: null, timeout: null,
       deck: SPECIES.map(function(d){ return {id: d.id, matched: false}; }),
-      found: [], last: null, scores: [0, 0], turn: 0, won: false,
-      seconds: 0, turns: 0, running: false, factsOpen: false
+      found: [], scores: [0, 0], turn: 0, won: false,
+      sides: [{last: null, open: false}, {last: null, open: false}],
+      seconds: 0, turns: 0, running: false
     };
     albumBtn.setAttribute("aria-pressed", "true");
     albumBtn.textContent = "Back to game";
@@ -1496,13 +1812,22 @@
     opts = opts || {};
     var pairs = opts.pairs || (state ? state.pairs : 10);
     var players = opts.players || (state ? state.players : 1);
+    /* two-player house rule: does a pair let you go again, or hand the turn over? */
+    var keepTurn = opts.keepTurn !== undefined ? opts.keepTurn
+                 : (state && state.keepTurn !== undefined ? state.keepTurn : true);
     var chosen = shuffle(SPECIES).slice(0, pairs);
     var deck = shuffle(chosen.concat(chosen).map(function(d){ return {id: d.id, matched: false}; }));
 
-    state = {pairs: pairs, players: players, deck: deck, found: [], last: null,
-             scores: [0, 0], turn: 0, won: false,
-             seconds: 0, turns: 0, running: false, mode: "play", factsOpen: false};
+    var timed = opts.timed !== undefined ? opts.timed
+              : (state && state.timed !== undefined ? state.timed : false);
+    var each = Math.max(90, pairs * 15);   /* 1:30 Easy, 2:30 Medium, 6:00 Hard */
+    state = {pairs: pairs, players: players, keepTurn: keepTurn, deck: deck, found: [],
+             scores: [0, 0], turn: 0, won: false, timeout: null,
+             timed: timed, clocks: (players === 2 && timed) ? [each, each] : null,
+             sides: [{last: null, open: false}, {last: null, open: false}],
+             holding: false, seconds: 0, turns: 0, running: false, mode: "play"};
     lock = false;
+    popped = {};
     clearFlipTimer();
     stopClock();
     albumBtn.setAttribute("aria-pressed", "false");
@@ -1521,10 +1846,8 @@
       });
       card.dataset.picked = "true";
       jungleStart();
-      state.last = state.deck[Number(card.dataset.index)].id;
-      state.factsOpen = true;
       sfx.flip();
-      renderFacts();
+      openCard(state.deck[Number(card.dataset.index)].id);
       return;
     }
 
@@ -1534,6 +1857,7 @@
     if(slot.matched || card.dataset.face === "up") return;
 
     startClock();
+    stepForward(card);
     jungleStart();
     card.dataset.face = "up";
     setLabel(card, slot);
@@ -1555,12 +1879,21 @@
     if(a.id === b.id){
       a.matched = b.matched = true;
       state.found.push(a.id);
-      state.last = a.id;
-      state.factsOpen = true;
-      if(state.players === 2) state.scores[state.turn]++;
-      [first, second].forEach(function(el){ el.dataset.state = "matched"; el.disabled = true; setLabel(el, a); });
+      if(state.players === 2){
+        state.scores[state.turn]++;
+        a.by = b.by = state.turn + 1;
+        /* an older saved game has no rule of its own: it goes again, as it always did */
+        if(state.keepTurn === false) state.turn = state.turn === 0 ? 1 : 0;
+      }
+      [first, second].forEach(function(el){
+        el.dataset.state = "matched"; el.disabled = true;
+        if(a.by) el.dataset.owner = String(a.by);
+        setLabel(el, a);
+      });
       sfx.match();
-      live.textContent = "Match! " + byId(a.id).name + ". " + state.found.length + " of " + state.pairs + " found.";
+      live.textContent = "Match! " + byId(a.id).name + ". " +
+        state.found.length + " of " + state.pairs + " found." +
+        (state.players === 2 ? " Player " + (state.turn + 1) + "'s turn." : "");
       lock = false;
       state.won = state.found.length === state.pairs;
       if(state.won){
@@ -1570,7 +1903,7 @@
         setTimeout(sayWin, 1150);   // after the fanfare has rung out
         live.textContent = "You found them all!";
       }
-      renderScore(); renderFacts(); renderBanner();
+      renderScore(); openCard(a.id); renderBanner();
     } else {
       first.dataset.state = second.dataset.state = "wrong";
       if(state.players === 2){
@@ -1580,8 +1913,10 @@
         live.textContent = "Not a pair.";
       }
       renderScore();
+      state.holding = true;
       flipHandle = setTimeout(function(){
         flipHandle = null;
+        state.holding = false;
         sfx.flip();
         [first, second].forEach(function(el){
           el.dataset.face = "down";
@@ -1619,9 +1954,11 @@
     else openAlbum();
   });
 
-  document.getElementById("facts-close").addEventListener("click", function(){
-    state.factsOpen = false;
-    renderFacts();
+  [["facts-close", 0], ["facts-close-2", 1]].forEach(function(pair){
+    document.getElementById(pair[0]).addEventListener("click", function(){
+      state.sides[pair[1]].open = false;
+      renderFacts();
+    });
   });
 
   /* On a phone the control row lives behind one button. Picking anything
@@ -1647,9 +1984,7 @@
 
   cardsTab.addEventListener("click", function(){
     if(!state.found.length) return;
-    if(!state.last) state.last = state.found[state.found.length - 1];
-    state.factsOpen = true;
-    renderFacts();
+    openCard(state.sides[0].last || state.found[state.found.length - 1]);
   });
 
   var fullBtn = document.getElementById("full-btn");
@@ -1674,7 +2009,10 @@
   /* The way in: the one tap that both sets the game up and wakes the forest,
      since a browser will not start audio until the player has done something. */
   var startOverlay = document.getElementById("start");
-  var startPairs = 10, startPlayers = 1;
+  var startPairs = 10, startPlayers = 1, startKeep = 0;   /* hand the turn over */
+  var startTimed = 0;                                    /* no time limit */
+  var keepRow = document.getElementById("start-keep-row");
+  var timerRow = document.getElementById("start-timer-row");
 
   function wirePick(id, attr, set){
     var group = document.getElementById(id);
@@ -1688,26 +2026,43 @@
     });
   }
   wirePick("start-size", "pairs", function(v){ startPairs = v; });
-  wirePick("start-players", "players", function(v){ startPlayers = v; });
+  wirePick("start-players", "players", function(v){
+    startPlayers = v;
+    keepRow.hidden = timerRow.hidden = v !== 2;
+  });
+  wirePick("start-keep", "keep", function(v){ startKeep = v; });
+  wirePick("start-timer", "clock", function(v){ startTimed = v; });
 
   /* Coming back to it keeps whatever was last played selected. */
   function openStart(){
     stopSpeech();
     stopClock();
-    if(state){ startPairs = state.pairs; startPlayers = state.players; }
+    if(state){
+      startPairs = state.pairs; startPlayers = state.players;
+      startKeep = state.keepTurn === false ? 0 : 1;
+      startTimed = state.timed === true ? 1 : 0;
+    }
     Array.prototype.forEach.call(document.querySelectorAll("#start-size button"), function(el){
       el.setAttribute("aria-checked", String(Number(el.dataset.pairs) === startPairs));
     });
     Array.prototype.forEach.call(document.querySelectorAll("#start-players button"), function(el){
       el.setAttribute("aria-checked", String(Number(el.dataset.players) === startPlayers));
     });
+    Array.prototype.forEach.call(document.querySelectorAll("#start-keep button"), function(el){
+      el.setAttribute("aria-checked", String(Number(el.dataset.keep) === startKeep));
+    });
+    Array.prototype.forEach.call(document.querySelectorAll("#start-timer button"), function(el){
+      el.setAttribute("aria-checked", String(Number(el.dataset.clock) === startTimed));
+    });
+    keepRow.hidden = timerRow.hidden = startPlayers !== 2;
     startOverlay.hidden = false;
   }
 
   document.getElementById("start-btn").addEventListener("click", function(){
     startOverlay.hidden = true;
     jungleStart();
-    newGame({pairs: startPairs, players: startPlayers});
+    newGame({pairs: startPairs, players: startPlayers,
+             keepTurn: startKeep === 1, timed: startTimed === 1});
   });
 
   /* ---------- boot ---------- */
