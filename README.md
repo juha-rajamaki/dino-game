@@ -41,10 +41,11 @@ works for a child who cannot read yet.
 - **A card pile.** Every pair you find drops a round badge into the pile at the
   top of your own place at the table — players one and three down the left side,
   two and four down the right — and any card can be opened again from there at
-  any time. Each player has their own **What you found** box under their own
-  pile, so opening one player's dinosaur never shuts, or silences, anybody
-  else's. A phone has one side of the table, so there everything stacks into the
-  single sheet.
+  any time. Under the piles each side has one **What you found** box, shared by
+  the two players sitting there and wearing the colour of whoever's card is in
+  it. The two sides are independent: opening a card on the left never shuts, or
+  silences, the one on the right. A phone has one side of the table, so there
+  everything stacks into the single sheet.
 - **All cards** — browse the whole collection without playing.
 - **The animals stand back.** The Tyrannosaurus and the velociraptors have the
   board to themselves while it waits. The first card turned calls the cards

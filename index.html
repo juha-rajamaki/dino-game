@@ -320,6 +320,14 @@
   /* Two players to a side share the height between them rather than queueing
      one below the other, so nobody has to scroll the rail to find their card.
      Each box keeps its own scrollbar for the long ones. */
+  /* Two share a box, so it wears the colour of whoever's card is in it. */
+  .facts[data-owner="1"]{--box-c:var(--p1)}
+  .facts[data-owner="2"]{--box-c:var(--p2)}
+  .facts[data-owner="3"]{--box-c:var(--p3)}
+  .facts[data-owner="4"]{--box-c:var(--p4)}
+  .facts[data-owner]{border-color:var(--box-c); box-shadow:inset 0 2.5px 0 0 var(--box-c)}
+  .facts[data-owner] h2{color:var(--box-c)}
+
   .rail[data-seats="2"]{overflow:hidden}
   .rail[data-seats="2"] .facts{flex:1 1 0; min-height:96px; overflow-y:auto}
   .panel{
@@ -849,16 +857,15 @@
   var rail = document.getElementById("rail");
   var rail2 = document.getElementById("rail-2");
 
-  /* Up to four seats at the table. Each has a pile of the cards it has won and
-     a box for the one it is looking at, and each is built the same way, so the
-     game never has to know how many are playing. Odd seats sit on the left,
-     even ones across from them on the right. */
+  function node(tag, cls){
+    var el = document.createElement(tag);
+    if(cls) el.className = cls;
+    return el;
+  }
+
+  /* Up to four seats at the table, each with a pile of the cards it has won.
+     Players one and three sit down the left side, two and four down the right. */
   var SEATS = (function(){
-    function node(tag, cls){
-      var el = document.createElement(tag);
-      if(cls) el.className = cls;
-      return el;
-    }
     var seats = [];
     for(var i = 0; i < 4; i++){
       var pilePanel = node("section", "panel pile");
@@ -871,9 +878,19 @@
       ph.appendChild(count);
       var grid = node("div", "pile-grid");
       pilePanel.appendChild(ph); pilePanel.appendChild(grid);
+      seats.push({pilePanel: pilePanel, pileTitle: title, pileCount: count, pileGrid: grid});
+    }
+    return seats;
+  })();
 
-      var factsPanel = node("section", "panel facts");
-      factsPanel.hidden = true;
+  /* One box to a side, under the piles, shared by the players who sit there:
+     the left box by players one and three, the right by two and four. It wears
+     the colour of whoever's card is open in it, since two of them share it. */
+  var BOXES = (function(){
+    var boxes = [];
+    for(var i = 0; i < 2; i++){
+      var panel = node("section", "panel facts");
+      panel.hidden = true;
       var play = node("button", "play-x");
       play.type = "button"; play.textContent = "\u25B6";
       play.setAttribute("aria-label", "Read this card aloud");
@@ -883,13 +900,11 @@
       var fh = node("h2");
       fh.textContent = "What you found";
       var body = node("div", "facts-body");
-      factsPanel.appendChild(play); factsPanel.appendChild(close);
-      factsPanel.appendChild(fh); factsPanel.appendChild(body);
-
-      seats.push({pilePanel: pilePanel, pileTitle: title, pileCount: count, pileGrid: grid,
-                  factsPanel: factsPanel, body: body, play: play, close: close});
+      panel.appendChild(play); panel.appendChild(close);
+      panel.appendChild(fh); panel.appendChild(body);
+      boxes.push({panel: panel, body: body, play: play, close: close});
     }
-    return seats;
+    return boxes;
   })();
   var cardsTab = document.getElementById("cards-tab");
   var tabCount = document.getElementById("tab-count");
@@ -1191,7 +1206,7 @@
   }
 
   /* ---------- reading the card aloud ---------- */
-  var playBtns = SEATS.map(function(s){ return s.play; });
+  var playBtns = BOXES.map(function(b){ return b.play; });
   var speakingSide = 0, speakingId = null;
   var speech = null;
 
@@ -1508,14 +1523,14 @@
     timerValue = val;
   }
 
-  /* A card belongs to the seat that won it, and every seat keeps its own box,
-     so opening one player's dinosaur never shuts another's. A phone has one
-     side of the table, and it is the left, so there everything opens in the
-     first box. */
+  /* A card opens in the box belonging to the side of the table that won it:
+     players one and three share the left box, two and four the right. The two
+     sides are independent, so one never shuts the other. A phone has one side
+     of the table, and it is the left, so there everything opens in that box. */
   function sideFor(id){
     if(!state || oneSide.matches) return 0;
     var by = finderOf(id);
-    return by ? by - 1 : 0;
+    return by ? (by - 1) % 2 : 0;
   }
   function openCard(id){
     var i = sideFor(id);
@@ -1525,22 +1540,25 @@
   }
 
   function renderFacts(){
-    for(var i = 0; i < SEATS.length; i++) paintFacts(i);
-    /* on a phone the first box is the sheet that slides up over the board */
-    document.body.dataset.card = !SEATS[0].factsPanel.hidden ? "open" : "shut";
+    for(var i = 0; i < BOXES.length; i++) paintFacts(i);
+    /* on a phone the left box is the sheet that slides up over the board */
+    document.body.dataset.card = !BOXES[0].panel.hidden ? "open" : "shut";
     renderPile();
   }
 
   function paintFacts(i){
-    var panel = SEATS[i].factsPanel;
-    var box = SEATS[i].body;
+    var panel = BOXES[i].panel;
+    var box = BOXES[i].body;
     var playBtn = playBtns[i];
     var seat = (state.sides && state.sides[i]) || {last: null, open: false};
     box.textContent = "";
-    /* a seat nobody is sitting in, or a side a phone does not have */
-    var seated = i < state.players && !(oneSide.matches && i > 0);
-    if(!seated) seat = {last: null, open: false};
+    /* the right box only exists once somebody sits there, and a phone has none */
+    var inUse = (i === 0) || (state.players >= 2 && !oneSide.matches);
+    if(!inUse) seat = {last: null, open: false};
     var dino = seat.last ? byId(seat.last) : null;
+    /* whose card this is, so a shared box still says who found it */
+    var by = dino ? finderOf(seat.last) : 0;
+    if(by) panel.dataset.owner = String(by); else delete panel.dataset.owner;
 
     /* Only the side whose card is going loses its voice. A match on one side of
        the table must not cut off a card being read aloud on the other. */
@@ -1682,11 +1700,11 @@
     var narrow = oneSide.matches;
     markSeats();
     SEATS.forEach(function(seat, i){
-      var home = narrow ? rail : ((i % 2) ? rail2 : rail);
-      home.appendChild(seat.pilePanel);
-      if(!narrow) home.appendChild(seat.factsPanel);
+      (narrow ? rail : ((i % 2) ? rail2 : rail)).appendChild(seat.pilePanel);
     });
-    if(narrow) SEATS.forEach(function(seat){ rail.appendChild(seat.factsPanel); });
+    /* the box goes under the piles of the players who share it */
+    rail.appendChild(BOXES[0].panel);
+    (narrow ? rail : rail2).appendChild(BOXES[1].panel);
   }
   if(oneSide.addEventListener) oneSide.addEventListener("change", placeSeats);
   else if(oneSide.addListener) oneSide.addListener(placeSeats);
@@ -1906,7 +1924,7 @@
       timed: state ? state.timed : false, clocks: null, timeout: null,
       deck: SPECIES.map(function(d){ return {id: d.id, matched: false}; }),
       found: [], scores: seatArray(0), turn: 0, won: false,
-      sides: SEATS.map(function(){ return {last: null, open: false}; }),
+      sides: [{last: null, open: false}, {last: null, open: false}],
       seconds: 0, turns: 0, running: false
     };
     albumBtn.setAttribute("aria-pressed", "true");
@@ -1937,7 +1955,7 @@
     state = {pairs: pairs, players: players, keepTurn: keepTurn, deck: deck, found: [],
              scores: seatArray(0), turn: 0, won: false, timeout: null,
              timed: timed, clocks: (players >= 2 && timed) ? seatArray(each) : null,
-             sides: SEATS.map(function(){ return {last: null, open: false}; }),
+             sides: [{last: null, open: false}, {last: null, open: false}],
              holding: false, seconds: 0, turns: 0, running: false, mode: "play"};
     lock = false;
     popped = {};
@@ -2068,8 +2086,8 @@
     else openAlbum();
   });
 
-  SEATS.forEach(function(seat, i){
-    seat.close.addEventListener("click", function(){
+  BOXES.forEach(function(box, i){
+    box.close.addEventListener("click", function(){
       state.sides[i].open = false;
       renderFacts();
     });
