@@ -549,7 +549,7 @@
     box-shadow:0 10px 24px -10px #000;
   }
 
-  @media (max-width:980px){
+  @media (max-width:980px), (orientation:portrait){
     html,body{height:100%}
     body{overflow:hidden}
     .wrap{height:100%}
@@ -588,6 +588,8 @@
     .facts{padding:6px 2px 6px}
     .pile{padding:2px 2px 10px; border-bottom:1px solid var(--edge-soft)}
     .portrait{aspect-ratio:2/1}
+    /* a tablet's sheet is wide: keep the card to a column that can be read */
+    .rail > .panel{width:100%; max-width:900px; margin-inline:auto}
 
     .cards-tab{display:block}
     .cards-tab[hidden]{display:none}
@@ -596,6 +598,23 @@
     /* the animals give the cards their room back */
     .beast-right{display:none}
     .beast-left img{height:min(26vh,210px); margin:0 0 -2% -14vw}
+  }
+
+  /* Wide enough for two columns, and still on one side of the table: the
+     animal stands beside its own description rather than towering over it,
+     which keeps the sheet short enough to leave the board in view. */
+  @media (min-width:660px) and (orientation:portrait),
+         (min-width:660px) and (max-width:980px){
+    #facts, #facts-2{display:flex; align-items:flex-start; gap:clamp(16px,2.5vw,28px)}
+    #facts > .portrait, #facts-2 > .portrait{
+      flex:none; width:clamp(200px, 33%, 320px); aspect-ratio:4/3; margin:0;
+    }
+    .facts-text{flex:1 1 0; min-width:0; padding-top:9px}   /* clear of the close button */
+    .facts-text .name{font-size:27px}
+    .stats{margin:14px 0}
+    .diet{justify-self:start}        /* a label, not a bar, once there is room */
+    .rows{grid-template-columns:auto minmax(0,1fr)}
+    .facts h2{margin-bottom:10px}
   }
 
   @media (max-width:560px){
@@ -1565,13 +1584,17 @@
       nameRow.appendChild(name);
       nameRow.appendChild(playBtn);
 
+      var text = document.createElement("div");
+      text.className = "facts-text";
+      text.appendChild(nameRow);
+      text.appendChild(means);
+      if(badge) text.appendChild(badge);
+      text.appendChild(stats);
+      text.appendChild(rows);
+      text.appendChild(fact);
+
       box.appendChild(shot);
-      box.appendChild(nameRow);
-      box.appendChild(means);
-      if(badge) box.appendChild(badge);
-      box.appendChild(stats);
-      box.appendChild(rows);
-      box.appendChild(fact);
+      box.appendChild(text);
     }
   }
 
@@ -1588,7 +1611,8 @@
   /* On a wide screen the two players sit across the table from each other and
      their cards lie on their own side. A phone has only one side, so the second
      pile moves in under the first. */
-  var oneSide = window.matchMedia("(max-width:980px)");   /* the stylesheet's own breakpoint, word for word */
+  /* the stylesheet's own query, word for word, so the two can never disagree */
+  var oneSide = window.matchMedia("(max-width:980px), (orientation:portrait)");
   function placePiles(){
     var narrow = oneSide.matches, home = narrow ? rail : rail2;
     if(pilePanel2.parentNode !== home) home.insertBefore(pilePanel2, narrow ? factsPanel : null);
