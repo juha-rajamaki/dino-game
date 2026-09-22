@@ -18,18 +18,20 @@ works for a child who cannot read yet.
   **New game** brings the screen back.
 - **Three sizes** — Easy (6 pairs), Medium (10) and Hard (all 24). The animals
   in a game are drawn at random each time, so the same size plays differently.
-- **One or two players.** A miss always passes the turn. What a *pair* does is
-  the players' own choice, made on the start screen: **Hand over** passes the
-  turn along, which is how it starts, or **Go again** lets the finder keep it.
-  Two players get a colour each — player one blue, player two red — and every
-  pair won is framed in its finder's colour.
-- **A clock each, if you want one.** Two players can turn a countdown on from
+- **One to four players.** A miss always passes the turn, and the browser says
+  aloud whose turn it now is. What a *pair* does is the players' own choice,
+  made on the start screen: **Hand over** passes the turn along, which is how it
+  starts, or **Go again** lets the finder keep it. Everyone gets a colour —
+  player one blue, two red, three green, four yellow — and every pair won is
+  framed in its finder's colour.
+- **A clock each, if you want one.** Two or more players can turn a countdown on from
   the start screen; it is off to begin with, and the timer then counts up as it
   always has. With it on, each player has a budget of their own: fifteen seconds a pair, never less than a
   minute and a half, so 1:30 on Easy, 2:30 on Medium and 6:00 on Hard. It runs
   only while the turn is yours, stops while the two cards of a miss are still
   face up — that time belongs to nobody — and goes red for the last thirty
-  seconds. Run it out and you lose, however far ahead you were.
+  seconds. Run it out and the game ends there and you cannot win it, however far
+  ahead you were.
 - **Narration.** Every card has a spoken version of its text, recorded with
   [Piper](https://github.com/rhasspy/piper) using the `en_GB-jenny_dioco-medium` voice.
   If a clip is ever missing the page falls back to the browser's own speech.
@@ -37,15 +39,19 @@ works for a child who cannot read yet.
   its own on/off switch in the top bar that is remembered between visits. It
   ducks out of the way while a card is being read aloud.
 - **A card pile.** Every pair you find drops a round badge into the pile at the
-  top of your side of the table — player one on the left, player two on the
-  right — and any card can be opened again from there at any time. Each side
-  has its own **What you found** box below its pile, so opening one player's
-  dinosaur never shuts the other's.
+  top of your own place at the table — players one and three down the left side,
+  two and four down the right — and any card can be opened again from there at
+  any time. Each player has their own **What you found** box under their own
+  pile, so opening one player's dinosaur never shuts, or silences, anybody
+  else's. A phone has one side of the table, so there everything stacks into the
+  single sheet.
 - **All cards** — browse the whole collection without playing.
 - **The animals stand back.** The Tyrannosaurus and the velociraptors have the
   board to themselves while it waits. The first card turned calls the cards
   forward in front of them, in a ripple spreading from the card that was
-  touched, so nothing stands between a child and the game.
+  touched, so nothing stands between a child and the game — and when it is over
+  they run back in over the cards, the Tyrannosaurus from off the left edge and
+  the velociraptors from off the right.
 - **Timer and score.** The clock starts on the first card and stops on the last
   pair. The score rewards guessing well and being quick, and gives one to three
   stars scaled to how many pairs were in play.
