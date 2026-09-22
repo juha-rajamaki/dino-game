@@ -52,11 +52,11 @@ works for a child who cannot read yet.
   everything stacks into the single sheet.
 - **All cards** — browse the whole collection without playing.
 - **The animals stand back.** The Tyrannosaurus and the velociraptors have the
-  board to themselves while it waits. The first card turned calls the cards
-  forward in front of them, in a ripple spreading from the card that was
-  touched, so nothing stands between a child and the game — and when it is over
-  they run back in over the cards, the Tyrannosaurus from off the left edge and
-  the velociraptors from off the right.
+  board to themselves while the start screen is up. As the game opens — once the
+  first player has been named — the cards come up in front of them in a ripple
+  spreading out from the middle of the table, so nothing stands between a child
+  and the game. When it is over the animals run back in over the cards, the
+  Tyrannosaurus from off the left edge and the velociraptors from off the right.
 - **Timer and score.** The clock starts on the first card and stops on the last
   pair. The score rewards guessing well and being quick, and gives one to three
   stars scaled to how many pairs were in play.

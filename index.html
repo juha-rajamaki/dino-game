@@ -1429,7 +1429,10 @@
   function stepForward(card){
     if(board.dataset.forward === "true") return;
     var cols = Number(board.style.getPropertyValue("--cols")) || 1;
-    var from = Number(card.dataset.index), fx = from % cols, fy = Math.floor(from / cols);
+    var count = (state && state.deck) ? state.deck.length : 0;
+    var rows = Math.max(1, Math.ceil(count / cols));
+    var fx = (cols - 1) / 2, fy = (rows - 1) / 2;   /* out from the middle of the table */
+    if(card){ var from = Number(card.dataset.index); fx = from % cols; fy = Math.floor(from / cols); }
     Array.prototype.forEach.call(board.querySelectorAll(".card"), function(el){
       var i = Number(el.dataset.index), dx = (i % cols) - fx, dy = Math.floor(i / cols) - fy;
       var away = Math.sqrt(dx * dx + dy * dy);
@@ -2059,12 +2062,18 @@
     albumBtn.textContent = "All cards";
     renderBoard(); renderScore(); renderFacts(); renderBanner();
     live.textContent = pairs + " pairs of cards. " + (players >= 2 ? "Player 1 starts." : "Find them all!");
-    /* and said out loud, so the table knows who begins */
+    /* Said out loud, so the table knows who begins - and as the naming ends the
+       cards come up out of the trees in front of the animals, ready to play.
+       With one player there is nobody to name, so they come up on their own. */
+    var opening = state;
+    function ready(){ if(state === opening && !state.won) stepForward(null); }
     if(players >= 2){
-      var opening = state;
       setTimeout(function(){
-        if(state === opening && !state.won) sayClip("start", "Player 1 starts!", null);
+        if(state !== opening || state.won) return;
+        sayClip("start", "Player 1 starts!", ready);
       }, 550);
+    } else {
+      setTimeout(ready, 520);
     }
   }
 
@@ -2089,7 +2098,6 @@
     if(slot.matched || card.dataset.face === "up") return;
 
     startClock();
-    stepForward(card);
     jungleStart();
     card.dataset.face = "up";
     setLabel(card, slot);
