@@ -516,6 +516,7 @@
     padding:26px 26px 24px; box-shadow:0 0 60px rgba(242,171,62,.28), 0 30px 70px -20px #000;
   }
   .banner h2{font-family:"Fredoka",sans-serif; font-size:30px; font-weight:600; margin:0; color:var(--amber)}
+  .banner .close-x{top:11px; right:11px}
   .banner[data-win="1"]{border-color:var(--p1)} .banner[data-win="1"] h2{color:var(--p1)}
   .banner[data-win="2"]{border-color:var(--p2)} .banner[data-win="2"] h2{color:var(--p2)}
   .banner[data-win="3"]{border-color:var(--p3)} .banner[data-win="3"] h2{color:var(--p3)}
@@ -1874,10 +1875,22 @@
        come forward over the cards again */
     document.body.dataset.won = String(!!state.won);
     if(state.won) delete board.dataset.forward;
-    if(!state.won) return;
+    /* put away, so the finished board can be looked over */
+    if(!state.won || state.bannerShut) return;
 
     var banner = document.createElement("div");
     banner.className = "banner";
+
+    var shut = document.createElement("button");
+    shut.type = "button"; shut.className = "close-x";
+    shut.textContent = "\u00D7";
+    shut.setAttribute("aria-label", "Close");
+    shut.addEventListener("click", function(){
+      state.bannerShut = true;
+      renderBanner();
+      live.textContent = "The board is yours to look at. New game starts another.";
+    });
+    banner.appendChild(shut);
     var h = document.createElement("h2");
     var p = document.createElement("p");
 

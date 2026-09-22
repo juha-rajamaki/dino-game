@@ -57,6 +57,9 @@ works for a child who cannot read yet.
   spreading out from the middle of the table, so nothing stands between a child
   and the game. When it is over the animals run back in over the cards, the
   Tyrannosaurus from off the left edge and the velociraptors from off the right.
+- **The end can be put away.** The banner that says who won has an **×** on it.
+  Closing it leaves the finished board, everybody's piles and the cards still
+  there to look over; **New game** starts another whenever you are ready.
 - **Timer and score.** The clock starts on the first card and stops on the last
   pair. The score rewards guessing well and being quick, and gives one to three
   stars scaled to how many pairs were in play.
