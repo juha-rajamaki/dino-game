@@ -605,6 +605,11 @@
   /* Extra hard says what it is in its colour, not in small print */
   .start .seg button.extra{color:var(--p2); font-weight:700}
   .start .seg button.extra[aria-checked="true"]{background:var(--p2); color:#fff}
+  /* pointed at, it turns white like the others, and asks once more */
+  .start .seg button.extra:hover,.start .seg button.extra:focus-visible{color:var(--bone)}
+  .start .seg button.extra[aria-checked="true"]:hover{color:#fff}
+  .start .seg button.extra .sure{visibility:hidden}
+  .start .seg button.extra:hover .sure,.start .seg button.extra:focus-visible .sure{visibility:visible}
   .start .seg button small{font-size:10.5px; opacity:.75; font-family:"Nunito",sans-serif; font-weight:700}
   .start .go{width:100%; margin-top:10px; font-size:19px; padding:14px}
 
@@ -745,7 +750,7 @@
         <button type="button" role="radio" data-pairs="6" aria-checked="false">Easy<small>6</small></button>
         <button type="button" role="radio" data-pairs="10" aria-checked="true">Medium<small>10</small></button>
         <button type="button" role="radio" data-pairs="24" aria-checked="false">Hard<small>24</small></button>
-        <button type="button" role="radio" data-pairs="30" aria-checked="false" class="extra">Extra hard</button>
+        <button type="button" role="radio" data-pairs="30" aria-checked="false" class="extra">Extra hard<small class="sure">Are you sure?</small></button>
       </div>
     </div>
 
