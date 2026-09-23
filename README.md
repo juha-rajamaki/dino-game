@@ -27,8 +27,7 @@ works for a child who cannot read yet.
   after the first three minutes of play — a warning sounds and two
   face-down cards glide across the table and trade places, so what you
   remembered about them is no longer true. The first card turned starts the
-  clock, and the game says *your time starts now*; a bell rings when half of
-  a player's time is gone.
+  clock, and a bell rings when half of a player's time is gone.
 - **One to four players.** A miss always passes the turn, and the next player is
   named out loud — the plate only lights up for them once the naming has
   finished, so nobody plays a card into somebody else's turn. What a *pair* does is the players' own choice,

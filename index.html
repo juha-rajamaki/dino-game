@@ -1357,7 +1357,7 @@
     if(nameClip){ try{ nameClip.pause(); }catch(e){} nameClip = null; }
   }
 
-  var turnClip = null, goClip = null;   /* goClip only holds the preload */
+  var turnClip = null;
   function stopTurn(){
     if(turnClip){ try{ turnClip.pause(); }catch(e){} turnClip = null; }
   }
@@ -2435,8 +2435,6 @@
     var each = extra ? EXTRA_EACH[Math.min(players, 4) - 1]
                      : Math.max(90, pairs * 15);   /* 1:30 Easy, 2:30 Medium, 6:00 Hard */
     var countdown = extra || (players >= 2 && timed);
-    /* fetched now, so "Your time starts now!" is not late for the first card */
-    if(extra && !goClip){ try{ goClip = new Audio("audio/turn/go.wav"); goClip.preload = "auto"; }catch(e){} }
     state = {pairs: pairs, players: players, keepTurn: keepTurn, deck: deck, found: [],
              scores: seatArray(0), turn: 0, won: false, timeout: null,
              timed: timed, clocks: countdown ? seatArray(each) : null, moving: extra, budget: each,
@@ -2487,29 +2485,13 @@
     var slot = state.deck[index];
     if(slot.matched || card.dataset.face === "up" || card.dataset.moving) return;
 
-    /* Extra hard: the first card turned starts the clock, and the table is
-       told so out loud before the card's own name is said */
-    var starting = state.moving && !state.running && state.seconds === 0;
     startClock();
     jungleStart();
     card.dataset.face = "up";
     slot.seen = true;
     setLabel(card, slot);
     sfx.flip();
-    if(starting){
-      var game = state, waited = 0;
-      /* after "Player 1 starts!" if that is still being said, never over it */
-      function go(){
-        if(state !== game || game.won) return;
-        if(turnClip && waited < 4000){ waited += 150; setTimeout(go, 150); return; }
-        sayClip("go", "Your time starts now!", function(){
-          if(state === game && !game.won && card.dataset.face === "up") sayName(slot.id);
-        });
-      }
-      setTimeout(go, 190);
-    } else {
-      setTimeout(function(){ sayName(slot.id); }, 190);
-    }
+    setTimeout(function(){ sayName(slot.id); }, 190);
 
     var open = Array.prototype.filter.call(
       board.querySelectorAll('.card[data-face="up"]'),
