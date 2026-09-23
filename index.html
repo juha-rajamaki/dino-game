@@ -549,20 +549,6 @@
     to  {opacity:1; transform:translate(-50%,-50%)}
   }
   .banner{animation:bannerIn .52s cubic-bezier(.22,.86,.3,1) both}
-  /* pair-found toast */
-  .pair-toast{
-    position:absolute; left:50%; top:42%; transform:translate(-50%,-50%);
-    z-index:7; pointer-events:none;
-    font-family:"Fredoka",sans-serif; font-size:clamp(18px,3.5vw,28px); font-weight:600;
-    color:var(--amber); text-shadow:0 0 18px rgba(242,171,62,.6), 0 2px 8px rgba(0,0,0,.7);
-    white-space:nowrap; animation:toastPop .9s cubic-bezier(.2,.9,.3,1) both;
-  }
-  @keyframes toastPop{
-    0%  {opacity:0; transform:translate(-50%,-50%) scale(.7)}
-    18% {opacity:1; transform:translate(-50%,-58%) scale(1.08)}
-    55% {opacity:1; transform:translate(-50%,-64%) scale(1)}
-    100%{opacity:0; transform:translate(-50%,-72%) scale(.95)}
-  }
   .final-score{
     font-family:"Fredoka",sans-serif; font-size:42px; font-weight:600; color:var(--bone);
     line-height:1; margin:12px 0 0; font-variant-numeric:tabular-nums;
@@ -715,7 +701,7 @@
     .pile-card.fresh{animation:none}
     .turn-plate[data-turn="true"]{animation:none; box-shadow:0 0 0 4px var(--pc-soft)}
     .turn-plate[data-turn="true"][data-low="true"] .clock{animation:none}
-    .stars .s.on::after,.banner,.pair-toast{animation:none}
+    .stars .s.on::after,.banner{animation:none}
   }
 </style>
 
@@ -1267,25 +1253,9 @@
     sayClip("again", "Go again!", null);
   }
 
-  /* A found pair is cheered in the system voice. It calls back when it has
-     finished, so whatever the table is told next waits its turn. */
+  /* a found pair is cheered; it calls back when done, so what follows waits */
   function sayPair(done){
-    var finished = false;
-    function end(){
-      if(finished) return;
-      finished = true;
-      if(!speech) jungleDuck(false);
-      if(done) done();
-    }
-    if(!soundOn || speech || !window.speechSynthesis){ end(); return; }
-    try{
-      jungleDuck(true);
-      var u = new SpeechSynthesisUtterance("Pair found!");
-      u.lang = "en-GB"; u.rate = 0.95; u.volume = 0.9;
-      u.onend = end; u.onerror = end;
-      setTimeout(end, 2500);   /* never leave the game waiting on the voice */
-      speechSynthesis.speak(u);
-    }catch(e){ end(); }
+    sayClip("pair", "Pair found!", done);
   }
 
   /* Handing the turn on. The next player is named first; only once the naming
@@ -2217,13 +2187,6 @@
         setLabel(el, a);
       });
       sfx.match();
-      (function(){
-        var t = document.createElement("div");
-        t.className = "pair-toast";
-        t.textContent = "Pair found!";
-        boardArea.appendChild(t);
-        t.addEventListener("animationend", function(){ t.remove(); });
-      })();
       var nextUp = handing ? ((state.turn + 1) % state.players) : state.turn;
       live.textContent = "Match! " + byId(a.id).name + ". " +
         state.found.length + " of " + state.pairs + " found." +
