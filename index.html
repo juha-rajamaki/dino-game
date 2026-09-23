@@ -192,7 +192,9 @@
   .layout{
     flex:1 1 auto; min-height:0;
     display:grid; gap:clamp(10px,1vw,16px);
-    grid-template-columns:clamp(212px,16vw,288px) minmax(0,1fr) clamp(212px,16vw,288px);
+    /* the rail is sized off the pile cards, so four of them fit in a row */
+    --rail-w:clamp(230px, calc(13.6vw + 62px), 296px);
+    grid-template-columns:var(--rail-w) minmax(0,1fr) var(--rail-w);
   }
   .board-area{position:relative; min-width:0; min-height:0}
   .board{
@@ -1265,6 +1267,27 @@
     sayClip("again", "Go again!", null);
   }
 
+  /* A found pair is cheered in the system voice. It calls back when it has
+     finished, so whatever the table is told next waits its turn. */
+  function sayPair(done){
+    var finished = false;
+    function end(){
+      if(finished) return;
+      finished = true;
+      if(!speech) jungleDuck(false);
+      if(done) done();
+    }
+    if(!soundOn || speech || !window.speechSynthesis){ end(); return; }
+    try{
+      jungleDuck(true);
+      var u = new SpeechSynthesisUtterance("Pair found!");
+      u.lang = "en-GB"; u.rate = 0.95; u.volume = 0.9;
+      u.onend = end; u.onerror = end;
+      setTimeout(end, 2500);   /* never leave the game waiting on the voice */
+      speechSynthesis.speak(u);
+    }catch(e){ end(); }
+  }
+
   /* Handing the turn on. The next player is named first; only once the naming
      has finished does the plate light up for them, their clock start and the
      board come unlocked - so nobody plays a card into somebody else's turn. */
@@ -2209,6 +2232,7 @@
          : " Player " + (state.turn + 1) + " goes again.");
       lock = handing;          /* held until the next player has been named */
       state.won = state.found.length === state.pairs;
+      var game = state;
       if(state.won){
         stopClock();
         if(state.players === 1) recordBest();
@@ -2218,9 +2242,13 @@
       } else if(handing){
         /* after the animal's own name has been said, not over the top of it */
         state.holding = true;
-        setTimeout(handOver, 850);
-      } else if(state.players >= 2){
-        setTimeout(sayAgain, 850);
+        setTimeout(function(){
+          sayPair(function(){ if(state === game) handOver(); });
+        }, 850);
+      } else {
+        setTimeout(function(){
+          sayPair(function(){ if(state === game && game.players >= 2) sayAgain(); });
+        }, 850);
       }
       renderScore(); openCard(a.id); renderBanner();
     } else {
