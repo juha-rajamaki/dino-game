@@ -39,7 +39,7 @@ works for a child who cannot read yet.
   ahead you were.
 - **Narration.** Every card has a spoken version of its text, recorded with
   [Piper](https://github.com/rhasspy/piper) using the `en_GB-jenny_dioco-medium` voice.
-  So is everything said between turns: who starts, *pair found*, whose turn it
+  So is everything said between turns: who starts, *pair*, whose turn it
   is now, *go again* when a pair lets the finder keep the turn, and who has won. If a clip
   is ever missing the page falls back to the browser's own speech.
 - **Jungle ambience.** A looping bed of birds and insects behind the game, with
