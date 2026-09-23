@@ -2195,7 +2195,9 @@
   /* Extra hard, every minute of play: two face-down cards get up and trade
      places, sliding past each other across the table, so what you remembered
      about them is no longer true. Only cards nobody is looking at move, and
-     never two of the same animal - that would change nothing. */
+     never two of the same animal - that would change nothing. One of the two
+     is always a card that has been turned before, if there is one: moving a
+     card nobody has seen takes nothing away from anybody. */
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   function swapCards(){
     var cards = board.querySelectorAll(".card");
@@ -2205,10 +2207,13 @@
              !el.dataset.state && !el.dataset.moving;
     });
     free = shuffle(free);
+    /* the first from the cards that have been seen, its partner from all the
+       rest - two seen ones alone would only trade back and forth */
+    var firsts = free.filter(function(i){ return state.deck[i].seen; }).concat(free);
     var a = null, b = null;
-    for(var x = 0; x < free.length && b === null; x++)
-      for(var y = x + 1; y < free.length; y++)
-        if(state.deck[free[x]].id !== state.deck[free[y]].id){ a = free[x]; b = free[y]; break; }
+    for(var x = 0; x < firsts.length && b === null; x++)
+      for(var y = 0; y < free.length; y++)
+        if(state.deck[firsts[x]].id !== state.deck[free[y]].id){ a = firsts[x]; b = free[y]; break; }
     if(b === null) return false;
 
     var game = state, elA = cards[a], elB = cards[b];
@@ -2360,6 +2365,7 @@
     startClock();
     jungleStart();
     card.dataset.face = "up";
+    slot.seen = true;
     setLabel(card, slot);
     sfx.flip();
     if(starting){
