@@ -572,7 +572,6 @@
   .menu-btn{display:none}
   /* up top beside the menu, so it never lies over the cards it opens and shuts */
   .bar > .cards-tab{display:none}
-  .cards-tab #tab-count{color:var(--amber)}
   .sheet-hide{display:none}
 
   @media (max-width:980px), (orientation:portrait){
@@ -618,10 +617,15 @@
     /* a tablet's sheet is wide: keep the card to a column that can be read */
     .rail > .panel{width:100%; max-width:900px; margin-inline:auto}
 
-    .bar > .cards-tab{display:block}
+    /* its own row under the bar, and the twin of the sheet's Hide button */
+    .bar > .cards-tab{
+      display:block; order:1; flex:1 0 100%; min-height:60px; padding:0;
+      border-radius:16px; font-size:24px; box-shadow:0 8px 20px -10px #000;
+    }
     .bar > .cards-tab[hidden]{display:none}
-    /* once the sheet is up, it is put away from its own top edge instead */
-    body[data-card="open"] .bar > .cards-tab{display:none}
+    /* once the sheet is up, it is put away from its own top edge instead;
+       the row keeps its room so the board does not jump */
+    body[data-card="open"] .bar > .cards-tab{visibility:hidden}
     /* big, for a small finger: the whole width of the sheet */
     .sheet-hide{
       display:block; position:sticky; top:-12px; z-index:2;
@@ -733,9 +737,7 @@
 <div class="wrap">
   <div class="bar">
     <button type="button" class="btn quiet menu-btn" id="menu-btn" aria-expanded="false">Menu</button>
-    <button type="button" class="btn quiet cards-tab" id="cards-tab" aria-expanded="false" hidden>
-      <span id="tab-label">Your cards</span> <span id="tab-count"></span>
-    </button>
+    <button type="button" class="btn cards-tab" id="cards-tab" aria-expanded="false" hidden>Show cards &#x25B4;</button>
     <div class="spacer"></div>
     <div class="score" id="score"></div>
     <button type="button" class="btn quiet" id="album-btn" aria-pressed="false">All cards</button>
@@ -921,7 +923,6 @@
     return boxes;
   })();
   var cardsTab = document.getElementById("cards-tab");
-  var tabCount = document.getElementById("tab-count");
   var sheetHide = node("button", "sheet-hide");
   sheetHide.type = "button";
   sheetHide.appendChild(node("span")).textContent = "Hide cards \u25BE";
@@ -1848,7 +1849,6 @@
     markSeats();
     var show = state.mode !== "album" && state.found.length > 0;
     cardsTab.hidden = !show;
-    tabCount.textContent = String(state.found.length);
     rail2.hidden = !(show && state.players >= 2);
 
     SEATS.forEach(function(seat, i){
@@ -2263,13 +2263,16 @@
 
   /* the phone's sheet opens from the top bar and shuts from its own top edge,
      so the cards under it can always be reached */
+  /* focus follows to the button that is left showing, never one gone from view */
   sheetHide.addEventListener("click", function(){
     state.sides[0].open = false;
     renderFacts();
+    cardsTab.focus({preventScroll: true});
   });
   cardsTab.addEventListener("click", function(){
     if(!state.found.length) return;
     openCard(state.sides[0].last || state.found[state.found.length - 1]);
+    sheetHide.focus({preventScroll: true});
   });
 
   var fullBtn = document.getElementById("full-btn");
