@@ -609,7 +609,9 @@
   .start .seg button.extra:hover,.start .seg button.extra:focus-visible{color:var(--bone)}
   .start .seg button.extra[aria-checked="true"]:hover{color:#fff}
   .start .seg button.extra .sure{visibility:hidden}
-  .start .seg button.extra:hover .sure,.start .seg button.extra:focus-visible .sure{visibility:visible}
+  /* and keeps asking once it is picked, which is all a finger ever sees */
+  .start .seg button.extra:hover .sure,.start .seg button.extra:focus-visible .sure,
+  .start .seg button.extra[aria-checked="true"] .sure{visibility:visible}
   .start .seg button small{font-size:10.5px; opacity:.75; font-family:"Nunito",sans-serif; font-weight:700}
   .start .go{width:100%; margin-top:10px; font-size:19px; padding:14px}
 
