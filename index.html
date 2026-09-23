@@ -607,7 +607,8 @@
   .start .seg button.extra[aria-checked="true"]{background:var(--p2); color:#fff}
   /* pointed at, it turns white like the others, and asks once more */
   .start .seg button.extra:hover,.start .seg button.extra:focus-visible{color:var(--bone)}
-  .start .seg button.extra[aria-checked="true"]:hover{color:#fff}
+  .start .seg button.extra[aria-checked="true"]:hover,
+  .start .seg button.extra[aria-checked="true"]:focus-visible{color:#fff}
   .start .seg button.extra .sure{visibility:hidden}
   /* and keeps asking once it is picked, which is all a finger ever sees */
   .start .seg button.extra:hover .sure,.start .seg button.extra:focus-visible .sure,
@@ -1301,7 +1302,7 @@
     if(nameClip){ try{ nameClip.pause(); }catch(e){} nameClip = null; }
   }
 
-  var turnClip = null;
+  var turnClip = null, goClip = null;   /* goClip only holds the preload */
   function stopTurn(){
     if(turnClip){ try{ turnClip.pause(); }catch(e){} turnClip = null; }
   }
@@ -2180,7 +2181,10 @@
         if(left > 0 && left <= 10) sfx.tick(left);
         if(state.clocks[state.turn] === 0) timeUp();
       }
-      var swapping = state.moving && !state.won && state.seconds % 60 === 0 && swapCards();
+      /* once a minute, and every half-minute through the last four of the
+         clock that is running */
+      var every = state.clocks && state.clocks[state.turn] <= 240 ? 30 : 60;
+      var swapping = state.moving && !state.won && state.seconds % every === 0 && swapCards();
       /* each player hears it when their own clock is half gone */
       if(state.moving && !state.won && !state.holding && state.clocks &&
          state.clocks[state.turn] * 2 === state.budget){
@@ -2194,7 +2198,7 @@
     }, 1000);
   }
 
-  /* Extra hard, every minute of play: two face-down cards get up and trade
+  /* Extra hard, every minute of play (every half-minute near the end): two face-down cards get up and trade
      places, sliding past each other across the table, so what you remembered
      about them is no longer true. Only cards nobody is looking at move, and
      never two of the same animal - that would change nothing. One of the two
@@ -2215,7 +2219,7 @@
     var a = null, b = null;
     for(var x = 0; x < firsts.length && b === null; x++)
       for(var y = 0; y < free.length; y++)
-        if(state.deck[firsts[x]].id !== state.deck[free[y]].id){ a = firsts[x]; b = free[y]; break; }
+        if(free[y] !== firsts[x] && state.deck[firsts[x]].id !== state.deck[free[y]].id){ a = firsts[x]; b = free[y]; break; }
     if(b === null) return false;
 
     var game = state, elA = cards[a], elB = cards[b];
@@ -2307,12 +2311,12 @@
               : (state && state.timed !== undefined ? state.timed : false);
     /* Extra hard is every animal there is, and it is always against the clock -
        even for one player, who otherwise only ever sees the time count up.
-       It gets eight minutes, since the cards will not stay where they were put. */
+       It gets seven minutes, and the cards will not stay where they were put. */
     var extra = pairs >= SPECIES.length;
-    var each = extra ? 480 : Math.max(90, pairs * 15);   /* 1:30 Easy, 2:30 Medium, 6:00 Hard, 8:00 Extra hard */
+    var each = extra ? 420 : Math.max(90, pairs * 15);   /* 1:30 Easy, 2:30 Medium, 6:00 Hard, 7:00 Extra hard */
     var countdown = extra || (players >= 2 && timed);
     /* fetched now, so "Your time starts now!" is not late for the first card */
-    if(extra){ try{ new Audio("audio/turn/go.wav").preload = "auto"; }catch(e){} }
+    if(extra && !goClip){ try{ goClip = new Audio("audio/turn/go.wav"); goClip.preload = "auto"; }catch(e){} }
     state = {pairs: pairs, players: players, keepTurn: keepTurn, deck: deck, found: [],
              scores: seatArray(0), turn: 0, won: false, timeout: null,
              timed: timed, clocks: countdown ? seatArray(each) : null, moving: extra, budget: each,
@@ -2363,7 +2367,7 @@
 
     /* Extra hard: the first card turned starts the clock, and the table is
        told so out loud before the card's own name is said */
-    var starting = state.moving && !state.running && state.seconds === 0 && !turnClip;
+    var starting = state.moving && !state.running && state.seconds === 0;
     startClock();
     jungleStart();
     card.dataset.face = "up";
@@ -2371,12 +2375,16 @@
     setLabel(card, slot);
     sfx.flip();
     if(starting){
-      var game = state;
-      setTimeout(function(){
+      var game = state, waited = 0;
+      /* after "Player 1 starts!" if that is still being said, never over it */
+      function go(){
+        if(state !== game || game.won) return;
+        if(turnClip && waited < 4000){ waited += 150; setTimeout(go, 150); return; }
         sayClip("go", "Your time starts now!", function(){
           if(state === game && !game.won && card.dataset.face === "up") sayName(slot.id);
         });
-      }, 190);
+      }
+      setTimeout(go, 190);
     } else {
       setTimeout(function(){ sayName(slot.id); }, 190);
     }
