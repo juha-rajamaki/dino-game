@@ -1,4 +1,5 @@
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Dinomemory</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap">
@@ -745,9 +746,10 @@
   @media (min-width:660px) and (orientation:portrait),
          (min-width:660px) and (max-width:980px){
     .facts-body{display:flex; align-items:flex-start; gap:clamp(16px,2.5vw,28px)}
-    .facts-body > .portrait{
-      flex:none; width:clamp(200px, 33%, 320px); aspect-ratio:4/3; margin:0;
+    .facts-body > .portrait-btn{
+      flex:none; width:clamp(200px, 33%, 320px); margin:0;
     }
+    .facts-body > .portrait-btn .portrait{aspect-ratio:4/3}
     .facts-text{flex:1 1 0; min-width:0; padding-top:9px}   /* clear of the close button */
     .facts-text .name{font-size:27px}
     .stats{margin:14px 0}
