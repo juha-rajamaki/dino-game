@@ -2295,9 +2295,9 @@
         if(left > 0 && left <= 10) sfx.tick(left);
         if(state.clocks[state.turn] === 0) timeUp();
       }
-      /* once a minute, and every half-minute through the last four of the
-         clock that is running */
-      var every = state.clocks && state.clocks[state.turn] <= 240 ? 30 : 60;
+      /* once a minute for the first three minutes of play, then every
+         half-minute - the same at a full table as for one player */
+      var every = state.seconds > 180 ? 30 : 60;
       var swapping = state.moving && !state.won && state.seconds % every === 0 && swapCards();
       /* each player hears it when their own clock is half gone */
       if(state.moving && !state.won && !state.holding && state.clocks &&
@@ -2427,9 +2427,13 @@
               : (state && state.timed !== undefined ? state.timed : false);
     /* Extra hard is every animal there is, and it is always against the clock -
        even for one player, who otherwise only ever sees the time count up.
-       It gets seven minutes, and the cards will not stay where they were put. */
+       Alone you get seven minutes; at a table everybody sees everybody's
+       cards and takes a share of the turns, so each clock is shorter, and the
+       table as a whole gets about the same. The cards will not stay put. */
     var extra = pairs >= SPECIES.length;
-    var each = extra ? 420 : Math.max(90, pairs * 15);   /* 1:30 Easy, 2:30 Medium, 6:00 Hard, 7:00 Extra hard */
+    var EXTRA_EACH = [420, 240, 180, 150];   /* 7:00, 4:00, 3:00, 2:30 for one to four players */
+    var each = extra ? EXTRA_EACH[Math.min(players, 4) - 1]
+                     : Math.max(90, pairs * 15);   /* 1:30 Easy, 2:30 Medium, 6:00 Hard */
     var countdown = extra || (players >= 2 && timed);
     /* fetched now, so "Your time starts now!" is not late for the first card */
     if(extra && !goClip){ try{ goClip = new Audio("audio/turn/go.wav"); goClip.preload = "auto"; }catch(e){} }
