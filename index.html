@@ -2173,8 +2173,7 @@
         if(left > 0 && left <= 10) sfx.tick(left);
         if(state.clocks[state.turn] === 0) timeUp();
       }
-      var swapping = state.moving && !state.won && state.seconds % 60 === 0;
-      if(swapping) swapCards();
+      var swapping = state.moving && !state.won && state.seconds % 60 === 0 && swapCards();
       /* each player hears it when their own clock is half gone */
       if(state.moving && !state.won && !state.holding && state.clocks &&
          state.clocks[state.turn] * 2 === state.budget){
@@ -2205,7 +2204,7 @@
     for(var x = 0; x < free.length && b === null; x++)
       for(var y = x + 1; y < free.length; y++)
         if(state.deck[free[x]].id !== state.deck[free[y]].id){ a = free[x]; b = free[y]; break; }
-    if(b === null) return;
+    if(b === null) return false;
 
     var game = state, elA = cards[a], elB = cards[b];
     sfx.swap();
@@ -2227,7 +2226,7 @@
     elA.dataset.moving = elB.dataset.moving = "true";
     var ra = elA.getBoundingClientRect(), rb = elB.getBoundingClientRect();
     var dx = rb.left - ra.left, dy = rb.top - ra.top;
-    if(reduceMotion.matches || !elA.animate){ setTimeout(finish, 900); return; }
+    if(reduceMotion.matches || !elA.animate){ setTimeout(finish, 900); return true; }
 
     /* each card bows out to its own side of the line between them, so the
        two pass each other instead of sliding through one another */
@@ -2247,6 +2246,7 @@
     elA.animate(path(dx, dy, 1), opts);
     elB.animate(path(-dx, -dy, -1), opts);
     setTimeout(finish, opts.delay + opts.duration + 30);
+    return true;
   }
   function stopClock(){
     if(tickHandle){ clearInterval(tickHandle); tickHandle = null; }
@@ -2299,6 +2299,8 @@
     var extra = pairs >= SPECIES.length;
     var each = extra ? 480 : Math.max(90, pairs * 15);   /* 1:30 Easy, 2:30 Medium, 6:00 Hard, 8:00 Extra hard */
     var countdown = extra || (players >= 2 && timed);
+    /* fetched now, so "Your time starts now!" is not late for the first card */
+    if(extra){ try{ new Audio("audio/turn/go.wav").preload = "auto"; }catch(e){} }
     state = {pairs: pairs, players: players, keepTurn: keepTurn, deck: deck, found: [],
              scores: seatArray(0), turn: 0, won: false, timeout: null,
              timed: timed, clocks: countdown ? seatArray(each) : null, moving: extra, budget: each,
@@ -2349,7 +2351,7 @@
 
     /* Extra hard: the first card turned starts the clock, and the table is
        told so out loud before the card's own name is said */
-    var starting = state.moving && !state.running && state.seconds === 0;
+    var starting = state.moving && !state.running && state.seconds === 0 && !turnClip;
     startClock();
     jungleStart();
     card.dataset.face = "up";
