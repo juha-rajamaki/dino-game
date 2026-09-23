@@ -572,7 +572,7 @@
   .menu-btn{display:none}
   /* up top beside the menu, so it never lies over the cards it opens and shuts */
   .bar > .cards-tab{display:none}
-  .cards-tab #tab-count{color:var(--amber); margin-left:4px}
+  .cards-tab #tab-count{color:var(--amber)}
 
   @media (max-width:980px), (orientation:portrait){
     html,body{height:100%}
@@ -718,7 +718,7 @@
   <div class="bar">
     <button type="button" class="btn quiet menu-btn" id="menu-btn" aria-expanded="false">Menu</button>
     <button type="button" class="btn quiet cards-tab" id="cards-tab" aria-expanded="false" hidden>
-      <span id="tab-label">Your cards</span><span id="tab-count"></span>
+      <span id="tab-label">Your cards</span> <span id="tab-count"></span>
     </button>
     <div class="spacer"></div>
     <div class="score" id="score"></div>
