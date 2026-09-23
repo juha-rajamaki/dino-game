@@ -341,6 +341,12 @@
 
   .rail[data-seats="2"]{overflow:hidden}
   .rail[data-seats="2"] .facts{flex:1 1 0; min-height:96px; overflow-y:auto}
+  /* The rail itself never scrolls on a big screen: a full pile of thirty
+     keeps its place, and the card under it gives way and reads on inside. */
+  @media (min-width:981px) and (orientation:landscape){
+    .rail{overflow:hidden}
+    .rail .facts{flex-shrink:1; min-height:96px; overflow-y:auto; scrollbar-width:thin}
+  }
   .panel{
     background:var(--panel); border:1px solid var(--edge-soft); border-radius:14px;
     -webkit-backdrop-filter:blur(12px) saturate(1.1); backdrop-filter:blur(12px) saturate(1.1);
@@ -447,10 +453,11 @@
     line-height:1; letter-spacing:0; color:var(--pile-c);
     font-variant-numeric:tabular-nums; text-shadow:0 0 16px var(--pile-soft);
   }
-  .pile-grid{display:flex; flex-wrap:wrap; gap:8px}
+  /* four to a row, always: the circles take their size from the rail */
+  .pile-grid{display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:8px}
   .pile-card{
     appearance:none; padding:0; display:block; cursor:pointer; background:var(--plate-bg);
-    width:clamp(42px, 3.4vw, 58px); aspect-ratio:1; border-radius:50%; overflow:hidden;
+    width:100%; aspect-ratio:1; border-radius:50%; overflow:hidden;
     border:2px solid var(--pile-edge); transition:.18s;
     box-shadow:0 5px 12px -6px #000;
   }
@@ -643,6 +650,9 @@
     .rail .panel{background:transparent; border:0; -webkit-backdrop-filter:none; backdrop-filter:none}
     .facts{padding:6px 2px 6px}
     .pile{padding:2px 2px 10px; border-bottom:1px solid var(--edge-soft)}
+    /* the sheet is the width of the screen: as many to a row as fit */
+    .pile-grid{display:flex; flex-wrap:wrap}
+    .pile-card{width:clamp(42px, 3.4vw, 58px)}
     .portrait{aspect-ratio:2/1}
     /* a tablet's sheet is wide: keep the card to a column that can be read */
     .rail > .panel{width:100%; max-width:900px; margin-inline:auto}
@@ -2165,9 +2175,12 @@
       /* each player hears it when their own clock is half gone */
       if(state.moving && !state.won && !state.holding && state.clocks &&
          state.clocks[state.turn] * 2 === state.budget){
-        live.textContent = (state.players >= 2 ? "Player " + (state.turn + 1) + ", half" : "Half") +
-                           " your time is gone!";
-        setTimeout(sfx.half, swapping ? 1900 : 0);   /* after the swoosh, if a swap lands on the same second */
+        var half = (state.players >= 2 ? "Player " + (state.turn + 1) + ", half" : "Half") +
+                   " your time is gone!";
+        live.textContent = swapping ? live.textContent + " " + half : half;
+        var game = state;
+        /* after the swoosh, if a swap lands on the same second */
+        setTimeout(function(){ if(state === game && !game.won) sfx.half(); }, swapping ? 1900 : 0);
       }
     }, 1000);
   }
@@ -2331,12 +2344,24 @@
     var slot = state.deck[index];
     if(slot.matched || card.dataset.face === "up" || card.dataset.moving) return;
 
+    /* Extra hard: the first card turned starts the clock, and the table is
+       told so out loud before the card's own name is said */
+    var starting = state.moving && !state.running && state.seconds === 0;
     startClock();
     jungleStart();
     card.dataset.face = "up";
     setLabel(card, slot);
     sfx.flip();
-    setTimeout(function(){ sayName(slot.id); }, 190);
+    if(starting){
+      var game = state;
+      setTimeout(function(){
+        sayClip("go", "Your time starts now!", function(){
+          if(state === game && !game.won && card.dataset.face === "up") sayName(slot.id);
+        });
+      }, 190);
+    } else {
+      setTimeout(function(){ sayName(slot.id); }, 190);
+    }
 
     var open = Array.prototype.filter.call(
       board.querySelectorAll('.card[data-face="up"]'),
