@@ -43,6 +43,10 @@ works for a child who cannot read yet.
   face up — that time belongs to nobody — goes red for the last thirty
   seconds, and ticks out loud through the last ten. Run it out and the game ends there and you cannot win it, however far
   ahead you were.
+- **The whole screen.** Tap the picture in *What you found* and the animal
+  fills the screen, at full size, over the dimmed forest, with its own play
+  button for the narration. A tap anywhere, ✕ or Esc puts it away. The clock
+  does not stop for it.
 - **Narration.** Every card has a spoken version of its text, recorded with
   [Piper](https://github.com/rhasspy/piper) using the `en_GB-jenny_dioco-medium` voice.
   So is everything said between turns: who starts, *pair*, whose turn it
@@ -84,7 +88,8 @@ It is a single static page with no build step and no dependencies:
 
 ```
 index.html      the whole game - markup, styles and logic
-img/            24 card plates plus the background and the two foreground animals
+img/            30 card plates plus the background and the two foreground animals
+img/full/       the same 30 animals at full size, fetched only when one is opened
 audio/          24 narration clips, one per animal, plus the jungle loop
 ```
 

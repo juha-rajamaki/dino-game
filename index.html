@@ -364,6 +364,49 @@
     border:2px solid rgba(196,158,86,.85); margin:0 0 14px;
     box-shadow:0 14px 26px -12px rgba(0,0,0,.9);
   }
+  /* the portrait is a button: tapped, the animal fills the screen */
+  .portrait-btn{
+    appearance:none; border:0; padding:0; background:none; display:block; width:100%;
+    position:relative; cursor:zoom-in; border-radius:12px; margin:0 0 14px;
+  }
+  .portrait-btn .portrait{margin:0; transition:border-color .18s, transform .18s}
+  .portrait-btn:hover .portrait{border-color:var(--amber); transform:scale(1.015)}
+  .portrait-btn .grow{
+    position:absolute; right:8px; bottom:8px; width:30px; height:30px; border-radius:9px;
+    display:grid; place-items:center; background:rgba(8,14,10,.72); color:var(--amber);
+    border:1px solid rgba(242,171,62,.55); pointer-events:none;
+  }
+  .portrait-btn .grow svg{width:16px; height:16px}
+  .portrait-btn:hover .grow{background:var(--amber); color:#241603}
+
+  /* ---------- one animal, the whole screen ---------- */
+  .viewer{
+    position:fixed; inset:0; z-index:60; display:grid; place-items:center;
+    background:rgba(4,10,6,.9) url("img/jungle.webp") center/cover;
+    background-blend-mode:multiply; cursor:zoom-out;
+    padding:calc(16px + env(safe-area-inset-top, 0px)) 16px calc(16px + env(safe-area-inset-bottom, 0px));
+    animation:viewer-in .28s ease;
+  }
+  .viewer[hidden]{display:none}
+  @keyframes viewer-in{from{opacity:0}to{opacity:1}}
+  .viewer figure{margin:0; display:grid; justify-items:center; gap:14px; max-width:100%}
+  .viewer img{
+    display:block; max-width:min(94vw, 1536px); max-height:calc(100vh - 150px); object-fit:contain;
+    filter:drop-shadow(0 24px 40px rgba(0,0,0,.85)); animation:viewer-grow .34s cubic-bezier(.2,1,.4,1);
+  }
+  @keyframes viewer-grow{from{transform:scale(.9); opacity:.4}to{transform:none; opacity:1}}
+  .viewer figcaption{display:flex; align-items:center; gap:14px; cursor:default}
+  .viewer .v-name{
+    font-family:"Fredoka",sans-serif; font-size:clamp(26px, 4vw, 44px); font-weight:600;
+    color:var(--amber); text-shadow:0 3px 18px #000; margin:0; line-height:1.1; text-align:center;
+  }
+  .viewer .play-x{width:46px; height:46px; font-size:18px}
+  .viewer .close-x{
+    position:fixed; top:calc(14px + env(safe-area-inset-top, 0px)); right:14px;
+    width:48px; height:48px; font-size:28px; background:rgba(8,14,10,.7);
+  }
+  @media (prefers-reduced-motion: reduce){ .viewer,.viewer img{animation:none} }
+
   .facts .name{
     font-family:"Fredoka",sans-serif; font-size:24px; font-weight:600; color:var(--amber);
     margin:0; line-height:1.1; overflow-wrap:anywhere;   /* Rhamphorhynchus needs it */
@@ -814,6 +857,16 @@
   </main>
 
   <p class="sr" role="status" aria-live="polite" id="live"></p>
+  <div class="viewer" id="viewer" role="dialog" aria-modal="true" aria-labelledby="viewer-name" hidden>
+    <figure>
+      <img id="viewer-img" alt="">
+      <figcaption>
+        <p class="v-name" id="viewer-name"></p>
+        <button type="button" class="play-x" id="viewer-play" aria-label="Read this card aloud">&#9654;</button>
+      </figcaption>
+    </figure>
+    <button type="button" class="close-x" id="viewer-close" aria-label="Close the picture">&times;</button>
+  </div>
 
 </div>
 
@@ -1339,8 +1392,9 @@
       a.volume = 0.9;   /* a shade under the cards, which are the point */
       turnClip = a;
       a.addEventListener("ended", function(){ if(turnClip === a) turnClip = null; end(); });
-      a.addEventListener("error", browserVoiceSays);
-      a.play().catch(browserVoiceSays);
+      function failed(){ if(turnClip === a) turnClip = null; browserVoiceSays(); }
+      a.addEventListener("error", failed);
+      a.play().catch(failed);
       setTimeout(end, 4000);   /* never leave the game waiting on a clip */
     }catch(e){ browserVoiceSays(); }
   }
@@ -1421,7 +1475,8 @@
   }
 
   /* ---------- reading the card aloud ---------- */
-  var playBtns = BOXES.map(function(b){ return b.play; });
+  var viewerPlay = document.getElementById("viewer-play");
+  var playBtns = BOXES.map(function(b){ return b.play; }).concat([viewerPlay]);
   var speakingSide = 0, speakingId = null;
   var speech = null;
 
@@ -1471,13 +1526,59 @@
     clip.play().then(playing).catch(function(){ speech = null; browserVoice(dino); });
   }
 
-  playBtns.forEach(function(btn, i){
+  BOXES.forEach(function(box, i){
+    var btn = box.play;
     btn.addEventListener("click", function(){
       if(btn.dataset.playing === "true"){ stopSpeech(); return; }
       var open = state && state.sides && state.sides[i].last;
       /* speak() clears the last reading first, so the new one is claimed after it */
       if(open){ speakingSide = i; speak(open); speakingId = open; }
     });
+  });
+
+  /* The picture in the box, as big as the screen allows. The full-size art is
+     only fetched when it is asked for; until it arrives the card's own picture
+     stands in. The clock does not stop for it - it is a look, not a pause. */
+  var viewer = document.getElementById("viewer"), viewerImg = document.getElementById("viewer-img");
+  var viewerName = document.getElementById("viewer-name"), viewerClose = document.getElementById("viewer-close");
+  var viewerId = null, viewerFrom = null;
+  function openViewer(id, from){
+    var dino = byId(id);
+    if(!dino) return;
+    viewerId = id; viewerFrom = from || null;
+    viewerImg.src = "img/" + id + ".webp";
+    var big = new Image();
+    big.onload = function(){ if(viewerId === id) viewerImg.src = big.src; };
+    big.src = "img/full/" + id + ".webp";
+    viewerImg.alt = dino.name;
+    viewerName.textContent = dino.name;
+    viewer.hidden = false;
+    viewerClose.focus();
+  }
+  function closeViewer(){
+    if(viewer.hidden) return;
+    if(speakingSide === 2) stopSpeech();
+    viewer.hidden = true;
+    viewerId = null;
+    if(viewerFrom && document.body.contains(viewerFrom)) viewerFrom.focus();
+    viewerFrom = null;
+  }
+  viewerPlay.addEventListener("click", function(event){
+    event.stopPropagation();
+    if(viewerPlay.dataset.playing === "true"){ stopSpeech(); return; }
+    if(viewerId){ speakingSide = 2; speak(viewerId); speakingId = viewerId; }
+  });
+  viewerClose.addEventListener("click", closeViewer);
+  /* a tap anywhere but the play button puts it away */
+  viewer.addEventListener("click", closeViewer);
+  document.addEventListener("keydown", function(event){
+    if(viewer.hidden) return;
+    if(event.key === "Escape"){ event.preventDefault(); closeViewer(); }
+    /* keep the keyboard inside while it is open */
+    else if(event.key === "Tab"){
+      event.preventDefault();
+      (document.activeElement === viewerClose ? viewerPlay : viewerClose).focus();
+    }
   });
 
   /* ---------- card back: a three-toed theropod track ---------- */
@@ -1892,7 +1993,17 @@
       text.appendChild(rows);
       text.appendChild(fact);
 
-      box.appendChild(shot);
+      var grow = document.createElement("button");
+      grow.type = "button";
+      grow.className = "portrait-btn";
+      grow.setAttribute("aria-label", "Show " + dino.name + " on the whole screen");
+      grow.appendChild(shot);
+      var mark = document.createElement("span");
+      mark.className = "grow";
+      mark.innerHTML = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2h4v4M6 14H2v-4M14 2 9.5 6.5M2 14l4.5-4.5"/></svg>';
+      grow.appendChild(mark);
+      (function(id){ grow.addEventListener("click", function(){ openViewer(id, grow); }); })(dino.id);
+      box.appendChild(grow);
       box.appendChild(text);
     }
   }
@@ -2149,6 +2260,7 @@
   }
 
   function timeUp(){
+    closeViewer();   /* the end of the game is not hidden behind a picture */
     stopClock();
     clearFlipTimer();
     lock = true;
@@ -2271,6 +2383,7 @@
 
   /* The album: every dinosaur face up, nothing to match — just a look at the cards. */
   function openAlbum(){
+    closeViewer();
     stopTurn();
     stopClock();
     clearFlipTimer();
@@ -2295,6 +2408,7 @@
   }
 
   function newGame(opts){
+    closeViewer();
     stopSpeech();
     stopName();
     stopTurn();
@@ -2338,6 +2452,8 @@
     if(players >= 2){
       setTimeout(function(){
         if(state !== opening || state.won) return;
+        /* a card already turned has started the game; do not talk over it */
+        if(state.running){ ready(); return; }
         sayClip("start", "Player 1 starts!", ready);
       }, 550);
     } else {
@@ -2589,6 +2705,7 @@
 
   /* Coming back to it keeps whatever was last played selected. */
   function openStart(){
+    closeViewer();
     stopSpeech();
     stopClock();
     if(state){
