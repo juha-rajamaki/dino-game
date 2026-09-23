@@ -573,6 +573,7 @@
   /* up top beside the menu, so it never lies over the cards it opens and shuts */
   .bar > .cards-tab{display:none}
   .cards-tab #tab-count{color:var(--amber)}
+  .sheet-hide{display:none}
 
   @media (max-width:980px), (orientation:portrait){
     html,body{height:100%}
@@ -619,6 +620,21 @@
 
     .bar > .cards-tab{display:block}
     .bar > .cards-tab[hidden]{display:none}
+    /* once the sheet is up, it is put away from its own top edge instead */
+    body[data-card="open"] .bar > .cards-tab{display:none}
+    /* big, for a small finger: the whole width of the sheet */
+    .sheet-hide{
+      display:block; position:sticky; top:-12px; z-index:2;
+      width:100%; max-width:900px; margin:-12px auto 0; padding:12px 0 10px;
+      appearance:none; border:0; cursor:pointer;
+      background:rgba(8,14,10,.97);
+    }
+    .sheet-hide span{
+      display:block; min-height:60px; line-height:58px; border-radius:16px;
+      background:var(--amber); color:#241603; border:1px solid var(--amber);
+      font-family:"Fredoka",sans-serif; font-size:24px; font-weight:600;
+      box-shadow:0 8px 20px -10px #000;
+    }
 
     /* the animals give the cards their room back */
     .beast-right{display:none}
@@ -906,7 +922,9 @@
   })();
   var cardsTab = document.getElementById("cards-tab");
   var tabCount = document.getElementById("tab-count");
-  var tabLabel = document.getElementById("tab-label");
+  var sheetHide = node("button", "sheet-hide");
+  sheetHide.type = "button";
+  sheetHide.appendChild(node("span")).textContent = "Hide cards \u25BE";
   var bannerSlot = document.getElementById("banner-slot");
   var live = document.getElementById("live");
   var soundBtn = document.getElementById("sound-btn");
@@ -1615,7 +1633,6 @@
     /* on a phone the left box is the sheet that slides up over the board */
     var sheetOpen = !BOXES[0].panel.hidden;
     document.body.dataset.card = sheetOpen ? "open" : "shut";
-    tabLabel.textContent = sheetOpen ? "Hide cards" : "Your cards";
     cardsTab.setAttribute("aria-expanded", String(sheetOpen));
     renderPile();
   }
@@ -1774,7 +1791,9 @@
     var narrow = oneSide.matches;
     markSeats();
     if(narrow){
-      /* one side of the table: every pile, then the one box below them */
+      /* one side of the table: the handle that puts it away, every pile,
+         then the one box below them */
+      rail.appendChild(sheetHide);
       SEATS.forEach(function(seat){ rail.appendChild(seat.pilePanel); });
       rail.appendChild(BOXES[0].panel);
       rail.appendChild(BOXES[1].panel);
@@ -1829,7 +1848,7 @@
     markSeats();
     var show = state.mode !== "album" && state.found.length > 0;
     cardsTab.hidden = !show;
-    tabCount.textContent = document.body.dataset.card === "open" ? "" : String(state.found.length);
+    tabCount.textContent = String(state.found.length);
     rail2.hidden = !(show && state.players >= 2);
 
     SEATS.forEach(function(seat, i){
@@ -2242,15 +2261,14 @@
     if(document.body.dataset.menu === "open" && !bar.contains(e.target)) setMenu(false);
   });
 
-  /* the phone's sheet opens and shuts from the top bar, so the cards under it
-     can always be reached */
+  /* the phone's sheet opens from the top bar and shuts from its own top edge,
+     so the cards under it can always be reached */
+  sheetHide.addEventListener("click", function(){
+    state.sides[0].open = false;
+    renderFacts();
+  });
   cardsTab.addEventListener("click", function(){
     if(!state.found.length) return;
-    if(document.body.dataset.card === "open"){
-      state.sides[0].open = false;
-      renderFacts();
-      return;
-    }
     openCard(state.sides[0].last || state.found[state.found.length - 1]);
   });
 
