@@ -1193,6 +1193,13 @@
     /* Extra hard, once a minute: a two-note warning, then a swoosh as the
        cards slide across the table */
     swap:  swoosh,
+    /* Extra hard, halfway through a player's time: a ding-dong, twice over,
+       like a station bell - softer than the last-ten ticks, but not missable */
+    half:  function(){
+      [[1047, 0], [784, 260], [1047, 700], [784, 960]].forEach(function(n){
+        setTimeout(function(){ tone(n[0], 0.6, "sine", 0.12); }, n[1]);
+      });
+    },
     win:   function(){ [523,659,784,1047,1319].forEach(function(f,i){ setTimeout(function(){ tone(f, 0.36, "triangle", 0.09); }, i*135); }); }
   };
   soundBtn.addEventListener("click", function(){
@@ -2153,7 +2160,15 @@
         if(left > 0 && left <= 10) sfx.tick(left);
         if(state.clocks[state.turn] === 0) timeUp();
       }
-      if(state.moving && !state.won && state.seconds % 60 === 0) swapCards();
+      var swapping = state.moving && !state.won && state.seconds % 60 === 0;
+      if(swapping) swapCards();
+      /* each player hears it when their own clock is half gone */
+      if(state.moving && !state.won && !state.holding && state.clocks &&
+         state.clocks[state.turn] * 2 === state.budget){
+        live.textContent = (state.players >= 2 ? "Player " + (state.turn + 1) + ", half" : "Half") +
+                           " your time is gone!";
+        setTimeout(sfx.half, swapping ? 1900 : 0);   /* after the swoosh, if a swap lands on the same second */
+      }
     }, 1000);
   }
 
@@ -2270,7 +2285,7 @@
     var countdown = extra || (players >= 2 && timed);
     state = {pairs: pairs, players: players, keepTurn: keepTurn, deck: deck, found: [],
              scores: seatArray(0), turn: 0, won: false, timeout: null,
-             timed: timed, clocks: countdown ? seatArray(each) : null, moving: extra,
+             timed: timed, clocks: countdown ? seatArray(each) : null, moving: extra, budget: each,
              sides: [{last: null, open: false}, {last: null, open: false}],
              holding: false, seconds: 0, turns: 0, running: false, mode: "play"};
     lock = false;
