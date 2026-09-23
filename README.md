@@ -9,15 +9,18 @@ works for a child who cannot read yet.
 
 ## What is in it
 
-- **24 animals** — 21 dinosaurs, 4 pterosaurs and 1 marine reptile. The three
-  that are not dinosaurs say so on their card, because Pteranodon and Mosasaurus
-  are mistaken for dinosaurs more often than almost anything else in this set.
+- **30 animals** — 24 dinosaurs, 4 pterosaurs, 1 marine reptile and 1
+  plesiosaur. The six that are not dinosaurs say so on their card, because
+  Pteranodon, Mosasaurus and Elasmosaurus are mistaken for dinosaurs more often
+  than almost anything else in this set.
 - **A start screen** where the size and the number of players are chosen. It is
   also what wakes the forest: a browser will not play audio until the player has
   done something, so the one tap that starts the game starts the sound with it.
   **New game** brings the screen back.
-- **Three sizes** — Easy (6 pairs), Medium (10) and Hard (all 24). The animals
-  in a game are drawn at random each time, so the same size plays differently.
+- **Four sizes** — Easy (6 pairs), Medium (10), Hard (24) and Extra hard (all
+  30). The animals in a game are drawn at random each time, so the same size
+  plays differently. Extra hard is always against the clock — even for one
+  player, who gets 7:30 to find all thirty and a *time's up* if they do not.
 - **One to four players.** A miss always passes the turn, and the next player is
   named out loud — the plate only lights up for them once the naming has
   finished, so nobody plays a card into somebody else's turn. What a *pair* does is the players' own choice,
@@ -28,10 +31,11 @@ works for a child who cannot read yet.
 - **A clock each, if you want one.** Two or more players can turn a countdown on from
   the start screen; it is off to begin with, and the timer then counts up as it
   always has. With it on, each player has a budget of their own: fifteen seconds a pair, never less than a
-  minute and a half, so 1:30 on Easy, 2:30 on Medium and 6:00 on Hard. It runs
+  minute and a half, so 1:30 on Easy, 2:30 on Medium, 6:00 on Hard and 7:30 on
+  Extra hard, where there is no choosing: the clock is always on. It runs
   only while the turn is yours, stops while the two cards of a miss are still
-  face up — that time belongs to nobody — and goes red for the last thirty
-  seconds. Run it out and the game ends there and you cannot win it, however far
+  face up — that time belongs to nobody — goes red for the last thirty
+  seconds, and ticks out loud through the last ten. Run it out and the game ends there and you cannot win it, however far
   ahead you were.
 - **Narration.** Every card has a spoken version of its text, recorded with
   [Piper](https://github.com/rhasspy/piper) using the `en_GB-jenny_dioco-medium` voice.

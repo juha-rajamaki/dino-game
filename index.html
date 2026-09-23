@@ -1,3 +1,4 @@
+<meta charset="utf-8">
 <title>Dinomemory</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap">
@@ -128,6 +129,7 @@
     font-variant-numeric:tabular-nums; line-height:1; min-width:46px;
   }
   .timer-chip[data-running="true"] .t-ico{color:var(--amber); opacity:1}
+  .timer-chip[data-low="true"] .t-val{color:var(--rust)}
 
   /* Whose turn it is has to be readable by a child who cannot read, so the two
      plates never look merely different - one of them is plainly awake and the
@@ -723,6 +725,7 @@
         <button type="button" role="radio" data-pairs="6" aria-checked="false">Easy<small>6</small></button>
         <button type="button" role="radio" data-pairs="10" aria-checked="true">Medium<small>10</small></button>
         <button type="button" role="radio" data-pairs="24" aria-checked="false">Hard<small>24</small></button>
+        <button type="button" role="radio" data-pairs="30" aria-checked="false">Extra hard<small>all 30 &middot; clock</small></button>
       </div>
     </div>
 
@@ -886,7 +889,31 @@
     {id:"compsognathus", speed:40, tonnes:0.003, name:"Compsognathus", means:"\u201CElegant jaw\u201D",
      period:"Jurassic", ago:"150 million years ago", size:"1 m long \u2014 about the size of a turkey",
      weight:"3 kg \u2014 light enough to pick up", food:"Meat", place:"Germany and France",
-     fact:"It is one of the smallest dinosaurs ever found, small enough to lift with one hand. One fossil still has the skeleton of a lizard inside its stomach, swallowed whole. It lived in the same place and time as Archaeopteryx, the earliest known bird."}
+     fact:"It is one of the smallest dinosaurs ever found, small enough to lift with one hand. One fossil still has the skeleton of a lizard inside its stomach, swallowed whole. It lived in the same place and time as Archaeopteryx, the earliest known bird."},
+    {id:"microraptor", speed:40, tonnes:0.001, name:"Microraptor", means:"\u201CSmall thief\u201D",
+     period:"Cretaceous", ago:"125\u2013120 million years ago", size:"80 cm long \u2014 as long as a cat, tail and all",
+     weight:"1 kg \u2014 like a bag of sugar", food:"Meat", place:"China",
+     fact:"It had long flight feathers on its legs as well as its arms, so it flew or glided on four wings. Scientists studied tiny pigment specks inside fossil feathers and found it was shiny black, shimmering like a starling. One fossil has a whole bird inside its stomach, swallowed head first."},
+    {id:"oviraptor", speed:40, tonnes:0.035, name:"Oviraptor", means:"\u201CEgg thief\u201D",
+     period:"Cretaceous", ago:"75\u201371 million years ago", size:"1.8 m long \u2014 as long as a grown-up is tall",
+     weight:"35 kg \u2014 like a big dog", food:"Anything", place:"Mongolia",
+     fact:"Its name means “egg thief”, because the first one was found lying on a nest of eggs in 1923. Scientists thought it was stealing Protoceratops eggs, but seventy years later a baby was found inside one of those eggs, and it was from Oviraptor's own family. It had been guarding its nest, not robbing it."},
+    {id:"protoceratops", speed:20, tonnes:0.08, name:"Protoceratops", means:"\u201CFirst horned face\u201D",
+     period:"Cretaceous", ago:"75\u201371 million years ago", size:"2 m long \u2014 about as long as a bed",
+     weight:"80 kg \u2014 as heavy as a grown-up", food:"Plants", place:"Mongolia and China",
+     fact:"It is half of the famous “Fighting Dinosaurs” fossil, found in 1971 locked in battle with a Velociraptor. The Velociraptor's claws were at its head and throat, while Protoceratops had the hunter's arm clamped in its beak. Despite its name it had no real horns, just a bony frill and a beak like a parrot's."},
+    {id:"amargasaurus", speed:12, tonnes:3, name:"Amargasaurus", means:"\u201CLa Amarga lizard\u201D",
+     period:"Cretaceous", ago:"130\u2013120 million years ago", size:"10 m long \u2014 as long as a bus",
+     weight:"3 tonnes", food:"Plants", place:"Argentina",
+     fact:"Two rows of long spikes ran down its neck and back, the longest about 60 centimetres. Nobody knows for sure whether they were covered in horn like sharp spikes or held up a sail of skin. Only one skeleton has ever been found, dug up in Argentina in 1984."},
+    {id:"deinocheirus", speed:20, tonnes:6.5, name:"Deinocheirus", means:"\u201CHorrible hand\u201D",
+     period:"Cretaceous", ago:"70 million years ago", size:"11 m long \u2014 longer than a bus",
+     weight:"6.5 tonnes \u2014 as heavy as a big elephant", food:"Anything", place:"Mongolia",
+     fact:"For almost fifty years all anyone had found were its two giant arms, 2.4 metres long, and nobody knew what the rest looked like. When whole skeletons were finally described in 2014, it turned out to have a tall hump on its back and a wide, flat bill like a duck's. More than a thousand swallowed stones and some fish bones were found in its belly, so it ate almost anything."},
+    {id:"elasmosaurus", speed:10, tonnes:2, group:"Plesiosaur", name:"Elasmosaurus", means:"\u201CThin-plate lizard\u201D",
+     period:"Cretaceous", ago:"80\u201377 million years ago", size:"10 m long \u2014 as long as a bus, and most of it neck",
+     weight:"2 tonnes \u2014 like a big car", food:"Fish", place:"North America",
+     fact:"Its neck was longer than the rest of its body put together, with 72 bones in it, while a giraffe has only seven. The first scientist to build its skeleton put the head on the end of the tail by mistake, and his rival never let him forget it. It could not hold its neck up like a swan; it paddled with four big flippers and snapped up small fish."}
   ];
 
   var board = document.getElementById("board");
@@ -1121,6 +1148,12 @@
     hover: rustle,
     flip:  flipSound,
     match: matchCall,
+    /* the last ten seconds of a countdown: a clock-tick each second, the
+       final three higher and harder so everyone hears the end coming */
+    tick:  function(left){
+      if(left <= 3){ tone(1320, 0.14, "square", 0.07); }
+      else { tone(880, 0.08, "triangle", 0.08); }
+    },
     win:   function(){ [523,659,784,1047,1319].forEach(function(f,i){ setTimeout(function(){ tone(f, 0.36, "triangle", 0.09); }, i*135); }); }
   };
   soundBtn.addEventListener("click", function(){
@@ -1289,6 +1322,8 @@
         /* players one and two were recorded early, three and four later */
         file = "p" + w + (w < 3 ? ".mp3" : ".wav");
       }
+    } else if(state.timeout !== null && state.timeout !== undefined){
+      file = "timeup.wav"; spoken = "Time's up! Try again!";
     } else {
       file = state.pairs + "_" + starsOf(state) + ".mp3";
     }
@@ -1441,9 +1476,10 @@
     var gap = Math.max(7, Math.min(16, Math.round(Math.min(W, H) * 0.016)));
     var best = null;
 
-    /* the album is always a 4 by 6 sheet, except on a narrow screen */
+    /* the album is always six rows deep, except on a narrow screen */
     if(state.mode === "album" && W > 620){
-      best = {w: Math.min((W - 3 * gap) / 4, ((H - 5 * gap) / 6) * ratio), cols: 4};
+      var ac = Math.ceil(n / 6);
+      best = {w: Math.min((W - (ac - 1) * gap) / ac, ((H - 5 * gap) / 6) * ratio), cols: ac};
     } else {
       best = {w: 0, cols: 1};
       for(var cols = 1; cols <= n; cols++){
@@ -1623,6 +1659,7 @@
     chip.appendChild(n); chip.appendChild(of); chip.appendChild(pips);
     scoreEl.appendChild(chip);
     addTimer();
+    paintClocks();
   }
 
   function addTimer(){
@@ -1702,7 +1739,8 @@
 
       var NOTE = {
         "Pterosaur": "Pterosaur \u2014 a flying reptile, not a dinosaur",
-        "Marine reptile": "Marine reptile \u2014 a giant sea lizard, not a dinosaur"
+        "Marine reptile": "Marine reptile \u2014 a giant sea lizard, not a dinosaur",
+        "Plesiosaur": "Plesiosaur \u2014 a long-necked sea reptile, not a dinosaur"
       };
       var badge = null;
       if(dino.group && NOTE[dino.group]){
@@ -1963,6 +2001,11 @@
           ? "Player " + (state.timeout + 1) + " ran out of time. " : "") +
         said + " It took " + timeText(state.seconds) + ".";
       banner.appendChild(p);
+    } else if(state.timeout !== null && state.timeout !== undefined){
+      h.textContent = "Time's up!";
+      p.textContent = "You found " + state.found.length + " of " + state.pairs +
+                      " pairs. Try again - you can beat the clock!";
+      banner.appendChild(p);
     } else {
       h.textContent = "You found them all!";
       var stars = starsOf(state), sc = scoreOf(state);
@@ -2020,7 +2063,15 @@
      own, and it only runs down while the turn is theirs. Run it out and the
      game is over, however many pairs you were ahead by. */
   function paintClocks(){
-    if(!state || state.players < 2 || !state.clocks) return;
+    if(!state || !state.clocks) return;
+    /* alone, the countdown lives in the timer chip */
+    if(state.players < 2){
+      if(!timerValue) return;
+      timerValue.textContent = timeText(state.clocks[0]);
+      timerValue.parentNode.setAttribute("aria-label", timeText(state.clocks[0]) + " left");
+      timerValue.parentNode.dataset.low = String(state.clocks[0] <= 30);
+      return;
+    }
     for(var i = 0; i < state.players; i++){
       if(!clockVal[i]) continue;
       clockVal[i].textContent = timeText(state.clocks[i]);
@@ -2036,9 +2087,13 @@
     lock = true;
     state.won = true;
     state.timeout = state.turn;
-    var st = standings();
-    live.textContent = "Player " + (state.turn + 1) + " has run out of time. " +
-      (st.winners.length === 1 ? "Player " + (st.winners[0] + 1) + " wins!" : "It's a tie!");
+    if(state.players < 2){
+      live.textContent = "Time's up! You found " + state.found.length + " of " + state.pairs + " pairs.";
+    } else {
+      var st = standings();
+      live.textContent = "Player " + (state.turn + 1) + " has run out of time. " +
+        (st.winners.length === 1 ? "Player " + (st.winners[0] + 1) + " wins!" : "It's a tie!");
+    }
     renderScore(); renderBanner();
     setTimeout(sfx.win, 260);
     setTimeout(sayWin, 1150);
@@ -2049,12 +2104,14 @@
     state.running = true;
     tickHandle = setInterval(function(){
       state.seconds++;
-      if(timerValue) timerValue.textContent = timeText(state.seconds);
+      if(timerValue && !state.clocks) timerValue.textContent = timeText(state.seconds);
       /* nobody's clock runs while the two cards of a miss are still face up:
          the player who turned them is done, and the next one cannot move yet */
-      if(state.players >= 2 && state.clocks && !state.won && !state.holding){
+      if(state.clocks && !state.won && !state.holding){
         state.clocks[state.turn] = Math.max(0, state.clocks[state.turn] - 1);
         paintClocks();
+        var left = state.clocks[state.turn];
+        if(left > 0 && left <= 10) sfx.tick(left);
         if(state.clocks[state.turn] === 0) timeUp();
       }
     }, 1000);
@@ -2104,10 +2161,13 @@
 
     var timed = opts.timed !== undefined ? opts.timed
               : (state && state.timed !== undefined ? state.timed : false);
-    var each = Math.max(90, pairs * 15);   /* 1:30 Easy, 2:30 Medium, 6:00 Hard */
+    var each = Math.max(90, pairs * 15);   /* 1:30 Easy, 2:30 Medium, 6:00 Hard, 7:30 Extra hard */
+    /* Extra hard is every animal there is, and it is always against the clock -
+       even for one player, who otherwise only ever sees the time count up */
+    var countdown = pairs >= SPECIES.length || (players >= 2 && timed);
     state = {pairs: pairs, players: players, keepTurn: keepTurn, deck: deck, found: [],
              scores: seatArray(0), turn: 0, won: false, timeout: null,
-             timed: timed, clocks: (players >= 2 && timed) ? seatArray(each) : null,
+             timed: timed, clocks: countdown ? seatArray(each) : null,
              sides: [{last: null, open: false}, {last: null, open: false}],
              holding: false, seconds: 0, turns: 0, running: false, mode: "play"};
     lock = false;
@@ -2345,10 +2405,15 @@
       set(Number(btn.dataset[attr]));
     });
   }
-  wirePick("start-size", "pairs", function(v){ startPairs = v; });
+  /* extra hard is always against the clock, so there is nothing to choose */
+  function showRows(){
+    keepRow.hidden = startPlayers < 2;
+    timerRow.hidden = startPlayers < 2 || startPairs >= SPECIES.length;
+  }
+  wirePick("start-size", "pairs", function(v){ startPairs = v; showRows(); });
   wirePick("start-players", "players", function(v){
     startPlayers = v;
-    keepRow.hidden = timerRow.hidden = v < 2;
+    showRows();
   });
   wirePick("start-keep", "keep", function(v){ startKeep = v; });
   wirePick("start-timer", "clock", function(v){ startTimed = v; });
@@ -2374,7 +2439,7 @@
     Array.prototype.forEach.call(document.querySelectorAll("#start-timer button"), function(el){
       el.setAttribute("aria-checked", String(Number(el.dataset.clock) === startTimed));
     });
-    keepRow.hidden = timerRow.hidden = startPlayers < 2;
+    showRows();
     startOverlay.hidden = false;
   }
 
