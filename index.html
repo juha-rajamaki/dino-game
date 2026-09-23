@@ -2264,9 +2264,9 @@
               : (state && state.timed !== undefined ? state.timed : false);
     /* Extra hard is every animal there is, and it is always against the clock -
        even for one player, who otherwise only ever sees the time count up.
-       It gets ten minutes, since the cards will not stay where they were put. */
+       It gets eight minutes, since the cards will not stay where they were put. */
     var extra = pairs >= SPECIES.length;
-    var each = extra ? 600 : Math.max(90, pairs * 15);   /* 1:30 Easy, 2:30 Medium, 6:00 Hard, 10:00 Extra hard */
+    var each = extra ? 480 : Math.max(90, pairs * 15);   /* 1:30 Easy, 2:30 Medium, 6:00 Hard, 8:00 Extra hard */
     var countdown = extra || (players >= 2 && timed);
     state = {pairs: pairs, players: players, keepTurn: keepTurn, deck: deck, found: [],
              scores: seatArray(0), turn: 0, won: false, timeout: null,
