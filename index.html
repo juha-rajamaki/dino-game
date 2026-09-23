@@ -1151,6 +1151,7 @@
     }catch(e){}
   }
 
+  var swooshBuf = null;
   function swoosh(){
     if(!soundOn) return;
     tone(988, 0.12, "square", 0.06);
@@ -1158,11 +1159,15 @@
     try{
       if(!audio) audio = new (window.AudioContext || window.webkitAudioContext)();
       if(audio.state === "suspended") audio.resume();
-      var t0 = audio.currentTime + 0.3, len = Math.floor(audio.sampleRate * 0.9);
-      var buf = audio.createBuffer(1, len, audio.sampleRate), d = buf.getChannelData(0);
-      for(var i = 0; i < len; i++){ var x = i / len; d[i] = (Math.random() * 2 - 1) * Math.sin(Math.PI * x); }
+      var t0 = audio.currentTime + 0.3;
+      if(!swooshBuf){
+        var len = Math.floor(audio.sampleRate * 0.9);
+        swooshBuf = audio.createBuffer(1, len, audio.sampleRate);
+        var d = swooshBuf.getChannelData(0);
+        for(var i = 0; i < len; i++){ var x = i / len; d[i] = (Math.random() * 2 - 1) * Math.sin(Math.PI * x); }
+      }
       var src = audio.createBufferSource();
-      src.buffer = buf;
+      src.buffer = swooshBuf;
       var bp = audio.createBiquadFilter();
       bp.type = "bandpass"; bp.Q.value = 1.4;
       bp.frequency.setValueAtTime(500, t0);
