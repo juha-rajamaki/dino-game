@@ -25,9 +25,8 @@ works for a child who cannot read yet.
   cards: 4:30 each for two, 3:30 for three and 2:50 for four.
   And the cards will not sit still: once a quarter of the pairs are found,
   every half-minute a warning sounds and two face-down cards glide across
-  the table and trade places — every fifteen seconds once half are found,
-  and two pairs at a time with only a quarter left, to a spoken
-  *too easy, huh?* — so what you
+  the table and trade places — every ten seconds once half are found,
+  and two pairs at a time with only a quarter left — so what you
   remembered about them is no longer true. The first card turned starts the
   clock, and a bell rings when half of a player's time is gone.
 - **One to four players.** A miss always passes the turn, and the next player is

@@ -2296,10 +2296,10 @@
         if(state.clocks[state.turn] === 0) timeUp();
       }
       /* the cards sit still until a quarter of the pairs are found; then a
-         pair swaps every half-minute, from half found every fifteen seconds,
+         pair swaps every half-minute, from half found every ten seconds,
          and with a quarter left two pairs at a time */
       var share = state.found.length / state.pairs;
-      var every = share >= 0.5 ? 15 : 30;
+      var every = share >= 0.5 ? 10 : 30;
       var swapping = state.moving && !state.won && share >= 0.25 &&
                      state.seconds % every === 0 && swapCards(share >= 0.75 ? 2 : 1);
       /* each player hears it when their own clock is half gone */
@@ -2329,14 +2329,6 @@
     sfx.swap();
     live.textContent = moved > 1 ? "Watch out! Four cards are swapping places."
                                  : "Watch out! Two cards are swapping places.";
-    /* two pairs at once: the table is teased, once the swoosh is over - but
-       never over a player being named */
-    if(moved > 1){
-      var game = state;
-      setTimeout(function(){
-        if(state === game && !game.won && !game.holding && !turnClip) sayClip("easy", "Too easy, huh?", null);
-      }, 1900);
-    }
     return true;
   }
   function swapPair(){
