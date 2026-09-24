@@ -32,6 +32,10 @@ works for a child who cannot read yet.
   and two pairs at a time with only a quarter left — so what you
   remembered about them is no longer true. The first card turned starts the
   clock, and a bell rings when half of a player's time is gone.
+- **Speedrun.** One player on Easy, Medium or Hard can pick *Speedrun* on
+  the start screen. The clock counts up, even on Hard, and nothing waits:
+  after a miss the next card you turn sends the two back down as it comes
+  up. A speedrun keeps a best score of its own.
 - **One to four players.** A miss always passes the turn, and the next player is
   named out loud — the plate only lights up for them once the naming has
   finished, so nobody plays a card into somebody else's turn. What a *pair* does is the players' own choice,

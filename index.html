@@ -812,6 +812,14 @@
       </div>
     </div>
 
+    <div class="row" id="start-speed-row">
+      <p class="row-label">How to play</p>
+      <div class="seg" role="radiogroup" aria-label="How to play" id="start-speed">
+        <button type="button" role="radio" data-speed="0" aria-checked="true">Normal</button>
+        <button type="button" role="radio" data-speed="1" aria-checked="false">Speedrun</button>
+      </div>
+    </div>
+
     <div class="row" id="start-keep-row" hidden>
       <p class="row-label">When you find a pair</p>
       <div class="seg" role="radiogroup" aria-label="When you find a pair" id="start-keep">
@@ -1064,6 +1072,7 @@
   var albumBtn = document.getElementById("album-btn");
 
   var state = null, lock = false, flipHandle = null, tickHandle = null, timerValue = null;
+  var turnBack = null;   /* sends a missed pair back down */
   var clockVal = [null, null, null, null];
   var BEST_KEY = "dino-match-best-v1";
 
@@ -2121,10 +2130,12 @@
     return {best: best, winners: winners};
   }
 
+  /* a speedrun keeps a best of its own */
+  function bestKey(){ return (state.speedrun ? "speed-" : "") + state.pairs; }
   function recordBest(){
-    var all = loadBest(), total = scoreOf(state).total, prev = all[state.pairs];
+    var all = loadBest(), total = scoreOf(state).total, prev = all[bestKey()];
     if(!prev || total > prev.score){
-      all[state.pairs] = {score: total, seconds: state.seconds, turns: state.turns};
+      all[bestKey()] = {score: total, seconds: state.seconds, turns: state.turns};
       saveBest(all);
       state.newBest = true;
     }
@@ -2212,7 +2223,7 @@
                       Math.round(sc.accuracy * 100) + "% right";
       banner.appendChild(p);
 
-      var best = loadBest()[state.pairs];
+      var best = loadBest()[bestKey()];
       if(state.newBest){
         var nb = document.createElement("p");
         nb.className = "best-line";
@@ -2238,6 +2249,7 @@
   function clearFlipTimer(){
     if(state) state.holding = false;
     if(flipHandle){ clearTimeout(flipHandle); flipHandle = null; }
+    turnBack = null;
   }
   /* Two players share the board but not the clock: each has a budget of their
      own, and it only runs down while the turn is theirs. Run it out and the
@@ -2446,12 +2458,14 @@
     var each = extra ? Math.round(table / players)   /* 6:00, 3:30, 2:40, 2:15 each */
                      : Math.max(90, pairs * 15);   /* 1:30 Easy, 2:30 Medium, 6:00 Hard */
     /* Hard alone is against the clock too: the same 6:00 a player gets at a table */
-    var countdown = extra || (players >= 2 && timed) || (players === 1 && pairs === 24);
+    /* a speedrun only ever counts up */
+    var speedrun = !!opts.speedrun && players === 1 && !extra;
+    var countdown = extra || (players >= 2 && timed) || (players === 1 && pairs === 24 && !speedrun);
     state = {pairs: pairs, players: players, keepTurn: keepTurn, deck: deck, found: [],
              scores: seatArray(0), turn: 0, won: false, timeout: null,
              timed: timed, clocks: countdown ? seatArray(each) : null, moving: extra, budget: each,
              sides: [{last: null, open: false}, {last: null, open: false}],
-             holding: false, seconds: 0, turns: 0, running: false, mode: "play"};
+             holding: false, seconds: 0, turns: 0, running: false, mode: "play", speedrun: speedrun};
     lock = false;
     popped = {};
     clearFlipTimer();
@@ -2492,6 +2506,14 @@
       return;
     }
 
+    /* speedrun: no waiting on a miss - the next card turned sends the two
+       back down as it comes up */
+    if(state.speedrun && flipHandle && !state.won && card.dataset.face === "down" &&
+       !state.deck[Number(card.dataset.index)].matched && !card.dataset.moving){
+      clearTimeout(flipHandle);
+      flipHandle = null;
+      turnBack();
+    }
     if(lock || state.won) return;
     var index = Number(card.dataset.index);
     var slot = state.deck[index];
@@ -2569,8 +2591,8 @@
       }
       renderScore();
       state.holding = true;
-      flipHandle = setTimeout(function(){
-        flipHandle = null;
+      turnBack = function(){
+        turnBack = null;
         sfx.flip();
         [first, second].forEach(function(el){
           el.dataset.face = "down";
@@ -2580,6 +2602,10 @@
         /* the board stays shut until the next player has been named */
         if(state.players >= 2) handOver();
         else { state.holding = false; lock = false; }
+      };
+      flipHandle = setTimeout(function(){
+        flipHandle = null;
+        turnBack();
       }, 2200);   // children need a good look before the cards turn back
     }
   }
@@ -2676,6 +2702,8 @@
   var startOverlay = document.getElementById("start");
   var startPairs = 10, startPlayers = 1, startKeep = 0;   /* hand the turn over */
   var startTimed = 0;                                    /* no time limit */
+  var startSpeed = 0;                                    /* normal, not a speedrun */
+  var speedRow = document.getElementById("start-speed-row");
   var keepRow = document.getElementById("start-keep-row");
   var timerRow = document.getElementById("start-timer-row");
 
@@ -2691,7 +2719,9 @@
     });
   }
   /* extra hard is always against the clock, so there is nothing to choose */
+  /* a speedrun is one player racing the clock up, so extra hard, with its own clock, has none */
   function showRows(){
+    speedRow.hidden = startPlayers > 1 || startPairs >= SPECIES.length;
     keepRow.hidden = startPlayers < 2;
     timerRow.hidden = startPlayers < 2 || startPairs >= SPECIES.length;
   }
@@ -2702,6 +2732,7 @@
   });
   wirePick("start-keep", "keep", function(v){ startKeep = v; });
   wirePick("start-timer", "clock", function(v){ startTimed = v; });
+  wirePick("start-speed", "speed", function(v){ startSpeed = v; });
 
   /* Coming back to it keeps whatever was last played selected. */
   function openStart(){
@@ -2712,6 +2743,7 @@
       startPairs = state.pairs; startPlayers = state.players;
       startKeep = state.keepTurn === false ? 0 : 1;
       startTimed = state.timed === true ? 1 : 0;
+      startSpeed = state.speedrun ? 1 : 0;
     }
     Array.prototype.forEach.call(document.querySelectorAll("#start-size button"), function(el){
       el.setAttribute("aria-checked", String(Number(el.dataset.pairs) === startPairs));
@@ -2725,6 +2757,9 @@
     Array.prototype.forEach.call(document.querySelectorAll("#start-timer button"), function(el){
       el.setAttribute("aria-checked", String(Number(el.dataset.clock) === startTimed));
     });
+    Array.prototype.forEach.call(document.querySelectorAll("#start-speed button"), function(el){
+      el.setAttribute("aria-checked", String(Number(el.dataset.speed) === startSpeed));
+    });
     showRows();
     startOverlay.hidden = false;
   }
@@ -2733,7 +2768,8 @@
     startOverlay.hidden = true;
     jungleStart();
     newGame({pairs: startPairs, players: startPlayers,
-             keepTurn: startKeep === 1, timed: startTimed === 1});
+             keepTurn: startKeep === 1, timed: startTimed === 1,
+             speedrun: startSpeed === 1 && startPlayers === 1 && startPairs < SPECIES.length});
   });
 
   /* ---------- boot ---------- */
