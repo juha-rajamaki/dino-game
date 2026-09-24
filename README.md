@@ -19,10 +19,13 @@ works for a child who cannot read yet.
   **New game** brings the screen back.
 - **Four sizes** — Easy (6 pairs), Medium (10), Hard (24) and Extra hard (all
   30). The animals in a game are drawn at random each time, so the same size
-  plays differently. Extra hard is always against the clock — even for one
-  player, who gets 8:00 to find all thirty and a *time's up* if they do not.
+  plays differently. One player on Hard gets a 6:00 countdown, and a
+  *time's up* if it runs out. Extra hard is always against the clock — even for one
+  player, who gets 6:00 to find all thirty and a *time's up* if they do not.
   With more players each clock is shorter, since everyone sees everyone's
-  cards: 4:30 each for two, 3:30 for three and 2:50 for four.
+  cards, but the table gets a minute more for each player: 7:00 shared
+  as 3:30 each for two, 8:00 as 2:40 each for three and 9:00 as 2:15
+  each for four.
   And the cards will not sit still: once a quarter of the pairs are found,
   every half-minute a warning sounds and two face-down cards glide across
   the table and trade places — every ten seconds once half are found,
@@ -40,7 +43,7 @@ works for a child who cannot read yet.
   the start screen; it is off to begin with, and the timer then counts up as it
   always has. With it on, each player has a budget of their own: fifteen seconds a pair, never less than a
   minute and a half, so 1:30 on Easy, 2:30 on Medium and 6:00 on Hard — and
-  8:00 to 2:50 on Extra hard, by how many play, where there is no choosing: the clock is always on. It runs
+  6:00 to 2:15 on Extra hard, by how many play, where there is no choosing: the clock is always on. It runs
   only while the turn is yours, stops while the two cards of a miss are still
   face up — that time belongs to nobody — goes red for the last thirty
   seconds, and ticks out loud through the last ten. Run it out and the game ends there and you cannot win it, however far

@@ -2437,14 +2437,16 @@
               : (state && state.timed !== undefined ? state.timed : false);
     /* Extra hard is every animal there is, and it is always against the clock -
        even for one player, who otherwise only ever sees the time count up.
-       Alone you get eight minutes; at a table everybody sees everybody's
-       cards and takes a share of the turns, so each clock is shorter, and the
-       table as a whole gets about the same. The cards will not stay put. */
+       Alone you get six minutes; at a table everybody sees everybody's
+       cards and takes a share of the turns, so the table shares the time,
+       with a minute more for each player after the first. The cards will
+       not stay put. */
     var extra = pairs >= SPECIES.length;
-    var EXTRA_EACH = [480, 270, 210, 170];   /* 8:00, 4:30, 3:30, 2:50 for one to four players */
-    var each = extra ? EXTRA_EACH[Math.min(players, 4) - 1]
+    var table = 360 + 60 * (players - 1);   /* 6:00, 7:00, 8:00, 9:00 in all */
+    var each = extra ? Math.round(table / players)   /* 6:00, 3:30, 2:40, 2:15 each */
                      : Math.max(90, pairs * 15);   /* 1:30 Easy, 2:30 Medium, 6:00 Hard */
-    var countdown = extra || (players >= 2 && timed);
+    /* Hard alone is against the clock too: the same 6:00 a player gets at a table */
+    var countdown = extra || (players >= 2 && timed) || (players === 1 && pairs === 24);
     state = {pairs: pairs, players: players, keepTurn: keepTurn, deck: deck, found: [],
              scores: seatArray(0), turn: 0, won: false, timeout: null,
              timed: timed, clocks: countdown ? seatArray(each) : null, moving: extra, budget: each,
