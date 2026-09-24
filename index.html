@@ -1266,7 +1266,7 @@
       if(left <= 3){ tone(1320, 0.14, "square", 0.07); }
       else { tone(880, 0.08, "triangle", 0.08); }
     },
-    /* Extra hard, once a minute: a two-note warning, then a swoosh as the
+    /* Extra hard, each time cards swap: a two-note warning, then a swoosh as the
        cards slide across the table */
     swap:  swoosh,
     /* Extra hard, halfway through a player's time: a ding-dong, twice over,
@@ -2295,10 +2295,13 @@
         if(left > 0 && left <= 10) sfx.tick(left);
         if(state.clocks[state.turn] === 0) timeUp();
       }
-      /* once a minute for the first three minutes of play, then every
-         half-minute - the same at a full table as for one player */
-      var every = state.seconds > 180 ? 30 : 60;
-      var swapping = state.moving && !state.won && state.seconds % every === 0 && swapCards();
+      /* the cards sit still until a quarter of the pairs are found; then a
+         pair swaps every half-minute, from half found every fifteen seconds,
+         and with a quarter left two pairs at a time */
+      var share = state.found.length / state.pairs;
+      var every = share >= 0.5 ? 15 : 30;
+      var swapping = state.moving && !state.won && share >= 0.25 &&
+                     state.seconds % every === 0 && swapCards(share >= 0.75 ? 2 : 1);
       /* each player hears it when their own clock is half gone */
       if(state.moving && !state.won && !state.holding && state.clocks &&
          state.clocks[state.turn] * 2 === state.budget){
@@ -2312,14 +2315,31 @@
     }, 1000);
   }
 
-  /* Extra hard, every minute of play (every half-minute near the end): two face-down cards get up and trade
+  /* Extra hard, more often the more pairs are found: two face-down cards (four near the end) get up and trade
      places, sliding past each other across the table, so what you remembered
      about them is no longer true. Only cards nobody is looking at move, and
      never two of the same animal - that would change nothing. One of the two
      is always a card that has been turned before, if there is one: moving a
      card nobody has seen takes nothing away from anybody. */
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-  function swapCards(){
+  function swapCards(times){
+    var moved = 0;
+    for(var n = 0; n < (times || 1); n++) if(swapPair()) moved++;
+    if(!moved) return false;
+    sfx.swap();
+    live.textContent = moved > 1 ? "Watch out! Four cards are swapping places."
+                                 : "Watch out! Two cards are swapping places.";
+    /* two pairs at once: the table is teased, once the swoosh is over - but
+       never over a player being named */
+    if(moved > 1){
+      var game = state;
+      setTimeout(function(){
+        if(state === game && !game.won && !game.holding && !turnClip) sayClip("easy", "Too easy, huh?", null);
+      }, 1900);
+    }
+    return true;
+  }
+  function swapPair(){
     var cards = board.querySelectorAll(".card");
     var free = state.deck.map(function(slot, i){ return i; }).filter(function(i){
       var el = cards[i];
@@ -2337,8 +2357,6 @@
     if(b === null) return false;
 
     var game = state, elA = cards[a], elB = cards[b];
-    sfx.swap();
-    live.textContent = "Watch out! Two cards are swapping places.";
 
     function finish(){
       if(state !== game) return;
@@ -2427,11 +2445,11 @@
               : (state && state.timed !== undefined ? state.timed : false);
     /* Extra hard is every animal there is, and it is always against the clock -
        even for one player, who otherwise only ever sees the time count up.
-       Alone you get seven minutes; at a table everybody sees everybody's
+       Alone you get eight minutes; at a table everybody sees everybody's
        cards and takes a share of the turns, so each clock is shorter, and the
        table as a whole gets about the same. The cards will not stay put. */
     var extra = pairs >= SPECIES.length;
-    var EXTRA_EACH = [420, 240, 180, 150];   /* 7:00, 4:00, 3:00, 2:30 for one to four players */
+    var EXTRA_EACH = [480, 270, 210, 170];   /* 8:00, 4:30, 3:30, 2:50 for one to four players */
     var each = extra ? EXTRA_EACH[Math.min(players, 4) - 1]
                      : Math.max(90, pairs * 15);   /* 1:30 Easy, 2:30 Medium, 6:00 Hard */
     var countdown = extra || (players >= 2 && timed);
