@@ -9,11 +9,23 @@ works for a child who cannot read yet.
 
 ## What is in it
 
-- **34 animals** — 28 dinosaurs, 4 pterosaurs, 1 marine reptile and 1
-  plesiosaur, from every continent: Australovenator, Muttaburrasaurus and
-  Leaellynasaura from Australia, and Cryolophosaurus from Antarctica. The six that are not dinosaurs say so on their card, because
-  Pteranodon, Mosasaurus and Elasmosaurus are mistaken for dinosaurs more often
-  than almost anything else in this set.
+- **47 animals** — 36 dinosaurs, 5 pterosaurs and 6 sea reptiles, from every
+  continent and three ages: Coelophysis, one of the very first dinosaurs;
+  Megalosaurus, the first ever named; Brontosaurus, Giganotosaurus and
+  Carcharodontosaurus; Archaeopteryx, one of the first birds; Quetzalcoatlus, as
+  wide as a small plane; Albertosaurus and Edmontosaurus from Canada, Australovenator, Muttaburrasaurus and Leaellynasaura from
+  Australia, and Cryolophosaurus from Antarctica. The seas have Mosasaurus,
+  the long-necked Elasmosaurus, the short-necked pliosaurs Liopleurodon and
+  Kronosaurus, the dolphin-shaped Ichthyosaurus that Mary Anning dug out of the
+  cliffs at Lyme Regis, and Archelon, the biggest turtle that ever lived. There
+  were no sea dinosaurs, so the eleven that are not dinosaurs say so on their card,
+  because Pteranodon, Mosasaurus and Elasmosaurus are mistaken for dinosaurs
+  more often than almost anything else in this set.
+- **More about each one.** Under every card's fact sits a **More about…**
+  button that folds open three more things worth knowing and how the animal was
+  first found, each with its own play button. They were researched from museum
+  pages and studies, worded carefully where scientists still argue, and kept
+  short enough for a child to repeat at dinner.
 - **A start screen** where the size and the number of players are chosen. It is
   also what wakes the forest: a browser will not play audio until the player has
   done something, so the one tap that starts the game starts the sound with it.
@@ -80,17 +92,18 @@ works for a child who cannot read yet.
   own picture of the Earth, with every animal standing on the spot where its
   bones were dug up. Drag it, pinch it or scroll it to look closer. Tap an
   animal and the map flies there: the places it was found glow, the others
-  step back, and a card says what each place was like back then. The play
-  button reads the card aloud, as everywhere else. **Back then** turns the clock
-  back to 150 or 70 million years ago and the continents drift to where they
-  were, carrying the animals with them: the Jurassic ones stand on a world that
-  is still almost one piece, and by the end of the Cretaceous a shallow sea cuts
-  North America in two, right past Tyrannosaurus's front door. Each turn of the
-  switch, and each change of age while back then, is told out loud: how the land
-  was all one piece, how it broke up, and how it is still drifting today, about
-  as fast as your fingernails grow. The caption keeps a play button to hear it
-  again. A row of
-  continents along the foot, as on a classroom poster, takes you to each one.
+  step back, and a card says what each place was like back then.
+  Along the top runs the story of their world in five stages, **Triassic**,
+  **Jurassic**, **Cretaceous**, **Asteroid** and **Today**, each told out loud.
+  Tap one and the continents drift there, the animals of that age riding on
+  them: the first dinosaurs on Pangaea, all the land in one piece; the
+  Jurassic ones on a world just starting to split, the Cretaceous ones
+  on a world breaking apart, with a shallow sea through the middle of North
+  America. At the **Asteroid** a rock from space streaks in and strikes near
+  Mexico; the world flashes, rings of fire spread, dust darkens the sky and the
+  animals go grey. **Today** brings every one of them back as a fossil, with the
+  crater marked. **Whole story** plays the five stages one after another. A row
+  of continents along the foot, as on a classroom poster, takes you to each one.
 - **The animals stand back.** The Tyrannosaurus and the velociraptors have the
   board to themselves while the start screen is up. As the game opens — once the
   first player has been named — the cards come up in front of them in a ripple
@@ -114,12 +127,14 @@ It is a single static page with no build step and no dependencies:
 
 ```
 index.html      the whole game - markup, styles and logic
-img/            34 card plates plus the background and the two foreground animals
-img/full/       the same 34 animals at full size, fetched only when one is opened
-img/map/        the Earth today, small and large, and the two worlds of back then
-tools/          paleomap.py, which draws the back-then worlds (needs numpy and Pillow)
+img/            47 card plates plus the background and the two foreground animals
+img/full/       the same 47 animals at full size, fetched only when one is opened
+img/map/        the Earth today, small and large, the worlds of 220, 150, 70 and 66
+                million years ago, and drift/, the land every five million years between
+tools/          paleomap.py, which draws those worlds (needs numpy and Pillow)
 audio/          a narration clip per animal, plus the jungle loop
-audio/map/      the three stories of the moving world, told on the map
+audio/map/      the stories told on the map, one or two for each stage
+audio/more/     the More lines read aloud, four for each animal
 ```
 
 Open `index.html` in a browser, or serve the folder with anything:

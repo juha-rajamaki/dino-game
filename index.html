@@ -17,7 +17,7 @@
     --p4:#FFDA47; --p4-glow:rgba(255,218,71,.5);    /* player four, yellow */
     --card-face:#F7F2E5; --card-ink:#1A2016;
     --back-1:#17402C; --back-2:#07160E;
-    --jurassic:#4EC0D6; --cretaceous:#8BD05C;
+    --triassic:#E0915A; --jurassic:#4EC0D6; --cretaceous:#8BD05C;
     --plate-bg:radial-gradient(68% 60% at 50% 40%, #4A3520 0%, #241A0D 44%, #0C0B08 100%);
   }
 
@@ -410,7 +410,7 @@
 
   /* ---------- where they lived: the world, with every animal on it ---------- */
   .map{
-    position:fixed; inset:0; z-index:55; display:grid; grid-template-rows:auto minmax(0,1fr);
+    position:fixed; inset:0; z-index:55; display:grid; grid-template-rows:auto minmax(0,1fr); grid-template-columns:minmax(0,1fr);
     background:#050A10; animation:viewer-in .28s ease;
     padding-top:env(safe-area-inset-top, 0px);
   }
@@ -433,10 +433,43 @@
     background:var(--panel); color:var(--bone-dim); border:1px solid var(--edge-soft);
   }
   .map-chip .dot{width:9px; height:9px; border-radius:50%; background:var(--bone-faint)}
-  .map-chip .dot.Jurassic{background:var(--jurassic)} .map-chip .dot.Cretaceous{background:var(--cretaceous)}
+  .map-chip .dot.Triassic{background:var(--triassic)} .map-chip .dot.Jurassic{background:var(--jurassic)} .map-chip .dot.Cretaceous{background:var(--cretaceous)}
   .map-chip:hover{color:var(--bone)}
   .map-chip[aria-pressed="true"]{color:var(--bone); border-color:var(--amber); background:rgba(242,171,62,.16)}
   .map-chip:disabled{opacity:.35; cursor:default}
+  .map-stages{display:flex; gap:6px; flex-wrap:wrap}
+  .map-chip small{font:700 11px "Nunito",sans-serif; color:var(--bone-faint); margin-left:-2px}
+  .map-chip[aria-pressed="true"] small{color:var(--bone-dim)}
+  .map-chip .dot.Asteroid{background:#FF7A3D; box-shadow:0 0 6px #FF7A3D}
+  .map-chip .dot.Today{background:var(--bone)}
+  .map-run{padding:7px 14px; font-size:14px}
+  .map-run[data-on="true"]{color:var(--amber); border-color:rgba(242,171,62,.55)}
+
+  /* the asteroid: a streak, a flash, a ring of fire, and dust over the world */
+  .map-dust{
+    position:absolute; inset:0; z-index:1; pointer-events:none; opacity:0;
+    background:radial-gradient(circle at var(--x,50%) var(--y,50%), rgba(60,30,12,.55), rgba(20,14,10,.78) 60%);
+    transition:opacity 3.5s ease;
+  }
+  .map-dust[data-on="true"]{opacity:1}
+  .map-impact{position:absolute; inset:0; z-index:5; pointer-events:none; overflow:hidden}
+  .meteor{
+    position:absolute; left:0; top:0; width:14px; height:14px; margin:-7px 0 0 -7px; border-radius:50%;
+    background:#FFF6D8; box-shadow:0 0 12px 6px #FFB347, 0 0 40px 18px rgba(255,90,20,.6);
+  }
+  .meteor-tail{position:absolute; left:0; top:0; height:6px; margin-top:-3px; transform-origin:0 50%; border-radius:6px;
+    background:linear-gradient(90deg, rgba(255,246,216,.95), rgba(255,140,40,.6) 30%, rgba(255,90,20,0))}
+  .flash{position:absolute; inset:0; background:#FFF3D6; opacity:0; animation:flash 1.1s ease-out forwards}
+  @keyframes flash{0%{opacity:0} 8%{opacity:.95} 100%{opacity:0}}
+  .blast{
+    position:absolute; left:0; top:0; width:20px; height:20px; margin:-10px 0 0 -10px; border-radius:50%;
+    border:4px solid rgba(255,170,60,.95); box-shadow:0 0 30px 10px rgba(255,90,20,.6), inset 0 0 30px rgba(255,200,120,.7);
+    animation:blast 2.6s cubic-bezier(.15,.7,.3,1) forwards;
+  }
+  .blast.two{animation-delay:.35s; border-color:rgba(255,120,40,.8)}
+  @keyframes blast{from{transform:scale(1); opacity:1} to{transform:scale(60); opacity:0}}
+  .map-pin[data-extinct="true"]{filter:grayscale(1) brightness(.55); opacity:.5; transition:filter 1.2s, opacity 1.2s}
+  .map-lines .crater{fill:rgba(255,122,61,.18); stroke:#FF7A3D; stroke-width:2; stroke-dasharray:5 4}
   .map-head .close-x{position:static; flex:none; width:38px; height:38px; font-size:24px}
 
   .map-stage{position:relative; overflow:hidden; touch-action:none; cursor:grab; user-select:none; -webkit-user-select:none}
@@ -447,6 +480,9 @@
     transition:opacity .7s ease; -webkit-user-drag:none; pointer-events:none;
   }
   .map-world img[data-on="false"]{opacity:0}
+  /* the land on the move, between one age and the next */
+  .map-world canvas{position:absolute; inset:0; width:100%; height:100%; display:block; pointer-events:none; transition:opacity .5s ease}
+  .map-world canvas[data-on="false"]{opacity:0}
   /* the forest at the edge of the world, so the map sits inside the game */
   .map-stage::after{
     content:""; position:absolute; inset:0; pointer-events:none; z-index:2;
@@ -474,6 +510,7 @@
     transition:opacity .3s, border-color .2s, box-shadow .2s, filter .3s;
   }
   .map{--pin:48px}
+  .map-pin[data-period="Triassic"]{--ring:var(--triassic)}
   .map-pin[data-period="Jurassic"]{--ring:var(--jurassic)}
   .map-pin[data-period="Cretaceous"]{--ring:var(--cretaceous)}
   .map-pin img{width:100%; height:100%; object-fit:cover; display:block; transform:scale(1.06); pointer-events:none}
@@ -481,7 +518,6 @@
   .map-pin[data-picked="true"]{border-color:var(--amber); box-shadow:0 0 0 4px rgba(242,171,62,.45), 0 0 26px rgba(242,171,62,.6); z-index:3}
   .map-pin[data-dim="true"]{opacity:.38; filter:saturate(.3)}
   .map-pin[data-gone="true"]{opacity:0; pointer-events:none}
-  .map-pins[data-glide="true"] .map-pin{transition:transform .9s cubic-bezier(.45,0,.2,1), opacity .3s}
   .map-pin .kind{
     position:absolute; right:0; bottom:0; width:40%; height:40%; border-radius:50%;
     display:grid; place-items:center; font-size:10px; background:#0A1A24; color:#8CDBEB; border:1px solid #8CDBEB;
@@ -544,7 +580,7 @@
   .map-card .mc-name{margin:0; font-family:"Fredoka",sans-serif; font-size:22px; font-weight:600; color:var(--amber); line-height:1.1}
   .map-card .mc-when{display:flex; align-items:center; gap:7px; margin:6px 0 0; font-size:13px; font-weight:700; color:var(--bone-dim)}
   .map-card .mc-when .dot{width:9px; height:9px; border-radius:50%}
-  .map-card .mc-when .dot.Jurassic{background:var(--jurassic)} .map-card .mc-when .dot.Cretaceous{background:var(--cretaceous)}
+  .map-card .mc-when .dot.Triassic{background:var(--triassic)} .map-card .mc-when .dot.Jurassic{background:var(--jurassic)} .map-card .mc-when .dot.Cretaceous{background:var(--cretaceous)}
   .map-card h3{margin:14px 0 6px; font-size:10.5px; font-weight:800; letter-spacing:.11em; text-transform:uppercase; color:var(--bone-faint)}
   .map-card ul{margin:0; padding:0; list-style:none; display:grid; gap:4px}
   .map-card li button{
@@ -578,7 +614,12 @@
     .map-head h2{order:-2}
     .map-head h2 small{display:none}
     .map-head .seg button{padding:6px 10px; font-size:14px}
-    .map-chip{padding:6px 10px; font-size:13px}
+    .map-chip{padding:6px 9px; font-size:13px; flex:none}
+    .map-stages{flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; flex:1 1 100%; min-width:0; order:1}
+    .map-run{order:-1}
+    .map-stages::-webkit-scrollbar{display:none}
+    .map-chip small{display:none}
+    .map-run{padding:6px 10px; font-size:13px}
     .map-zoom{top:12px; right:10px}
     .map-zoom button{width:36px; height:36px}
     .map-caption{top:10px; left:10px; right:58px; transform:none; max-width:none; font-size:12.5px; padding:7px 12px}
@@ -596,8 +637,10 @@
   }
   @keyframes map-sheet-in{from{transform:translateY(40px); opacity:0} to{transform:none; opacity:1}}
   @media (prefers-reduced-motion: reduce){
-    .map,.map-card,.map-lines .ring{animation:none}
-    .map-world img,.map-pins[data-glide="true"] .map-pin{transition:none}
+    .map,.map-card,.map-lines .ring,.blast,.flash{animation:none}
+    .blast,.meteor,.meteor-tail{display:none}
+    .map-dust{transition:none}
+    .map-world img,.map-world canvas{transition:none}
   }
 
   .facts .name{
@@ -610,11 +653,26 @@
     background:var(--panel-2); border-radius:999px; padding:4px 11px; color:var(--bone-dim);
   }
   .tag .dot{width:8px; height:8px; border-radius:50%; background:var(--bone-faint)}
-  .tag .dot.Jurassic{background:var(--jurassic)} .tag .dot.Cretaceous{background:var(--cretaceous)}
+  .tag .dot.Triassic{background:var(--triassic)} .tag .dot.Jurassic{background:var(--jurassic)} .tag .dot.Cretaceous{background:var(--cretaceous)}
   .facts .means{
     margin:4px 0 0; font-size:14.5px; color:var(--bone-dim); font-style:italic;
   }
   .facts .fact{margin:0; font-size:15px; color:var(--bone); line-height:1.58}
+  .more{margin-top:14px}
+  .more-toggle{
+    appearance:none; cursor:pointer; width:100%; display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:9px 14px; border-radius:12px; font:600 14.5px "Fredoka",system-ui,sans-serif;
+    color:var(--amber); background:rgba(242,171,62,.1); border:1px solid rgba(242,171,62,.4);
+  }
+  .more-toggle::after{content:"\25BE"; transition:transform .2s}
+  .more-toggle[aria-expanded="true"]::after{transform:rotate(180deg)}
+  .more-toggle:hover{background:rgba(242,171,62,.2)}
+  .more-body{padding:4px 2px 0; animation:reveal .3s ease}
+  .more-body[hidden]{display:none}
+  .more-body h3{margin:14px 0 6px; font-size:10.5px; font-weight:800; letter-spacing:.11em; text-transform:uppercase; color:var(--bone-faint)}
+  .more-line{display:grid; grid-template-columns:auto minmax(0,1fr); gap:10px; align-items:start; margin:0 0 9px}
+  .more-line p{margin:0; font-size:14.5px; line-height:1.55; color:var(--bone)}
+  .more-line .play-x{width:28px; height:28px; font-size:11px; margin-top:1px}
   .facts-body{animation:reveal .35s ease}
   @keyframes reveal{from{opacity:0; transform:translateY(-6px)}to{opacity:1; transform:none}}
   .stats{display:grid; gap:10px; margin:13px 0 13px}
@@ -634,6 +692,7 @@
   .diet[data-food="Plants"]{background:rgba(70,201,138,.15); color:#84E2B4; border:1px solid rgba(70,201,138,.42)}
   .diet[data-food="Fish"]{background:rgba(78,192,214,.15); color:#8CDBEB; border:1px solid rgba(78,192,214,.42)}
   .diet[data-food="Insects"]{background:rgba(176,132,226,.15); color:#C8A6EC; border:1px solid rgba(176,132,226,.42)}
+  .diet[data-food="Jellyfish"]{background:rgba(232,120,190,.15); color:#F2A8D8; border:1px solid rgba(232,120,190,.45)}
   .diet[data-food="Anything"]{background:rgba(242,171,62,.15); color:var(--amber); border:1px solid rgba(242,171,62,.42)}
   .not-dino{
     display:inline-block; margin:9px 0 0; padding:5px 12px; border-radius:999px;
@@ -1073,22 +1132,24 @@
   <div class="map" id="map" role="dialog" aria-modal="true" aria-labelledby="map-title" hidden>
     <div class="map-head">
       <h2 id="map-title">Where they lived<small>Tap an animal to see where its bones were found</small></h2>
-      <div class="seg" role="radiogroup" aria-label="Which world" id="map-when">
-        <button type="button" role="radio" data-then="0" aria-checked="true">Today</button>
-        <button type="button" role="radio" data-then="1" aria-checked="false">Back then</button>
+      <div class="map-stages" id="map-stages" role="group" aria-label="When">
+        <button type="button" class="map-chip" data-stage="triassic" aria-pressed="false"><span class="dot Triassic"></span>Triassic<small>220</small></button>
+        <button type="button" class="map-chip" data-stage="jurassic" aria-pressed="false"><span class="dot Jurassic"></span>Jurassic<small>150</small></button>
+        <button type="button" class="map-chip" data-stage="cretaceous" aria-pressed="false"><span class="dot Cretaceous"></span>Cretaceous<small>70</small></button>
+        <button type="button" class="map-chip" data-stage="asteroid" aria-pressed="false"><span class="dot Asteroid"></span>Asteroid<small>66</small></button>
+        <button type="button" class="map-chip" data-stage="today" aria-pressed="true"><span class="dot Today"></span>Today</button>
       </div>
-      <div class="map-chips" id="map-chips">
-        <button type="button" class="map-chip" data-period="" aria-pressed="true">All</button>
-        <button type="button" class="map-chip" data-period="Jurassic" aria-pressed="false"><span class="dot Jurassic"></span>Jurassic</button>
-        <button type="button" class="map-chip" data-period="Cretaceous" aria-pressed="false"><span class="dot Cretaceous"></span>Cretaceous</button>
-      </div>
+      <button type="button" class="btn quiet map-run" id="map-run">&#9654; Whole story</button>
       <button type="button" class="close-x" id="map-close" aria-label="Close the map">&times;</button>
     </div>
     <div class="map-stage" id="map-stage">
       <div class="map-world" id="map-world">
         <img id="map-now" alt="" data-on="true">
+        <img id="map-then-220" alt="" data-on="false">
         <img id="map-then-150" alt="" data-on="false">
         <img id="map-then-70" alt="" data-on="false">
+        <img id="map-then-66" alt="" data-on="false">
+        <canvas id="map-drift" width="1024" height="512" data-on="false"></canvas>
       </div>
       <svg class="map-lines" id="map-lines" aria-hidden="true">
         <defs>
@@ -1100,7 +1161,9 @@
         </defs>
         <g id="map-under"></g>
       </svg>
+      <div class="map-dust" id="map-dust" aria-hidden="true"></div>
       <div class="map-pins" id="map-pins"></div>
+      <div class="map-impact" id="map-impact" aria-hidden="true"></div>
       <p class="map-caption" id="map-caption" hidden></p>
       <div class="map-zoom">
         <button type="button" id="map-in" aria-label="Zoom in">+</button>
@@ -1147,7 +1210,7 @@
     {id:"spinosaurus", speed:20, tonnes:7, name:"Spinosaurus", means:"\u201CSpine lizard\u201D",
      period:"Cretaceous", ago:"99\u201393 million years ago", size:"15 m long \u2014 longer than a bus",
      weight:"7 tonnes", food:"Fish", place:"North Africa",
-     fact:"It was the longest meat-eating dinosaur of them all, longer even than Tyrannosaurus. It swam, driving itself after fish with a tall paddle-shaped tail. The sail on its back was held up by spines almost two metres high."},
+     fact:"It was the longest meat-eating dinosaur of them all, longer even than Tyrannosaurus. It probably swam, driving itself after fish with a tall paddle-shaped tail. The sail on its back was held up by spines almost two metres high."},
     {id:"parasaurolophus", speed:25, tonnes:2.5, name:"Parasaurolophus", means:"\u201CNear crested lizard\u201D",
      period:"Cretaceous", ago:"76\u201373 million years ago", size:"10 m long \u2014 as long as a bus",
      weight:"2.5 tonnes", food:"Plants", place:"North America",
@@ -1163,7 +1226,7 @@
     {id:"therizinosaurus", speed:15, tonnes:5, name:"Therizinosaurus", means:"\u201CScythe lizard\u201D",
      period:"Cretaceous", ago:"70 million years ago", size:"10 m long \u2014 as long as a bus",
      weight:"5 tonnes", food:"Plants", place:"Mongolia",
-     fact:"It had the longest claws of any animal that has ever lived, half a metre each. For years nobody knew what they belonged to; the first find was just the claws, and scientists guessed a giant turtle. It turned out to be a slow plant-eater that used them to pull branches down."},
+     fact:"It had the longest claws of any animal that has ever lived, half a metre each. For years nobody knew what they belonged to; the first find was just the claws, and scientists guessed a giant turtle. It turned out to be a slow plant-eater, and the claws may have helped it pull branches down."},
     {id:"diplodocus", speed:12, tonnes:15, name:"Diplodocus", means:"\u201CDouble beam\u201D",
      period:"Jurassic", ago:"154\u2013152 million years ago", size:"25 m long \u2014 as long as three buses",
      weight:"15 tonnes", food:"Plants", place:"North America",
@@ -1185,7 +1248,7 @@
      weight:"3 tonnes", food:"Plants", place:"Canada",
      fact:"Six long spikes stuck out of the frill around its neck like a crown, each as long as your arm. The horn on its nose could reach 60 centimetres, longer than any horn on Triceratops. The frill itself was surprisingly thin, so it was made for showing off."},
     {id:"pteranodon", speed:50, tonnes:0.025, group:"Pterosaur", name:"Pteranodon", means:"\u201CToothless wing\u201D",
-     period:"Cretaceous", ago:"85 million years ago", size:"6.5 m wingspan \u2014 wider than a car is long",
+     period:"Cretaceous", ago:"85 million years ago", size:"Up to 7 m wingspan \u2014 wider than a car is long",
      weight:"25 kg \u2014 as light as a big dog", food:"Fish", place:"North America",
      fact:"It had no teeth at all — its name means “toothless wing”. The long crest sweeping back from its head may have worked like a rudder, helping it steer as it soared. It weighed only about 25 kilos despite wings six metres across."},
     {id:"rhamphorhynchus", speed:35, tonnes:0.002, group:"Pterosaur", name:"Rhamphorhynchus", means:"\u201CBeak snout\u201D",
@@ -1198,10 +1261,10 @@
      fact:"Its name means “two-form tooth”: long fangs at the front of the jaw and small ones behind. Almost no other reptile has two different kinds of teeth like that. Its head was tall and deep like a puffin's, and looked far too big for the rest of it."},
     {id:"ornithocheirus", speed:45, tonnes:0.02, group:"Pterosaur", name:"Ornithocheirus", means:"\u201CBird hand\u201D",
      period:"Cretaceous", ago:"110 million years ago", size:"5 m wingspan \u2014 as wide as a small bus is long",
-     weight:"20 kg", food:"Fish", place:"Brazil and England",
-     fact:"It had a bony keel on the tip of both jaws, like the prow of a boat. Those keels probably cut through the water as it snatched fish from the waves without ever landing. With wings five metres across it could cross open ocean on rising air."},
+     weight:"20 kg", food:"Fish", place:"England",
+     fact:"Only broken tips of its jaws have ever been found, so much of what we know comes from its close cousins. They were fish-eaters with long, spiky-toothed jaws, snatching fish from the waves. With wings several metres across they could cross open ocean on rising air."},
     {id:"mosasaurus", speed:40, tonnes:15, group:"Marine reptile", name:"Mosasaurus", means:"\u201CMeuse lizard\u201D",
-     period:"Cretaceous", ago:"70\u201366 million years ago", size:"17 m long \u2014 as long as two buses",
+     period:"Cretaceous", ago:"70\u201366 million years ago", size:"13 m long \u2014 longer than a bus",
      weight:"15 tonnes", food:"Meat", place:"Oceans worldwide",
      fact:"It was not a dinosaur but an enormous sea lizard, a cousin of today's monitor lizards and snakes. It drove itself along with a shark-like tail and could swallow turtles and even other mosasaurs. The very first one was dug out of a Dutch chalk mine in 1764."},
     {id:"argentinosaurus", speed:8, tonnes:70, name:"Argentinosaurus", means:"\u201CArgentina lizard\u201D",
@@ -1247,16 +1310,262 @@
     {id:"muttaburrasaurus", speed:20, tonnes:2.8, name:"Muttaburrasaurus", means:"“Muttaburra lizard”",
      period:"Cretaceous", ago:"110–100 million years ago", size:"8 m long — as long as a small bus",
      weight:"2.8 tonnes — heavier than a rhinoceros", food:"Plants", place:"Australia",
-     fact:"A big hollow bump sat on top of its snout, and it may have used it to honk loudly or to smell better. Its teeth sliced past each other like scissors, so it could chop up tough plants. It is named after Muttaburra, the little Queensland town near where a farmer found it in 1963."},
+     fact:"A big hollow bump sat on top of its snout, and it may have used it to honk loudly or to smell better. Its teeth sliced past each other like scissors, so it could chop up tough plants. It is named after Muttaburra, the little Queensland town near where a cattle farmer found it in 1963."},
     {id:"leaellynasaura", speed:30, tonnes:0.01, name:"Leaellynasaura", means:"“Leaellyn's lizard”",
      period:"Cretaceous", ago:"110 million years ago", size:"2 m long — and most of that was tail",
      weight:"10 kg — like a bag of potatoes", food:"Plants", place:"Australia",
-     fact:"It lived so close to the South Pole that winter meant weeks of darkness. Its big eyes may have helped it see in the gloom, and its tail was three times as long as its body. It is named after Leaellyn, the daughter of the two scientists who dug it up."},
+     fact:"It lived so close to the South Pole that winter meant months of darkness. Its big eyes may have helped it see in the gloom, and its tail was probably three times as long as its body. It is named after Leaellyn, the daughter of the two scientists who dug it up."},
     {id:"cryolophosaurus", speed:35, tonnes:0.465, name:"Cryolophosaurus", means:"“Frozen crested lizard”",
      period:"Jurassic", ago:"190 million years ago", size:"6.5 m long — as long as a car and a half",
      weight:"465 kg — like a horse", food:"Meat", place:"Antarctica",
-     fact:"It was the first meat-eating dinosaur ever found in Antarctica, high up on a mountain in 1991. The crest on its head ran from side to side like a quiff, so people nicknamed it Elvisaurus. Back then Antarctica was further from the pole, warmer, and covered in forests instead of ice."}
+     fact:"It was the first meat-eating dinosaur ever found in Antarctica, high up on a mountain in 1991. The crest on its head ran from side to side like a quiff, so people nicknamed it Elvisaurus. Back then Antarctica was further from the pole, warmer, and covered in forests instead of ice."},
+    {id:"ichthyosaurus", speed:40, tonnes:0.09, group:"Ichthyosaur", name:"Ichthyosaurus", means:"\u201CFish lizard\u201D",
+     period:"Jurassic", ago:"200\u2013190 million years ago", size:"2 to 3 m long \u2014 about as long as a dolphin",
+     weight:"90 kg \u2014 as heavy as a grown-up", food:"Fish", place:"England",
+     fact:"It looked like a dolphin, but it was a reptile, and it had to come up to the surface to breathe. Mary Anning and her brother found one of the very first ichthyosaur skeletons, in the cliffs at Lyme Regis, when she was only about twelve years old. Fossils of mothers with babies inside show that it gave birth in the sea, tail first."},
+    {id:"liopleurodon", speed:15, tonnes:1.5, group:"Pliosaur", name:"Liopleurodon", means:"\u201CSmooth-sided tooth\u201D",
+     period:"Jurassic", ago:"165\u2013160 million years ago", size:"6 m long \u2014 longer than a car",
+     weight:"1.5 tonnes \u2014 like a big car", food:"Meat", place:"England and France",
+     fact:"It was a short-necked cousin of the plesiosaurs, with a huge head and teeth like daggers. Pliosaurs like it may have smelled their prey through the water as they swam, the way a shark does. A famous television show made it twenty-five metres long, but the real one was about six, and still the top hunter of its sea."},
+    {id:"kronosaurus", speed:20, tonnes:10, group:"Pliosaur", name:"Kronosaurus", means:"\u201CKronos lizard\u201D",
+     period:"Cretaceous", ago:"110\u2013100 million years ago", size:"10 m long \u2014 as long as a bus",
+     weight:"10 tonnes \u2014 like two elephants", food:"Meat", place:"Australia",
+     fact:"Its head alone was more than two metres long, longer than a grown-up lying down. It is named after Kronos, a giant from the old Greek stories. Its bones are dug up from the dry ground of Queensland, which was then the floor of a shallow sea, and fossil stomachs show it ate sea turtles and long-necked plesiosaurs."},
+    {id:"archelon", speed:10, tonnes:2.2, group:"Sea turtle", name:"Archelon", means:"\u201CChief turtle\u201D",
+     period:"Cretaceous", ago:"80\u201375 million years ago", size:"4.5 m long \u2014 as long as a car",
+     weight:"2.2 tonnes \u2014 heavier than a car", food:"Jellyfish", place:"North America",
+     fact:"It is the biggest turtle that has ever lived. Instead of a solid shell it had a frame of bone covered in thick, leathery skin, like the leatherback turtles of today. Nobody knows for sure what it ate: with its sharp hooked beak it may have crushed shellfish, or snapped up soft prey like jellyfish and squid."},
+    {id:"albertosaurus", speed:35, tonnes:2, name:"Albertosaurus", means:"\u201CAlberta lizard\u201D",
+     period:"Cretaceous", ago:"71\u201368 million years ago", size:"9 m long \u2014 as long as a big van",
+     weight:"2 tonnes \u2014 like a big car", food:"Meat", place:"Canada",
+     fact:"It was a slimmer, lighter cousin of Tyrannosaurus that lived a few million years earlier. In one quarry in Alberta, scientists found the bones of at least twenty-six of them together, from youngsters to grown-ups. That suggests they may have lived, and perhaps hunted, in groups."},
+    {id:"edmontosaurus", speed:35, tonnes:4, name:"Edmontosaurus", means:"\u201CEdmonton lizard\u201D",
+     period:"Cretaceous", ago:"73\u201366 million years ago", size:"12 m long \u2014 longer than a bus",
+     weight:"4 tonnes \u2014 heavier than a rhinoceros", food:"Plants", place:"North America",
+     fact:"It was a duck-billed dinosaur, and its mouth held more than a thousand teeth packed into grinding rows, so it could chew tough plants like a cow. Some fossils are so well preserved that patches of its scaly skin turned to stone. One even showed a soft, fleshy comb on top of its head, like a rooster's."},
+    {id:"brontosaurus", speed:12, tonnes:15, name:"Brontosaurus", means:"\u201CThunder lizard\u201D",
+     period:"Jurassic", ago:"155\u2013150 million years ago", size:"22 m long \u2014 as long as two buses",
+     weight:"15 tonnes \u2014 like three elephants", food:"Plants", place:"North America",
+     fact:"For more than a hundred years scientists said Brontosaurus was really just another dinosaur, Apatosaurus, and the name was dropped. Then in 2015 a big study of dozens of skeletons found it was different enough to be its own dinosaur again. Its neck was thick and deep, much heavier than a Diplodocus neck."},
+    {id:"giganotosaurus", speed:30, tonnes:7, name:"Giganotosaurus", means:"\u201CGiant southern lizard\u201D",
+     period:"Cretaceous", ago:"99\u201397 million years ago", size:"12.5 m long \u2014 longer than a bus",
+     weight:"7 tonnes \u2014 like a big elephant", food:"Meat", place:"Argentina",
+     fact:"It was one of the biggest meat-eating dinosaurs ever, about as long as Tyrannosaurus but with a longer, narrower head. It was found by a car mechanic who hunted fossils in his spare time, and its name honours him. It lived about thirty million years before Tyrannosaurus, on another continent, so the two never met."},
+    {id:"quetzalcoatlus", speed:50, tonnes:0.2, group:"Pterosaur", name:"Quetzalcoatlus", means:"\u201CFeathered serpent\u201D",
+     period:"Cretaceous", ago:"68\u201366 million years ago", size:"10 m wingspan \u2014 as wide as a small plane",
+     weight:"200 kg \u2014 as heavy as a big lion", food:"Meat", place:"North America",
+     fact:"It was one of the biggest flying animals that has ever lived, with wings as wide as a small plane. Standing on the ground it was as tall as a giraffe. It probably stalked across the land on all fours like a giant stork, snapping up small animals."},
+    {id:"archaeopteryx", speed:30, tonnes:0.001, group:"Early bird", name:"Archaeopteryx", means:"\u201CAncient wing\u201D",
+     period:"Jurassic", ago:"150 million years ago", size:"50 cm long \u2014 about as long as a raven",
+     weight:"1 kg \u2014 like a raven", food:"Anything", place:"Germany",
+     fact:"It was one of the very first birds, with feathered wings, but it still had teeth, clawed fingers and a long bony tail like other dinosaurs. It was found in 1861, just two years after Charles Darwin's famous book about how living things change over time, and it helped show he was right. Only about a dozen skeletons have ever been found, all in the same limestone in southern Germany."},
+    {id:"carcharodontosaurus", speed:30, tonnes:6.5, name:"Carcharodontosaurus", means:"\u201CShark-toothed lizard\u201D",
+     period:"Cretaceous", ago:"99\u201394 million years ago", size:"12 m long \u2014 as long as a bus",
+     weight:"6.5 tonnes \u2014 as heavy as a big elephant", food:"Meat", place:"North Africa",
+     fact:"Its teeth were long, thin and saw-edged like a great white shark's, which is how it got its name. It lived in North Africa beside Spinosaurus, in a land of huge rivers full of giant fish. The first good skeleton, found in Egypt, was destroyed by bombing in 1944, just like the first Spinosaurus."},
+    {id:"coelophysis", speed:40, tonnes:0.02, name:"Coelophysis", means:"\u201CHollow form\u201D",
+     period:"Triassic", ago:"215\u2013208 million years ago", size:"3 m long \u2014 longer than a bed",
+     weight:"20 kg \u2014 like a big dog", food:"Meat", place:"North America",
+     fact:"It was one of the earliest dinosaurs, light and quick, with hollow bones, which is what its name means. At Ghost Ranch in New Mexico, scientists found hundreds of skeletons buried together, maybe more than a thousand. In 1998 a Coelophysis skull flew into space on the Space Shuttle Endeavour."},
+    {id:"megalosaurus", speed:30, tonnes:1, name:"Megalosaurus", means:"\u201CGreat lizard\u201D",
+     period:"Jurassic", ago:"166 million years ago", size:"6 m long \u2014 longer than a car",
+     weight:"1 tonne \u2014 like a small car", food:"Meat", place:"England",
+     fact:"It was the very first dinosaur ever given a scientific name, in 1824, before anyone had even invented the word dinosaur. The first scientists thought it walked on four legs like a giant lizard. The writer Charles Dickens even put one in a story, waddling up a muddy London street."}
   ];
+
+  /* More about each animal, behind the card's "More about" button: how it was
+     first found, and three things worth knowing. Every line has its own clip
+     in audio/more/<id>-found.mp3 and <id>-1.mp3 to -3.mp3. */
+  var MORE = {
+    tyrannosaurus: {found: "The fossil hunter Barnum Brown dug up the first skeleton in Montana in 1902, and Henry Fairfield Osborn named it Tyrannosaurus rex in 1905.",
+      facts: ["It had a giant growth spurt as a teenager. Scientists counted growth rings in its bones, like tree rings, and found it gained about two kilograms every day for four years.",
+              "The most complete skeleton ever found, nicknamed Sue, was about 33 years old when it died. Its biggest tooth is 30 centimetres long with the root, as long as a school ruler.",
+              "The smelling parts of its brain were huge, the biggest of any meat-eating dinosaur scientists measured. It could probably sniff out food from far away."]},
+    triceratops: {found: "Its horns were found near Denver, Colorado, in 1887. Othniel Marsh first thought they belonged to a giant bison, then named Triceratops in 1889.",
+      facts: ["Its horns changed shape as it grew up. Babies had little stubs, young ones had horns that curved backwards, and adults' horns swung round to point forwards.",
+              "One Triceratops hip bone carries about 80 tooth marks from a Tyrannosaurus. Scientists think the hunter bit again and again to pull the back leg off and eat it.",
+              "Its mouth held hundreds of teeth packed in neat rows, like a pair of scissors for slicing tough plants. New teeth grew in to replace the old ones as they wore down."]},
+    stegosaurus: {found: "Arthur Lakes found the first bones near Morrison, Colorado, in 1877, and Othniel Marsh named Stegosaurus the same year.",
+      facts: ["Its name means roof lizard, because the first scientist to study it thought the plates lay flat along its back like tiles on a roof. Later fossils showed they stood upright.",
+              "Scientists found an Allosaurus tail bone with a hole that exactly fits a Stegosaurus tail spike. The wound had partly healed, so the hunter survived the whack.",
+              "In 2024 a Stegosaurus skeleton nicknamed Apex sold for almost 45 million dollars. That is the most money ever paid for a fossil."]},
+    velociraptor: {found: "Peter Kaisen found the first skull and claw in Mongolia's Gobi Desert in 1923, on an American Museum expedition, and Henry Fairfield Osborn named it in 1924.",
+      facts: ["Each foot had one huge curved claw, about as long as your finger. It held that toe up off the ground as it walked, probably to keep the claw sharp.",
+              "One Velociraptor skeleton has a bone from a big flying reptile inside its belly, its last meal. Scientists think it probably scavenged a body rather than catching one.",
+              "Its long tail was stiffened by thin rods of bone, a bit like a pole. That probably helped it balance as it ran, turned and pounced."]},
+    brachiosaurus: {found: "H. William Menke found the first skeleton near Grand Junction, Colorado, in 1900 while digging with Elmer Riggs's team, and Riggs named it Brachiosaurus in 1903.",
+      facts: ["Its thigh bone alone is about two metres long, taller than a grown-up.",
+              "The famous giant skeleton in a Berlin museum was called Brachiosaurus for almost a hundred years. In 2009 scientists decided it was a different dinosaur from Africa.",
+              "A full-size copy of its skeleton, nicknamed Ernestine, stands in Chicago's O'Hare airport. It is about 22 metres long, so travellers walk right under its neck."]},
+    ankylosaurus: {found: "Barnum Brown's team found the first skeleton in Montana in 1906, and Brown named it Ankylosaurus in 1908.",
+      facts: ["No one has ever found a complete Ankylosaurus skeleton. Scientists have only a handful of partial ones and just one tail club.",
+              "For such a big animal its teeth were tiny and leaf-shaped, smaller for its size than any of its armoured relatives. It probably snipped soft plants instead of chewing tough ones.",
+              "The air passages inside its snout looped round and round like a twisty straw. Scientists think this may have warmed or cooled the air, or made its calls sound louder."]},
+    spinosaurus: {found: "Richard Markgraf dug up the first bones in the Egyptian desert in 1912, and the German scientist Ernst Stromer named Spinosaurus in 1915.",
+      facts: ["The first Spinosaurus bones were blown to pieces by a bomb during the Second World War in 1944. For seventy years scientists had only old drawings and photographs to go on.",
+              "Its bones were packed solid and heavy, like a penguin's. Scientists think this helped it sink and hunt underwater instead of bobbing about on top.",
+              "A scientist bought a strange bone from a man with a moustache in Morocco. Years later he spotted the same man walking past a café, who led him to a new skeleton."]},
+    parasaurolophus: {found: "A team from the University of Toronto dug up the first skeleton near Sand Creek in Alberta, Canada, in 1920, and William Parks named it in 1922.",
+      facts: ["A high school student found the best baby Parasaurolophus ever, nicknamed Joe, in Utah. It was under a year old, and its famous crest was just a small bump.",
+              "Scientists once wondered if the crest was a snorkel for breathing underwater. It cannot be, because there is no hole at the tip to let air in.",
+              "Its mouth held hundreds of teeth packed tightly together, making a grinding surface like a rough file. It mashed up leaves and twigs before swallowing."]},
+    allosaurus: {found: "Benjamin Mudge and Samuel Williston dug up the first bones at Garden Park, Colorado, in 1877, and Othniel Marsh named Allosaurus that same year.",
+      facts: ["A skeleton nicknamed Big Al had 19 broken or infected bones. One badly infected toe probably made it limp, and may have been what finally killed it.",
+              "Many Allosaurus bones from one Colorado quarry are covered in Allosaurus tooth marks. Scientists think that in hard, dry times they scavenged and even ate each other.",
+              "It had a small bony horn in front of each eye and low ridges along its snout. Scientists think these were probably for showing off, not fighting."]},
+    pachycephalosaurus: {found: "William Winkley found an almost complete skull on his ranch in Montana in 1940, and Barnum Brown and Erich Schlaikjer named it in 1943.",
+      facts: ["Some scientists think spiky, flat-headed skulls once given their own names were really young Pachycephalosaurus. As they grew up, the spikes shrank and the dome swelled.",
+              "A knobbly bit of its skull was dug up in 1859. A scientist guessed it came from an armadillo-like animal, and it took over a hundred years to work out the truth.",
+              "Its thick skull survives far better than the rest of its body. Nobody has found a complete skeleton, so most of what we know comes from skulls and domes."]},
+    therizinosaurus: {found: "Its giant claws were dug up in the Gobi Desert of Mongolia in 1948 by a Russian and Mongolian expedition, and Evgeny Maleev named it in 1954.",
+      facts: ["In 2023, scientists tested computer copies of its claws and found they were probably too weak for fighting or digging. They think the giant claws may have been mostly for showing off.",
+              "Its family tree is full of meat-eaters like Velociraptor, but it gave up meat and ate plants. Its close relatives had fluffy feathers, so it was probably fluffy too.",
+              "In Mongolia, scientists found a nesting ground of its relatives with 17 nests side by side and eggs as big as grapefruits. Most of the babies hatched, so the parents probably guarded them."]},
+    diplodocus: {found: "The first bones were dug up near Cañon City, Colorado, in 1877 by Benjamin Mudge and Samuel Williston, and Othniel Marsh named it the next year.",
+      facts: ["It wore out its teeth so fast that each one was replaced about once a month. Up to five spare teeth waited in line behind every tooth in its mouth.",
+              "A baby skull nicknamed Andrew showed that young Diplodocus had narrow snouts like a deer's. Scientists think the babies ate lots of different plants, while grown-ups had wide, cow-like snouts.",
+              "Dippy, the famous skeleton that greeted visitors in London for over a hundred years, is a plaster copy. A rich man called Andrew Carnegie sent copies like it to about ten museums around the world."]},
+    carnotaurus: {found: "Its only skeleton was found on a farm in Chubut, Argentina, in 1984 by a team led by José Bonaparte, who named it the next year.",
+      facts: ["Only one skeleton has ever been found, and it came with patches of skin pressed into the rock. The skin was covered in small scales with rows of bigger bumps along its sides, and no feathers.",
+              "Its eyes pointed slightly forwards, so it could probably see some things with both eyes at once, like you do. That would have helped it judge how far away its prey was.",
+              "Tests on its skull suggest it could snap its jaws shut very fast, but its bite was not very strong. It probably went for smaller animals it could grab quickly."]},
+    dilophosaurus: {found: "A Navajo man named Jesse Williams showed its bones in Arizona to scientists in 1942. Samuel Welles described it in 1954 and gave it the name Dilophosaurus in 1970.",
+      facts: ["One skeleton had eight injuries, including a broken shoulder blade and infected bones in its arm and thumb. That is a record for a meat-eating dinosaur, and the bones had healed, so it survived for months or years.",
+              "Its crests were full of air pockets linked to its nose. Birds today use air sacs like these to puff up their skin, so scientists think Dilophosaurus may have done something similar.",
+              "Scientists once thought its jaws were weak. A 2020 study found marks from big, strong jaw muscles, so it was probably a powerful hunter after all."]},
+    iguanodon: {found: "The first teeth were found in Sussex, England, in about 1822, probably by Mary Ann Mantell, and her husband Gideon named it in 1825 because the teeth looked like an iguana's.",
+      facts: ["In 1878, coal miners in Belgium found about thirty skeletons, 322 metres underground. That is about as deep as the Eiffel Tower is tall.",
+              "On New Year's Eve 1853, about twenty scientists ate a fancy dinner inside a life-size model of Iguanodon being built for the Crystal Palace park in London.",
+              "Its three middle fingers were joined together like a hoof for walking on, and its little finger could bend to grab food. Scientists now think it walked on all fours most of the time."]},
+    styracosaurus: {found: "The fossil collector Charles Sternberg found the first skull beside the Red Deer River in Alberta, Canada, in 1913, and Lawrence Lambe named it that same year.",
+      facts: ["In 2015 a scientist found a skull and nicknamed it Hannah, after his dog. Its frill was lopsided, with seven bony points on one side and eight on the other.",
+              "At the front of its mouth was a narrow, parrot-like beak for plucking plants. Behind it, rows of teeth sliced food like scissors, and new teeth kept growing to replace worn ones.",
+              "In Alberta, scientists found a bone bed holding many Styracosaurus that died in the same place. They may have crowded round a waterhole during a drought."]},
+    pteranodon: {found: "Othniel Marsh's team found the first wing bones in the chalk of Kansas in 1870, and Marsh named it Pteranodon in 1876.",
+      facts: ["About 1,200 Pteranodon fossils have been found, more than any other flying reptile. That is why scientists know it so well.",
+              "Males and females looked different. Males had big crests and wings up to seven metres wide, while females were smaller, with little crests and wider hips for laying eggs.",
+              "One Pteranodon fossil still has a lump of fish between its jaws, its very last meal. It flew over a shallow sea that once covered the middle of North America."]},
+    rhamphorhynchus: {found: "The first fossil came from the limestone of Bavaria, Germany, and was described in 1825 by a scientist who thought it was a bird. Hermann von Meyer named Rhamphorhynchus in 1847.",
+      facts: ["Several fossils show it caught in the jaws of a big, spiky-snouted fish. Its wing probably got tangled in the fish's teeth, and both sank and died together.",
+              "Its tail flap changed as it grew. Babies had a small oval flap, older ones a diamond, and the biggest adults a triangle.",
+              "The rings of bone around its eyes look like those of seabirds that hunt at night. So scientists think it may have gone fishing in the dark."]},
+    dimorphodon: {found: "Mary Anning found the first skeleton at Lyme Regis, Dorset, in 1828. It was the first flying reptile found outside Germany, and Richard Owen named it Dimorphodon in 1859.",
+      facts: ["Its big head was surprisingly light. It was full of large holes held apart by thin struts of bone, built like the frame of a bridge.",
+              "Tiny scratches on its teeth match those of lizards that hunt other small animals. So it probably ate little creatures with backbones, and maybe insects too.",
+              "Its wings were short and its body sturdy, so it was probably a poor flier that made short flapping bursts, like a pheasant. Its big curved claws made it a good climber."]},
+    ornithocheirus: {found: "Harry Seeley named it in 1869 from broken jaw tips dug out of a layer of rock called the Cambridge Greensand, near Cambridge, England.",
+      facts: ["Its name means bird hand. The scientist who named it thought flying reptiles were the ancestors of birds, an idea we now know was wrong.",
+              "In just two years, Harry Seeley gave the name Ornithocheirus to 27 different kinds of flying reptile. Today scientists agree that only one of them really belongs there.",
+              "Its fossils were found by Victorian miners digging up stones rich in phosphate to make fertiliser for farms. Among the stones were broken tips of Ornithocheirus jaws."]},
+    mosasaurus: {found: "The first bones came out of chalk mines near Maastricht in the Netherlands in 1764. The English geologist William Conybeare named it in 1822, after the nearby river Meuse.",
+      facts: ["As well as the teeth in its jaws, it had two extra rows of teeth on the roof of its mouth. They probably worked like hooks, gripping slippery prey and pushing it down its throat.",
+              "Its most famous skull was captured by the French army in 1795 as a prize of war and carried off to Paris. It is still kept in a museum there today.",
+              "Mosasaurs did not crawl onto beaches to lay eggs. Baby mosasaur bones found far out at sea show that they probably gave birth to live babies in the open ocean, like whales do."]},
+    argentinosaurus: {found: "A farmer, Guillermo Heredia, found the first bone on his ranch near Plaza Huincul, Argentina, in 1987, thinking it was a log turned to stone. José Bonaparte and Rodolfo Coria named it in 1993.",
+      facts: ["Scientists scanned a life-size model of its skeleton and made it walk inside a computer. Its best speed came out at about 7 kilometres an hour, the pace of a brisk human walk.",
+              "It shared its home with Mapusaurus, a huge meat-eater. Several Mapusaurus were found buried together, so some scientists think they hunted in packs and might even have tackled an Argentinosaurus.",
+              "A full-size copy of its skeleton fills a giant hall in the museum of Plaza Huincul, the Argentine town near where it was found. Visitors look like ants beside it."]},
+    gallimimus: {found: "Polish and Mongolian fossil hunters found the first bones in the Gobi Desert of Mongolia in 1963. Rinchen Barsbold, Halszka Osmólska and Ewa Roniewicz named it in 1972.",
+      facts: ["One skull shows rows of thin ridges inside its beak, like the comb in a duck's bill. Some scientists think it sieved tiny food out of muddy water, but others think the ridges just helped it snip plants.",
+              "Many of its bones were hollow and filled with air, like a bird's. That helped keep such a big animal light on its feet.",
+              "A herd of Gallimimus stars in the 1993 film Jurassic Park, swerving together like a flock of birds. That scene helped change how people pictured dinosaurs: quick and lively, not slow and clumsy."]},
+    compsognathus: {found: "The first skeleton was found in limestone in Bavaria, Germany, in the 1850s and collected by Joseph Oberndorfer. The German scientist Johann Wagner named it in 1859.",
+      facts: ["Its name means elegant jaw. The scientist who first described it thought it was a strange kind of lizard, and only later did people realise it was a dinosaur.",
+              "In 1868 the scientist Thomas Huxley noticed how bird-like its skeleton was. Comparing it with Archaeopteryx, he became one of the first people to suggest that birds are related to dinosaurs.",
+              "The German skeleton is a youngster only about 70 centimetres long, as long as a skateboard. A bigger, grown-up skeleton was found in France around 1971."]},
+    microraptor: {found: "The Chinese scientist Xu Xing and his team named it in 2000, from a fossil dug up in Liaoning province in north-east China.",
+      facts: ["Other Microraptor fossils have fish, a whole lizard and the foot of a small furry mammal in their stomachs. It seems to have snapped up almost anything it could catch.",
+              "More than 300 fossils of Microraptor or its close cousins sit in Chinese museums. It was probably the most common dinosaur in its ancient forest.",
+              "Its tail was first seen stuck onto a fake fossil. In 1999 a magazine called it a missing link between dinosaurs and birds, until scientists showed the fossil was made from two different animals."]},
+    oviraptor: {found: "George Olsen found the first skeleton in 1923 at the Flaming Cliffs in Mongolia's Gobi Desert, on an American expedition. Henry Fairfield Osborn named it in 1924.",
+      facts: ["The very first skeleton had bits of a lizard inside its body, so it probably ate small animals as well as other food.",
+              "It had no teeth, but two bony points stuck down from the roof of its mouth. Scientists think they may have helped it grip or crack hard food.",
+              "The eggs of one of its close cousins were blue-green, a bit like a robin's. Scientists worked this out from tiny traces of colour still left in the fossil eggshells."]},
+    protoceratops: {found: "Its first skull was spotted in 1922 in Mongolia's Gobi Desert by James Shackelford, the photographer of an American expedition. Walter Granger and William Gregory named it in 1923.",
+      facts: ["Its eggs were soft and leathery like a turtle's, not hard like a hen's. Scientists found this out in 2020 by studying a clutch of eggs with tiny babies still curled up inside.",
+              "One nest held 15 babies, all the same size, huddled together. That suggests the young stayed in the nest for a while after hatching, probably with a parent looking after them.",
+              "It is one of the most common dinosaurs in the Gobi Desert. Explorers collected over 100 skeletons in just three years, from tiny babies to grown-ups."]},
+    amargasaurus: {found: "Guillermo Rougier found the only skeleton in 1984, on an expedition led by José Bonaparte in Argentina. Leonardo Salgado and José Bonaparte named it in 1991.",
+      facts: ["Scientists scanned its skull to study the balance organ inside its ear. It showed that it probably held its head pointing down towards the ground, just right for nibbling low plants.",
+              "Its name comes from La Amarga, the place in Argentina where it was found. Amarga means “bitter” in Spanish, so its name sounds like “bitter lizard”.",
+              "In 2019 scientists found a cousin, Bajadasaurus, whose neck spikes curved forward over its head. They think long spikes like these may have helped scare off meat-eaters."]},
+    deinocheirus: {found: "Polish palaeontologist Zofia Kielan-Jaworowska found its giant arms in the Gobi Desert of Mongolia in 1965. Halszka Osmólska and Ewa Roniewicz named it in 1970.",
+      facts: ["Its skull was about a metre long, as long as a guitar, yet it had no teeth at all, just a wide beak.",
+              "Thieves dug up the skull and feet of one skeleton and sold them abroad. Scientists tracked the bones down in a private collection in Europe, and they were returned to Mongolia in 2014.",
+              "Bite marks on the first fossil show that Tarbosaurus, a close cousin of Tyrannosaurus, chewed on it. That may be why the rest of the skeleton was scattered and missing for so long."]},
+    elasmosaurus: {found: "Army doctor Theophilus Turner found it near Fort Wallace in Kansas, in the United States, in 1867. Edward Drinker Cope named it the following year, in 1868.",
+      facts: ["When it lived, a warm, shallow sea split North America in two. That is why its bones were found in Kansas, which today is far from any ocean.",
+              "Scientists think plesiosaurs like it gave birth to live babies in the water. A fossil of a cousin was found with one big baby inside, about a third as long as its mother.",
+              "Its long-necked cousins swallowed stones, one with about 250 in its belly. The stones probably helped grind up food, and may have helped them balance in the water."]},
+    australovenator: {found: "Its bones were found in 2006 on a cattle station near Winton in Queensland and dug up by the Australian Age of Dinosaurs team. Scott Hocknull and his colleagues named it in 2009.",
+      facts: ["The scientist who named it called it the cheetah of its time. It was light and quick, and could probably run down most other animals on open ground.",
+              "When scientists described it in 2009, it was the most complete meat-eating dinosaur ever found in Australia.",
+              "To work out what its feet looked like with skin on, scientists scanned an emu's foot. Then they built a life-size model foot and pressed it into soft mud to make footprints."]},
+    muttaburrasaurus: {found: "The cattle farmer Doug Langdon found its bones in 1963 beside the Thomson River near Muttaburra in Queensland. Scientists Alan Bartholomai and Ralph Molnar named it in 1981.",
+      facts: ["Doug Langdon spotted its bones while riding out to round up his cattle. He stuffed a few pieces into his saddle bag and told his wife he had found a monster.",
+              "Queenslanders picked it in a public vote, and it became the official fossil of the state of Queensland, beating eleven other fossils.",
+              "It was the first Australian dinosaur to be copied in casts and built into a standing skeleton for people to see."]},
+    leaellynasaura: {found: "Tom Rich and Patricia Vickers-Rich found its first bones at Dinosaur Cove in Victoria in 1987, and named it in 1989.",
+      facts: ["Its fossils came from tunnels blasted into a seaside cliff in Victoria, because the rock was as hard as concrete. Around 70 volunteers, aged from 7 to 77, helped with the dig.",
+              "Scientists think its winters could be bitterly cold, below freezing, and in some places the ground may have stayed frozen all year round.",
+              "A skeleton thought to belong to it has more than 70 bones in its tail. Your whole backbone has only about 33."]},
+    cryolophosaurus: {found: "Geologist David Elliot's team found its bones high on Mount Kirkpatrick in Antarctica in the summer of 1990 to 1991. William Hammer dug them out and named it in 1994.",
+      facts: ["Long thin bones lay by its jaws, so scientists first thought it had choked on a plant-eater's neck. A later study found they were probably its own neck ribs.",
+              "To get it out, the team broke up about 2,300 kilograms of rock in three weeks. That is heavier than a big car.",
+              "The skeleton probably belonged to a young animal that was still growing, so grown-ups may have reached about 8 metres long."]},
+    ichthyosaurus: {found: "Its name, meaning fish lizard, was first used in 1818 by Charles König of the British Museum. In 1821, Henry De la Beche and William Conybeare named its best-known kind.",
+      facts: ["Mary Anning noticed odd stones inside ichthyosaur skeletons. Broken open, they held fish bones and scales. They were fossil poo, and some were black with ink from squid-like animals the ichthyosaurs had eaten.",
+              "The first complete ichthyosaur skeleton ever found was an Ichthyosaurus, probably dug up by Mary Anning. A bomb destroyed it in the Second World War, but old copies later turned up in America and Germany.",
+              "In 2015, scientists named a new kind of Ichthyosaurus after Mary Anning. Its fossil had sat in a museum in Doncaster for more than 30 years before anyone noticed it was new."]},
+    liopleurodon: {found: "The French scientist Henri-Émile Sauvage named it in 1873 from a single tooth found near Boulogne-sur-Mer in France. Later, near-complete skeletons were dug from clay pits near Peterborough in England.",
+      facts: ["Its name means smooth-sided teeth. The pointed part of the first tooth scientists studied was about 7 centimetres long, and that was without the root.",
+              "A pliosaur fossil from near Peterborough, possibly a Liopleurodon, had tiny hooks from squid-like animals, fish bones and swallowed stones in its stomach.",
+              "It swam with four big flippers. Scientists think this gave it a sudden burst of speed, so it could probably lunge at prey from an ambush."]},
+    kronosaurus: {found: "The first fossil, a piece of jaw, was found near Hughenden in Queensland in 1899 and sent to the Queensland Museum. Heber Longman named it in 1924.",
+      facts: ["Its biggest teeth, measured from tip to root, were about 30 centimetres long, as long as a school ruler.",
+              "Scientists think its bite was about twice as strong as a big saltwater crocodile's bite.",
+              "The famous Kronosaurus skeleton at Harvard University in America was built about 3 metres too long, using lots of plaster. Scientists nicknamed it Plasterosaurus."]},
+    archelon: {found: "George Wieland found the first skeleton near the Cheyenne River in South Dakota, in the United States, in 1895, and named it the next year.",
+      facts: ["From the tip of one front flipper to the other, the biggest one measured about 4 metres, almost as wide as a car is long.",
+              "The first skeleton ever found is missing its right back flipper. Scientists think it was bitten off while the turtle was still alive, and it may have lived on for years afterwards.",
+              "The biggest Archelon ever found, nicknamed Brigitta, was dug up in South Dakota in 1992. Today it is on show at the Natural History Museum in Vienna, Austria."]},
+    brontosaurus: {found: "Othniel Marsh named it in 1879 from a huge skeleton dug up at Como Bluff in Wyoming by his collectors, led by William Reed.",
+      facts: ["For fifty years, from 1931 to 1981, the famous skeleton at Yale University wore the wrong head, a short, boxy skull from a different kind of dinosaur.",
+              "In 1989 Brontosaurus appeared on a United States postage stamp, and people complained that it was not a real name. Since 2015, it is again.",
+              "It swallowed leaves without chewing them. Its enormous belly did the work, slowly breaking the plants down over days."]},
+    giganotosaurus: {found: "Rub\u00E9n Carolini found its bones near Villa El Choc\u00F3n in Argentina in 1993, and Rodolfo Coria and Leonardo Salgado named it in 1995.",
+      facts: ["Its teeth were flat like knife blades, with saw edges for slicing flesh, unlike the thick, bone-crushing teeth of Tyrannosaurus.",
+              "Its skull was about as long as a grown-up is tall, but its brain was small, and scientists think it was shaped a bit like a banana.",
+              "It shared its world with giant long-necked dinosaurs. Some scientists think meat-eaters like it may have hunted the young ones, or worked together to take on bigger prey."]},
+    coelophysis: {found: "Edward Drinker Cope named it in 1889 from bones David Baldwin found in New Mexico in 1881. In 1947 Edwin Colbert's team found the great bone bed at Ghost Ranch.",
+      facts: ["Small bones inside some skeletons made scientists think it ate its own babies. A later study showed they belonged to little crocodile-like reptiles instead.",
+              "It is the state fossil of New Mexico, chosen in 1981.",
+              "It had a long, narrow head full of small, saw-edged teeth, and big eyes. It probably hunted small animals like lizards."]},
+    megalosaurus: {found: "Bones from a quarry at Stonesfield near Oxford were studied by William Buckland, who named Megalosaurus in 1824.",
+      facts: ["A piece of bone drawn in a book in 1677 probably came from a Megalosaurus. The scientist who drew it thought it came from a giant human.",
+              "In 1842 Richard Owen invented the word dinosaur, meaning terrible lizard. Megalosaurus was one of the first three animals he used it for.",
+              "For a long time almost any big meat-eating dinosaur bone was called Megalosaurus. Today scientists only use the name for fossils from around Oxford."]},
+    carcharodontosaurus: {found: "Its first teeth were found in Algeria and described in 1925. In 1931 the German scientist Ernst Stromer named it, from a skeleton found in Egypt.",
+      facts: ["In 1995 Paul Sereno's team found a huge skull in Morocco. It was about 1.6 metres long, longer than many grown-ups are tall.",
+              "Its close cousin was Giganotosaurus from South America. Their family probably split in two as Africa and South America drifted apart.",
+              "Spinosaurus and at least one more big meat-eater lived in the same place at the same time. Scientists still wonder how so many giant hunters found enough to eat."]},
+    archaeopteryx: {found: "A single fossil feather was found near Solnhofen in Germany in 1861, and soon after a whole skeleton. Hermann von Meyer gave it its name that same year.",
+      facts: ["Scientists studied tiny traces of colour in a fossil feather, and think at least part of it was black, like a crow's.",
+              "It could probably flap its wings and fly short distances, though not as well as the birds of today.",
+              "One skeleton sat in a museum in the Netherlands for more than a hundred years, labelled as a flying reptile, until a scientist spotted its feathers in 1970."]},
+    quetzalcoatlus: {found: "A student, Douglas Lawson, found its first wing bones in Big Bend in Texas in 1971, and named it in 1975.",
+      facts: ["It is named after Quetzalcoatl, a feathered serpent god of the Aztec people of Mexico.",
+              "To take off, it probably crouched down and sprang into the air using its strong arms, a bit like a pole vaulter.",
+              "Its bones were hollow and filled with air, so although it was as tall as a giraffe, it weighed only about as much as two or three grown-ups."]},
+    edmontosaurus: {found: "George Sternberg's team dug up the first skeleton beside the Red Deer River in Alberta, Canada, in 1912, and Lawrence Lambe named it in 1917, after the town of Edmonton.",
+      facts: ["One Edmontosaurus tail bone carries a healed bite from a Tyrannosaurus. It was bitten, got away, and lived long enough for the wound to heal.",
+              "In 1908 the Sternberg family of fossil hunters found an Edmontosaurus mummy in Wyoming, curled up with its skin wrapped around its bones. It is still on show in a museum in New York.",
+              "Huge beds of Edmontosaurus bones have been found, holding many animals that died together. That suggests they lived in big herds, like wildebeest do today."]},
+    albertosaurus: {found: "The geologist Joseph Burr Tyrrell found the first skull beside the Red Deer River in Alberta, Canada, in 1884, and Henry Fairfield Osborn named it in 1905.",
+      facts: ["Growth rings in its bones show that it grew fastest as a teenager, putting on more than a hundred kilograms a year.",
+              "The oldest Albertosaurus scientists have found was about 28 years old when it died, which is very old for a big meat-eating dinosaur.",
+              "Its teeth were shaped like bananas with saw edges, for slicing through meat. When one broke or fell out, a new tooth grew in to take its place."]}
+  };
 
   /* Extra hard is thirty pairs, the most the clocks and the board were made for,
      drawn like every other size from all the animals there are */
@@ -1744,9 +2053,16 @@
   var viewerPlay = document.getElementById("viewer-play");
   var playBtns = BOXES.map(function(b){ return b.play; }).concat([viewerPlay]);
   var speakingSide = 0, speakingId = null;
-  var speech = null;
+  var speech = null, voiceNow = null;   /* the clip, or the browser's voice, reading now */
+  var extraBtn = null, extraKey = null;  /* a More line being read: its button, and which line */
+  var storyGoesOn = false;               /* the map's story is moving on by itself, not being cut off */
 
   function stopSpeech(){
+    /* anything else cutting into the map's story ends the whole-story run */
+    if(!storyGoesOn && speakingSide === 4 && typeof mv !== "undefined" && mv.run) stopRun();
+    voiceNow = null;
+    if(extraBtn){ extraBtn.dataset.playing = "false"; extraBtn.innerHTML = "&#9654;"; extraBtn.setAttribute("aria-label", "Read this aloud"); }
+    extraBtn = null; extraKey = null;
     if(speech){ try{ speech.pause(); speech.currentTime = 0; }catch(e){} speech = null; }
     try{ if(window.speechSynthesis) speechSynthesis.cancel(); }catch(e){}
     jungleDuck(false);
@@ -1760,7 +2076,7 @@
 
   function playing(){
     jungleDuck(true);
-    var btn = playBtns[speakingSide];
+    var btn = extraBtn || playBtns[speakingSide];
     btn.dataset.playing = "true";
     btn.innerHTML = "&#9632;";
     btn.setAttribute("aria-label", "Stop reading");
@@ -1772,7 +2088,8 @@
       if(!window.speechSynthesis) return;
       var u = new SpeechSynthesisUtterance(dino.name + ". " + dino.fact);
       u.lang = "en-GB"; u.rate = 0.95;
-      u.onend = stopSpeech;
+      u.onend = u.onerror = function(){ if(voiceNow === u) stopSpeech(); };
+      voiceNow = u;
       speechSynthesis.speak(u);
       playing();
     }catch(e){ stopSpeech(); }
@@ -1787,9 +2104,45 @@
     if(!dino) return;
     var clip = new Audio("audio/" + id + ".mp3");
     speech = clip;
-    clip.addEventListener("ended", stopSpeech);
-    clip.addEventListener("error", function(){ speech = null; browserVoice(dino); });
-    clip.play().then(playing).catch(function(){ speech = null; browserVoice(dino); });
+    /* only while this is still the clip being read: one replaced while it was
+       still loading fails as it is cut off, and must not take the voice back */
+    function failed(){
+      if(speech !== clip) return;
+      speech = null;
+      browserVoice(dino);
+    }
+    clip.addEventListener("ended", function(){ if(speech === clip) stopSpeech(); });
+    clip.addEventListener("error", failed);
+    clip.play().then(function(){ if(speech === clip) playing(); }).catch(failed);
+  }
+
+  /* One line from More, in box i. It belongs to that box like the card does,
+     so putting the card back, or another card, quiets it the same way. */
+  function sayExtra(i, id, key, text, btn){
+    stopSpeech();
+    stopName();
+    stopTurn();
+    if(!soundOn) return;
+    var clip = new Audio("audio/more/" + id + "-" + key + ".mp3");
+    speech = clip;
+    speakingSide = i; speakingId = id;
+    extraBtn = btn; extraKey = id + ":" + key;
+    function failed(){
+      if(speech !== clip) return;
+      speech = null;
+      try{
+        if(!window.speechSynthesis){ stopSpeech(); return; }
+        var u = new SpeechSynthesisUtterance(text);
+        u.lang = "en-GB"; u.rate = 0.95;
+        u.onend = u.onerror = function(){ if(voiceNow === u) stopSpeech(); };
+        voiceNow = u;
+        speechSynthesis.speak(u);
+        playing();
+      }catch(e){ stopSpeech(); }
+    }
+    clip.addEventListener("ended", function(){ if(speech === clip) stopSpeech(); });
+    clip.addEventListener("error", failed);
+    clip.play().then(function(){ if(speech === clip) playing(); }).catch(failed);
   }
 
   BOXES.forEach(function(box, i){
@@ -1871,7 +2224,7 @@
     pteranodon:        [["Smoky Hill Chalk, Kansas", 38.9, -100.9, "na"]],
     rhamphorhynchus:   [["Solnhofen, Germany", 48.9, 11.0, "eu"]],
     dimorphodon:       [["Lyme Regis, England", 50.72, -2.94, "eu"]],
-    ornithocheirus:    [["Cambridge, England", 52.2, 0.12, "eu"], ["Santana, Brazil", -7.2, -39.5, "sa"]],
+    ornithocheirus:    [["Cambridge, England", 52.2, 0.12, "eu"]],
     mosasaurus:        [["Maastricht, Netherlands", 50.85, 5.69, "eu"], ["Monmouth County, New Jersey", 40.3, -74.4, "na"], ["Khouribga, Morocco", 32.9, -6.9, "af"]],
     argentinosaurus:   [["Plaza Huincul, Argentina", -38.93, -69.2, "sa"]],
     gallimimus:        [["Nemegt Basin, Mongolia", 43.6, 100.7, "eu"]],
@@ -1885,7 +2238,20 @@
     australovenator:   [["Winton, Queensland", -22.4, 143.04, "au"]],
     muttaburrasaurus:  [["Muttaburra, Queensland", -22.6, 144.55, "au"], ["Lightning Ridge, New South Wales", -29.43, 147.98, "au"]],
     leaellynasaura:    [["Dinosaur Cove, Victoria", -38.78, 143.4, "au"]],
-    cryolophosaurus:   [["Mount Kirkpatrick, Antarctica", -84.33, 166.42, "an"]]
+    cryolophosaurus:   [["Mount Kirkpatrick, Antarctica", -84.33, 166.42, "an"]],
+    ichthyosaurus:     [["Lyme Regis, England", 50.73, -2.9, "eu"]],
+    liopleurodon:      [["Peterborough, England", 52.57, -0.24, "eu"], ["Boulogne-sur-Mer, France", 50.72, 1.61, "eu"]],
+    kronosaurus:       [["Hughenden, Queensland", -20.85, 144.2, "au"], ["Richmond, Queensland", -20.73, 143.14, "au"]],
+    archelon:          [["Cheyenne River, South Dakota", 44.2, -101.5, "na"]],
+    albertosaurus:     [["Dry Island Buffalo Jump, Alberta", 51.94, -112.96, "na"], ["Horseshoe Canyon, Alberta", 51.42, -112.87, "na"]],
+    edmontosaurus:     [["Red Deer River, Alberta", 51.75, -112.95, "na"], ["Lance Creek, Wyoming", 43.1, -104.5, "na"]],
+    brontosaurus:      [["Como Bluff, Wyoming", 41.88, -106.0, "na"]],
+    giganotosaurus:    [["Villa El Choc\u00F3n, Argentina", -39.26, -68.78, "sa"]],
+    quetzalcoatlus:    [["Big Bend, Texas", 29.25, -103.25, "na"]],
+    archaeopteryx:     [["Eichst\u00E4tt, Germany", 48.89, 11.18, "eu"], ["Solnhofen, Germany", 48.9, 10.98, "eu"]],
+    carcharodontosaurus: [["Kem Kem, Morocco", 31.15, -4.35, "af"], ["Bahariya Oasis, Egypt", 28.3, 28.95, "af"]],
+    coelophysis:       [["Ghost Ranch, New Mexico", 36.33, -106.47, "na"]],
+    megalosaurus:      [["Stonesfield, Oxfordshire", 51.85, -1.43, "eu"]]
   };
   /* what those places were like while the animal lived there */
   var THEN = {
@@ -1922,22 +2288,42 @@
     australovenator: "a wide, wet river plain with forests and billabongs",
     muttaburrasaurus: "low land by the shore of a shallow inland sea",
     leaellynasaura: "a cold forest near the South Pole, dark for weeks every winter",
-    cryolophosaurus: "a cool forest of conifers and ferns — not ice at all"
+    cryolophosaurus: "a cool forest of conifers and ferns — not ice at all",
+    ichthyosaurus: "a warm, shallow sea full of fish and squid-like animals",
+    liopleurodon: "a warm, shallow sea over what is now England and France",
+    kronosaurus: "a cold, shallow sea that covered much of Australia",
+    archelon: "a great warm sea right across the middle of North America",
+    albertosaurus: "a warm, wet coastal plain with swamps, rivers and forests",
+    edmontosaurus: "a warm coastal plain with swamps and forests beside an inland sea",
+    brontosaurus: "a wide river plain with conifer forests and fern meadows",
+    giganotosaurus: "a land of rivers and floodplains, home to giant long-necked dinosaurs",
+    quetzalcoatlus: "a warm river plain with lakes and forests, far from the sea",
+    archaeopteryx: "warm, shallow lagoons dotted with dry, scrubby islands",
+    carcharodontosaurus: "a land of wide rivers and swamps, full of giant fish and crocodiles",
+    coelophysis: "a hot land of rivers and long dry seasons, in the middle of Pangaea",
+    megalosaurus: "warm coasts and islands in a shallow tropical sea"
   };
   /* How each plate has turned since then (row by row), from tools/paleomap.py,
      which draws img/map/then-*.webp with the very same numbers. */
-  var PLATES = {"eu":{"150":[0.9962,-0.00658,0.08682,-0.00658,0.98861,0.15038,-0.08682,-0.15038,0.98481],"70":[0.99905,-0.00165,0.04358,-0.00165,0.99715,0.07548,-0.04358,-0.07548,0.99619]},"na":{"150":[0.69572,-0.70171,0.15353,0.69888,0.71064,0.08104,-0.16597,0.05091,0.98482],"70":[0.72864,-0.67666,0.10586,0.67982,0.73334,0.00828,-0.08324,0.06593,0.99435]},"af":{"150":[0.98392,0.1635,0.07191,-0.17852,0.91263,0.36775,-0.0055,-0.37467,0.92714],"70":[0.97107,-0.23644,0.03333,0.22852,0.96073,0.15742,-0.06924,-0.14525,0.98697]},"sa":{"150":[0.80965,-0.57044,-0.13809,0.52189,0.80737,-0.27528,0.26852,0.15081,0.9514],"70":[0.82551,-0.56438,-0.00331,0.55356,0.8108,-0.19019,0.11002,0.15518,0.98174]},"au":{"150":[0.59059,0.58651,-0.55427,-0.47613,0.80782,0.34747,0.65154,0.05869,0.75634],"70":[0.91635,0.12524,-0.38029,-0.01696,0.96111,0.27565,0.40002,-0.24615,0.88283]},"an":{"150":[0.83093,0.17281,-0.52886,-0.31999,0.92604,-0.20016,0.45515,0.33555,0.82477],"70":[0.98001,-0.17182,-0.10026,0.15484,0.97524,-0.15787,0.1249,0.13919,0.98236]}};
+  var PLATES = {"eu":{"220":[0.96994,0.05026,0.23811,-0.10147,0.97286,0.20798,-0.22119,-0.22589,0.94871],"150":[0.9962,-0.00658,0.08682,-0.00658,0.98861,0.15038,-0.08682,-0.15038,0.98481],"70":[0.99905,-0.00165,0.04358,-0.00165,0.99715,0.07548,-0.04358,-0.07548,0.99619]},"na":{"220":[0.718,-0.62882,0.29843,0.62109,0.77235,0.13311,-0.31419,0.08978,0.9451],"150":[0.69572,-0.70171,0.15353,0.69888,0.71064,0.08104,-0.16597,0.05091,0.98482],"70":[0.72864,-0.67666,0.10586,0.67982,0.73334,0.00828,-0.08324,0.06593,0.99435]},"af":{"220":[0.91117,0.32842,0.24881,-0.40992,0.78352,0.46697,-0.04158,-0.52748,0.84855],"150":[0.98392,0.1635,0.07191,-0.17852,0.91263,0.36775,-0.0055,-0.37467,0.92714],"70":[0.97107,-0.23644,0.03333,0.22852,0.96073,0.15742,-0.06924,-0.14525,0.98697]},"sa":{"220":[0.93066,-0.35224,-0.09898,0.34338,0.93426,-0.09614,0.12633,0.05549,0.99044],"150":[0.80965,-0.57044,-0.13809,0.52189,0.80737,-0.27528,0.26852,0.15081,0.9514],"70":[0.82551,-0.56438,-0.00331,0.55356,0.8108,-0.19019,0.11002,0.15518,0.98174]},"au":{"220":[0.52979,0.75846,-0.37956,-0.50751,0.64206,0.57463,0.67953,-0.1118,0.72508],"150":[0.59059,0.58651,-0.55427,-0.47613,0.80782,0.34747,0.65154,0.05869,0.75634],"70":[0.91635,0.12524,-0.38029,-0.01696,0.96111,0.27565,0.40002,-0.24615,0.88283]},"an":{"220":[0.778,0.41339,-0.4731,-0.44351,0.89473,0.05247,0.44499,0.16901,0.87944],"150":[0.83093,0.17281,-0.52886,-0.31999,0.92604,-0.20016,0.45515,0.33555,0.82477],"70":[0.98001,-0.17182,-0.10026,0.15484,0.97524,-0.15787,0.1249,0.13919,0.98236]}};
   var AGE_TEXT = {
+    220: "<b>220 million years ago</b> \u2014 the Triassic. All the land was one supercontinent, Pangaea, and the very first dinosaurs were running across it.",
     150: "<b>150 million years ago</b> — the Jurassic. The land was still almost one piece, and the Atlantic Ocean was only a narrow sea.",
-    70: "<b>70 million years ago</b> — the end of the Cretaceous. The Atlantic was growing, India was an island, and a sea cut North America in two."
+    70: "<b>70 million years ago</b> — the end of the Cretaceous. The Atlantic was growing, India was an island, and a sea cut North America in two.",
+    66: "<b>66 million years ago</b> — a rock from space ten kilometres wide hits the sea near Mexico, and the age of the giant dinosaurs ends."
   };
-  var NOW_TEXT = "<b>Today</b> \u2014 the continents are still drifting, about as fast as your fingernails grow.";
+  var NOW_TEXT = "<b>Today</b> \u2014 every animal here is a fossil now, dug up where its pin stands. The ring near Mexico is where the asteroid hit.";
   /* told out loud when the world is turned back or forward, in the card voice
      (audio/map/<age>.mp3); the browser reads these if a clip is missing */
   var STORY = {
-    "150": "Let's go back one hundred and fifty million years, to the Jurassic. Watch the land move! The continents were squeezed together into one giant piece. North America was still joined to Europe and Africa, and the Atlantic Ocean was only a thin sea between them. Africa, South America, Antarctica, India and Australia were all one big land in the south.",
-    "70": "Let's go back seventy million years, to the end of the Cretaceous. The giant land had broken into pieces, and they were slowly drifting apart. The Atlantic Ocean grew a little wider every year. India was an island, sailing north towards Asia. And a warm, shallow sea ran right through the middle of North America, cutting it in two.",
-    "now": "Back to today! Over millions and millions of years the continents kept on drifting, about as fast as your fingernails grow. The Atlantic Ocean became wide, India crashed into Asia and pushed up the Himalayas, and Australia broke away from Antarctica. They are still moving, even now."
+    "150": "One hundred and fifty million years ago, in the Jurassic, the continents were squeezed together into one giant piece. Watch the land move! North America was still joined to Europe and Africa, and the Atlantic Ocean was only a thin sea between them. Africa, South America, Antarctica, India and Australia were all one big land in the south.",
+    "70": "Seventy million years ago, near the end of the Cretaceous, the giant land had broken into pieces, and they were slowly drifting apart. The Atlantic Ocean grew a little wider every year. India was an island, sailing north towards Asia. And a warm, shallow sea ran right through the middle of North America, cutting it in two.",
+    "now": "Back to today! Since then, over millions and millions of years, the continents kept on drifting, about as fast as your fingernails grow. The Atlantic Ocean became wide, India crashed into Asia and pushed up the Himalayas, and Australia broke away from Antarctica. The animals in this game are only bones now, dug up from the places on this map.",
+    "jurassic": "The Jurassic began about two hundred million years ago, and it lasted for more than fifty million years. The world was warm and damp, with no ice at the poles. Giant long-necked plant-eaters like Brachiosaurus and Diplodocus walked through forests of conifers, ferns and cycads. There was no grass, and not a single flower yet. Allosaurus was the top hunter, pterosaurs flew overhead, and the very first birds were just learning to fly.",
+    "cretaceous": "The Cretaceous lasted for almost eighty million years. It was the time of Tyrannosaurus, Triceratops and Velociraptor, and of Spinosaurus, fishing in the rivers of Africa. The first flowers bloomed, and bees began to visit them. The seas were high and warm, full of mosasaurs, long-necked plesiosaurs and giant turtles. Dinosaurs lived on every continent, even near the South Pole.",
+    "asteroid": "Sixty-six million years ago, a giant rock from space, about ten kilometres wide, came racing towards the Earth. It crashed into the sea near Mexico, where the town of Chicxulub is today. The blast was stronger than every bomb ever made, all put together. Dust and smoke filled the sky and hid the sun, the world grew cold and dark, and plants stopped growing. The big dinosaurs, the pterosaurs and the great sea reptiles all died out. But some small animals survived: mammals, crocodiles, turtles, and little feathered dinosaurs. We call them birds.",
+    "220": "Two hundred and twenty million years ago, in the Triassic, all the land on Earth was joined together in one giant supercontinent, called Pangaea, with one enormous ocean all around it. You could have walked from one side of the world to the other without ever crossing the sea. The middle of Pangaea was far from the ocean, hot and dry, with great deserts.",
+    "triassic": "The Triassic is when the very first dinosaurs appeared. They were small and quick, running on two legs, and many animals around them were bigger: giant crocodile cousins, and the ancestors of mammals. The first pterosaurs took to the air, and ichthyosaurs swam in the sea. By the end of the Triassic, dinosaurs were spreading all over Pangaea."
   };
   var GLOBE = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="8" cy="8" r="6.5"/><ellipse cx="8" cy="8" rx="2.8" ry="6.5"/><path d="M1.5 8h13"/></svg>';
   var WORLD_W = 2048, WORLD_H = 1024;
@@ -1946,10 +2332,12 @@
   var mapWorld = document.getElementById("map-world"), mapPinsEl = document.getElementById("map-pins");
   var mapUnder = document.getElementById("map-under"), mapCaption = document.getElementById("map-caption");
   var mapCard = document.getElementById("map-card"), mapLegend = document.getElementById("map-legend");
-  var mapClose = document.getElementById("map-close"), mapWhen = document.getElementById("map-when");
-  var mapChips = document.getElementById("map-chips"), mapLive = document.getElementById("map-live");
-  var mapImgs = {now: document.getElementById("map-now"),
-                 150: document.getElementById("map-then-150"), 70: document.getElementById("map-then-70")};
+  var mapClose = document.getElementById("map-close"), mapStages = document.getElementById("map-stages");
+  var mapRun = document.getElementById("map-run"), mapLive = document.getElementById("map-live");
+  var mapDust = document.getElementById("map-dust"), mapImpact = document.getElementById("map-impact");
+  var mapImgs = {now: document.getElementById("map-now"), 220: document.getElementById("map-then-220"),
+                 150: document.getElementById("map-then-150"),
+                 70: document.getElementById("map-then-70"), 66: document.getElementById("map-then-66")};
   var mapPlay = document.createElement("button");
   mapPlay.type = "button"; mapPlay.className = "play-x"; mapPlay.innerHTML = "&#9654;";
   mapPlay.setAttribute("aria-label", "Read this card aloud");
@@ -1962,22 +2350,77 @@
   var narrowMap = window.matchMedia("(max-width:700px), (orientation:portrait) and (max-width:980px)");
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
 
-  var mv = {then: false, period: "", picked: null, s: 1, tx: 0, ty: 0, W: 0, H: 0,
-            from: null, fly: null, frame: 0, pins: {}, pin: 48, loaded: false, told: false};
+  /* The story the map tells, one stage at a time: the world of each age, with
+     only the animals of that age on it, then the asteroid that ended it, then
+     today, where every one of them is a fossil. The stage sets the age of the
+     land (millions of years ago) and which animals stand on it. */
+  var STAGES = [
+    {id: "triassic", age: 220, period: "Triassic", say: ["220", "triassic"]},
+    {id: "jurassic", age: 150, period: "Jurassic", say: ["150", "jurassic"]},
+    {id: "cretaceous", age: 70, period: "Cretaceous", say: ["70", "cretaceous"]},
+    {id: "asteroid", age: 66, period: "Cretaceous", say: ["asteroid"]},
+    {id: "today", age: 0, period: "", say: ["now"]}
+  ];
+  /* where the asteroid came down: Chicxulub, on the coast of Yucatan */
+  var IMPACT = ["Chicxulub, Mexico", 21.4, -89.5, "na"];
 
-  function ageOf(dino){ return dino.period === "Jurassic" ? 150 : 70; }
-  function shownAge(){ return mv.period === "Jurassic" ? 150 : 70; }
+  /* While the land is moving, anim is the age on screen. extinct is set from
+     the moment the asteroid lands until the world moves on. */
+  var mv = {stage: "today", age: 0, anim: null, then: false, period: "", picked: null, extinct: false,
+            s: 1, tx: 0, ty: 0, W: 0, H: 0, from: null, fly: null, frame: 0, drift: null, run: null,
+            impact: [], gen: 0, pins: {}, pin: 48, loaded: false, told: false};
+
+  function stageById(id){ for(var i = 0; i < STAGES.length; i++) if(STAGES[i].id === id) return STAGES[i]; return null; }
+  function ageOf(dino){ return dino.period === "Triassic" ? 220 : dino.period === "Jurassic" ? 150 : 70; }
+  function stageOf(dino){ return dino.period.toLowerCase(); }
+  function shownAge(){ return mv.age; }
+  function setStage(id){
+    var st = stageById(id);
+    if(st.id !== "asteroid") clearImpact();   /* the dust belongs to the asteroid only */
+    mv.stage = st.id;
+    mv.age = st.age;
+    mv.then = st.age > 0;
+    mv.period = st.period;
+  }
   function continentOf(site){
     var p = site[3];
     if(p === "eu") return site[2] >= 45 ? "Asia" : "Europe";
     return {na: "North America", sa: "South America", af: "Africa", au: "Australia", an: "Antarctica"}[p];
   }
 
-  /* a place on the map, today or carried back to where it was then */
-  function project(site, age){
+  /* The turn of a plate t million years ago, the way tools/paleomap.py
+     draws the land (rotation_at there): from today to 70 about one axis, then
+     on to 150 about another, so the pins ride exactly with the land. */
+  function mul(A, B){
+    var C = [];
+    for(var r = 0; r < 3; r++) for(var c = 0; c < 3; c++)
+      C.push(A[r * 3] * B[c] + A[r * 3 + 1] * B[3 + c] + A[r * 3 + 2] * B[6 + c]);
+    return C;
+  }
+  function transpose(A){ return [A[0], A[3], A[6], A[1], A[4], A[7], A[2], A[5], A[8]]; }
+  function partTurn(R, f){
+    var ang = Math.acos(Math.max(-1, Math.min(1, (R[0] + R[4] + R[8] - 1) / 2)));
+    var x = R[7] - R[5], y = R[2] - R[6], z = R[3] - R[1], n = Math.sqrt(x * x + y * y + z * z);
+    if(ang < 1e-9 || n < 1e-12) return [1, 0, 0, 0, 1, 0, 0, 0, 1];
+    x /= n; y /= n; z /= n;
+    var a = ang * f, c = Math.cos(a), s = Math.sin(a), t = 1 - c;
+    return [t*x*x + c, t*x*y - s*z, t*x*z + s*y,
+            t*x*y + s*z, t*y*y + c, t*y*z - s*x,
+            t*x*z - s*y, t*y*z + s*x, t*z*z + c];
+  }
+  function turnAt(plate, t){
+    var r70 = PLATES[plate]["70"], r150 = PLATES[plate]["150"], r220 = PLATES[plate]["220"];
+    if(t <= 70) return partTurn(r70, t / 70);
+    if(t <= 150) return mul(r70, partTurn(mul(transpose(r70), r150), (t - 70) / 80));
+    return mul(r150, partTurn(mul(transpose(r150), r220), (t - 150) / 70));
+  }
+
+  /* a place on the map, carried to where it was in the age on screen */
+  function project(site){
     var lat = site[1], lon = site[2];
-    if(mv.then && PLATES[site[3]]){
-      var R = PLATES[site[3]][age];
+    var t = mv.anim !== null ? mv.anim : mv.age;
+    if(t > 0 && PLATES[site[3]]){
+      var R = turnAt(site[3], t);
       var la = lat * Math.PI / 180, lo = lon * Math.PI / 180;
       var x = Math.cos(la) * Math.cos(lo), y = Math.cos(la) * Math.sin(lo), z = Math.sin(la);
       var px = R[0] * x + R[1] * y + R[2] * z, py = R[3] * x + R[4] * y + R[5] * z, pz = R[6] * x + R[7] * y + R[8] * z;
@@ -1998,8 +2441,11 @@
   function clampView(){
     mv.s = Math.max(minScale(), Math.min(maxScale(), mv.s));
     var w = WORLD_W * mv.s, h = WORLD_H * mv.s;
-    mv.tx = w <= mv.W ? (mv.W - w) / 2 : Math.min(0, Math.max(mv.W - w, mv.tx));
-    mv.ty = h <= mv.H ? (mv.H - h) / 2 : Math.min(0, Math.max(mv.H - h, mv.ty));
+    /* with an animal's card open, the edge of the world may slide in under it,
+       so a place out at the edge (Queensland, say) can still be seen beside it */
+    var a = freeArea(), padR = mv.W - a.x1, padB = mv.H - 44 - a.y1;
+    mv.tx = w <= mv.W - padR ? (mv.W - padR - w) / 2 : Math.min(0, Math.max(mv.W - padR - w, mv.tx));
+    mv.ty = h <= mv.H - padB ? (mv.H - padB - h) / 2 : Math.min(0, Math.max(mv.H - padB - h, mv.ty));
   }
   function measure(){
     mv.W = mapStage.clientWidth; mv.H = mapStage.clientHeight;
@@ -2020,13 +2466,15 @@
                                           minScale() * (narrowMap.matches ? 2.6 : 1.8)));
     /* filling the screen cuts a strip off the sides, so let the cut fall in the
        empty Pacific: centre on the spread of the animals, not on Greenwich */
-    var x0 = Infinity, x1 = -Infinity;
+    var x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
     SPECIES.forEach(function(dino){
       if(!shown(dino)) return;
       var p = project(SITES[dino.id][0], mv.then ? shownAge() : ageOf(dino));
       x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x);
+      y0 = Math.min(y0, p.y); y1 = Math.max(y1, p.y);
     });
-    return {s: s, cx: x0 <= x1 ? (x0 + x1) / 2 : WORLD_W * 0.5, cy: WORLD_H * 0.42};
+    if(x0 > x1) return {s: s, cx: WORLD_W * 0.5, cy: WORLD_H * 0.42};
+    return {s: s, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2};
   }
   /* the view that frames some places, inside the free part of the map */
   function framing(points, cap){
@@ -2081,16 +2529,171 @@
     big.onload = function(){ mapImgs.now.src = big.src; };
     big.src = "img/map/earth.webp";
   }
+  function sharpWorld(age){
+    if(age && !mapImgs[age].getAttribute("src")) mapImgs[age].src = "img/map/then-" + age + ".webp";
+  }
   function showWorld(){
-    var age = shownAge();
-    if(mv.then && !mapImgs[age].getAttribute("src")) mapImgs[age].src = "img/map/then-" + age + ".webp";
+    var age = mv.age;
+    sharpWorld(age);
     mapImgs.now.dataset.on = String(!mv.then);
-    mapImgs[150].dataset.on = String(mv.then && age === 150);
-    mapImgs[70].dataset.on = String(mv.then && age === 70);
-    /* today only gets a caption once the world has been turned back and forth */
+    [220, 150, 70, 66].forEach(function(a){ mapImgs[a].dataset.on = String(age === a); });
+    /* today gets a caption once the world has been turned back and forth */
     mapCaption.hidden = !(mv.then || mv.told);
     mapCaption.innerHTML = '<span>' + (mv.then ? AGE_TEXT[age] : NOW_TEXT) + '</span>';
     mapCaption.appendChild(storyBtn);
+  }
+
+  /* The world every five million years, from tools/paleomap.py --drift. They
+     are only seen while the land moves, so they are small, and fetched as soon
+     as the map opens so they are there when they are wanted. */
+  var driftCanvas = document.getElementById("map-drift"), driftCtx = driftCanvas.getContext("2d");
+  var driftFrames = null;
+  function loadDrift(){
+    if(driftFrames) return;
+    driftFrames = {};
+    for(var t = 0; t <= 220; t += 5){
+      var im = new Image();
+      im.decoding = "async";
+      im.src = "img/map/drift/" + ("00" + t).slice(-3) + ".webp";
+      driftFrames[t] = im;
+    }
+  }
+  function frameReady(t){ var im = driftFrames && driftFrames[t]; return im && im.complete && im.naturalWidth; }
+  /* the land at t million years ago: the two nearest frames, one over the other */
+  function paintDrift(t){
+    var lo = Math.max(0, Math.min(220, Math.floor(t / 5) * 5)), hi = Math.min(220, lo + 5);
+    if(!frameReady(lo)) return;
+    driftCtx.globalAlpha = 1;
+    driftCtx.drawImage(driftFrames[lo], 0, 0, driftCanvas.width, driftCanvas.height);
+    if(hi !== lo && frameReady(hi)){
+      driftCtx.globalAlpha = (t - lo) / 5;
+      driftCtx.drawImage(driftFrames[hi], 0, 0, driftCanvas.width, driftCanvas.height);
+      driftCtx.globalAlpha = 1;
+    }
+  }
+  /* the caption counts the years as they go by */
+  var yearSpan = document.createElement("span"), yearB = document.createElement("b");
+  yearSpan.appendChild(yearB);
+  function countYears(t){
+    yearB.textContent = t < 0.5 ? "Today" : Math.round(t) + " million years ago";
+    if(mapCaption.firstChild !== yearSpan){
+      mapCaption.textContent = "";
+      mapCaption.appendChild(yearSpan);
+      mapCaption.appendChild(storyBtn);
+    }
+    mapCaption.hidden = false;
+  }
+  function stopDrift(){
+    if(mv.drift){ cancelAnimationFrame(mv.drift); mv.drift = null; }
+    mv.anim = null;
+    driftCanvas.dataset.on = "false";
+    mapUnder.style.opacity = "";
+  }
+
+  /* Every stage button takes the world to its age: the land drifts there, the
+     pins riding with it, and the story of that stage is told. At the asteroid,
+     once the land is still, the rock comes down. */
+  function worldTo(id, keys, done){
+    var from = mv.anim !== null ? mv.anim : mv.age;
+    if(mv.drift){ cancelAnimationFrame(mv.drift); mv.drift = null; }
+    clearImpact();
+    setStage(id);
+    var age = mv.age;
+    mv.told = true;
+    if(mv.picked && !shown(byId(mv.picked))){ mv.picked = null; paintMapCard(); }
+    paintChips(); paintLegend();
+    if(keys) tellStory(keys, done);
+    sharpWorld(age);
+    loadDrift();
+    function arrive(){
+      stopDrift();
+      showWorld();
+      drawMap();
+      if(mv.stage === "asteroid") impact();
+      else if(mv.picked) pickOnMap(mv.picked, true);
+      else flyTo(wholeWorld());   /* and look at who lives here now */
+    }
+    if(reduceMotion.matches || Math.abs(from - age) < 0.5 || !frameReady(Math.max(0, Math.min(220, Math.floor(from / 5) * 5)))){ arrive(); return; }
+    paintDrift(from);
+    driftCanvas.dataset.on = "true";
+    mapImgs.now.dataset.on = mapImgs[220].dataset.on = mapImgs[150].dataset.on = mapImgs[70].dataset.on = mapImgs[66].dataset.on = "false";
+    mapUnder.style.opacity = "0";
+    var t0 = performance.now(), dur = 900 + Math.abs(age - from) * 16;
+    function step(now){
+      var k = Math.min(1, (now - t0) / dur);
+      var e = k < 0.5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;
+      mv.anim = from + (age - from) * e;
+      paintDrift(mv.anim);
+      countYears(mv.anim);
+      drawMap();
+      if(k < 1) mv.drift = requestAnimationFrame(step);
+      else { mv.drift = null; arrive(); }
+    }
+    mv.drift = requestAnimationFrame(step);
+  }
+
+  /* ---------- the asteroid ---------- */
+  function clearImpact(){
+    mv.gen++;   /* a rock still falling from before lands nowhere */
+    mv.impact.forEach(function(h){ clearTimeout(h); });
+    mv.impact = [];
+    mapImpact.textContent = "";
+    mapDust.dataset.on = "false";
+    mv.extinct = false;
+  }
+  /* The rock streaks in from the top corner, the world flashes, rings of fire
+     spread from where it hit, dust darkens the sky, and the animals of the
+     Cretaceous go grey, the nearest first. */
+  function impact(){
+    clearImpact();
+    var gen = mv.gen;
+    var spot = project(IMPACT);
+    /* see the whole of it: the Americas and the sea it fell into */
+    var view = {s: wholeWorld().s, cx: spot.x, cy: spot.y};
+    if(mv.picked){ mv.picked = null; paintMapCard(); }
+    flyTo(view);
+    var later = function(ms, fn){ mv.impact.push(setTimeout(fn, ms)); };
+    later(reduceMotion.matches ? 0 : 850, function(){
+      var c = toScreen(spot);
+      mapDust.style.setProperty("--x", c.x + "px");
+      mapDust.style.setProperty("--y", c.y + "px");
+      if(reduceMotion.matches){ land(c); return; }
+      /* the streak: in from the top right, over a second and a half */
+      var sx = mv.W + 60, sy = -60, dx = c.x - sx, dy = c.y - sy;
+      var len = Math.sqrt(dx * dx + dy * dy), ang = Math.atan2(dy, dx);
+      var tail = document.createElement("div"), rock = document.createElement("div");
+      tail.className = "meteor-tail"; rock.className = "meteor";
+      mapImpact.appendChild(tail); mapImpact.appendChild(rock);
+      var t0 = performance.now(), dur = 1500;
+      (function fall(now){
+        if(gen !== mv.gen) return;
+        var k = Math.min(1, (now - t0) / dur), e = k * k;
+        var x = sx + dx * e, y = sy + dy * e, tl = Math.min(260, len * e);
+        rock.style.transform = "translate(" + x + "px," + y + "px)";
+        tail.style.width = tl + "px";
+        tail.style.transform = "translate(" + x + "px," + y + "px) rotate(" + (ang + Math.PI) + "rad)";
+        if(k < 1) requestAnimationFrame(fall);
+        else { mapImpact.textContent = ""; land(c); }
+      })(t0);
+    });
+    function land(c){
+      if(gen !== mv.gen || mapEl.hidden || mv.stage !== "asteroid") return;
+      if(!reduceMotion.matches){
+        var flash = document.createElement("div");
+        flash.className = "flash";
+        mapImpact.appendChild(flash);
+        ["", " two"].forEach(function(two){
+          var ring = document.createElement("div");
+          ring.className = "blast" + two;
+          ring.style.left = c.x + "px"; ring.style.top = c.y + "px";
+          mapImpact.appendChild(ring);
+        });
+      }
+      mapDust.dataset.on = "true";
+      mv.extinct = true;
+      drawMap();
+      later(3200, function(){ mapImpact.textContent = ""; });
+    }
   }
 
   function makePins(){
@@ -2109,7 +2712,7 @@
         var kind = document.createElement("span");
         kind.className = "kind";
         kind.setAttribute("aria-hidden", "true");
-        kind.textContent = dino.group === "Pterosaur" ? "⤴" : "∿";   /* a flier, a swimmer */
+        kind.textContent = dino.group === "Pterosaur" || dino.group === "Early bird" ? "⤴" : "∿";   /* a flier, a swimmer */
         pin.appendChild(kind);
       }
       pin.addEventListener("click", function(){ pickOnMap(dino.id === mv.picked ? null : dino.id, true); });
@@ -2138,6 +2741,7 @@
      found in one place they are eased apart and tied back to it by a thread. */
   function drawMap(){
     mapWorld.style.transform = "translate(" + mv.tx + "px," + mv.ty + "px) scale(" + mv.s + ")";
+    var crater = toScreen(project(IMPACT)), craterX = crater.x, craterY = crater.y;
     var age = shownAge(), list = [];
     SPECIES.forEach(function(dino, i){
       var pin = mv.pins[dino.id];
@@ -2186,11 +2790,29 @@
       p.pin.style.transform = "translate(" + p.x.toFixed(1) + "px," + p.y.toFixed(1) + "px)";
       if(picked) p.pin.dataset.dim = String(p.dino.id !== picked.id); else delete p.pin.dataset.dim;
       p.pin.dataset.picked = String(!!picked && p.dino.id === picked.id);
+      /* the nearer the blast, the sooner gone */
+      if(mv.extinct){
+        var d = Math.hypot(p.ax - craterX, p.ay - craterY);
+        p.pin.style.transitionDelay = Math.min(2.2, d / 500).toFixed(2) + "s";
+        p.pin.dataset.extinct = "true";
+      } else { p.pin.dataset.extinct = "false"; p.pin.style.transitionDelay = ""; }
     });
+    /* where it hit, from the moment it lands and for ever after */
+    if((mv.stage === "asteroid" && mv.extinct) || (mv.stage === "today" && mv.told && mv.anim === null)){
+      mapUnder.appendChild(svgEl("circle", {"class": "crater", cx: craterX, cy: craterY, r: Math.max(10, 7 * mv.s)}));
+      var cl = svgEl("text", {"class": "site-name", x: craterX + Math.max(10, 7 * mv.s) + 6, y: craterY + 4});
+      cl.textContent = "Where the asteroid hit";
+      mapUnder.appendChild(cl);
+    }
     if(picked && shown(picked)){
+      var placed = [];
       SITES[picked.id].forEach(function(site){
         var c = toScreen(project(site, mv.then ? age : ageOf(picked)));
-        var label = svgEl("text", {"class": "site-name", x: c.x + 12, y: c.y + 26});
+        /* two places close together get their names one under the other */
+        var y = c.y + 26;
+        placed.forEach(function(q){ if(Math.abs(q.x - c.x) < 170 && Math.abs(q.y - y) < 16) y = q.y + 16; });
+        placed.push({x: c.x, y: y});
+        var label = svgEl("text", {"class": "site-name", x: c.x + 12, y: y});
         label.textContent = site[0];
         mapUnder.appendChild(label);
       });
@@ -2228,14 +2850,11 @@
   }
 
   function paintChips(){
-    Array.prototype.forEach.call(mapChips.querySelectorAll(".map-chip"), function(chip){
-      chip.setAttribute("aria-pressed", String(chip.dataset.period === mv.period));
-      /* the world back then is one age at a time */
-      chip.disabled = mv.then && chip.dataset.period === "";
+    Array.prototype.forEach.call(mapStages.querySelectorAll(".map-chip"), function(chip){
+      chip.setAttribute("aria-pressed", String(chip.dataset.stage === mv.stage));
     });
-    Array.prototype.forEach.call(mapWhen.querySelectorAll("button"), function(el){
-      el.setAttribute("aria-checked", String((el.dataset.then === "1") === mv.then));
-    });
+    mapRun.dataset.on = String(!!mv.run);
+    mapRun.innerHTML = mv.run ? "&#9632; Stop the story" : "&#9654; Whole story";
   }
 
   function paintMapCard(){
@@ -2319,87 +2938,120 @@
     var dino = id ? byId(id) : null;
     mv.picked = dino ? dino.id : null;
     if(dino && mv.then && mv.period !== dino.period){
-      mv.period = dino.period;
-      paintChips(); paintLegend(); showWorld();
+      stopRun();
+      paintMapCard();
+      worldTo(stageOf(dino), speakingSide === 4 && speakingId ? stageById(stageOf(dino)).say : null);
+      return;
     }
     paintMapCard();
     if(dino && fly){
       var age = mv.then ? shownAge() : ageOf(dino);
       flyTo(framing(SITES[dino.id].map(function(site){ return project(site, age); })));
-    } else drawMap();
+    } else if(!dino) settle();
+    else drawMap();
   }
 
-  /* pins slide from today's places to the old ones, rather than jump */
-  function glide(then){
-    if(reduceMotion.matches){ drawMap(); if(then) then(); return; }
-    mapPinsEl.dataset.glide = "true";
-    mapUnder.style.opacity = "0";
-    drawMap();
-    clearTimeout(glide.t);
-    glide.t = setTimeout(function(){
-      mapPinsEl.dataset.glide = "false";
-      mapUnder.style.opacity = "";
+  /* With the card put away the world may no longer hang off the edge where it
+     sat, so it glides back into place rather than snapping on the next drag. */
+  function settle(){
+    stopFly();
+    var tx0 = mv.tx, ty0 = mv.ty;
+    clampView();
+    var tx1 = mv.tx, ty1 = mv.ty;
+    if(reduceMotion.matches || (Math.abs(tx1 - tx0) < 1 && Math.abs(ty1 - ty0) < 1)){ drawMap(); return; }
+    mv.tx = tx0; mv.ty = ty0;
+    var t0 = performance.now(), dur = 380;
+    function step(now){
+      var t = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - t, 3);
+      mv.tx = tx0 + (tx1 - tx0) * e; mv.ty = ty0 + (ty1 - ty0) * e;
       drawMap();
-      if(then) then();
-    }, 900);
+      mv.fly = t < 1 ? requestAnimationFrame(step) : null;
+    }
+    mv.fly = requestAnimationFrame(step);
   }
 
-  /* what happened to the world, said out loud as the land moves */
-  function tellStory(){
-    var key = mv.then ? String(shownAge()) : "now";
-    stopSpeech();
+  /* the stories said out loud, one after the other; done is called only if
+     the last one is heard to the end */
+  function tellStory(keys, done){
+    keys = keys.slice();
+    storyGoesOn = true; stopSpeech(); storyGoesOn = false;
     stopName();
     stopTurn();
-    if(!soundOn) return;
-    var clip = new Audio("audio/map/" + key + ".mp3");
-    speech = clip;
-    speakingSide = 4; speakingId = "story";
-    clip.addEventListener("ended", stopSpeech);
-    function fallback(){
-      if(speech !== clip) return;
-      speech = null;
-      try{
-        if(!window.speechSynthesis) return;
-        var u = new SpeechSynthesisUtterance(STORY[key]);
-        u.lang = "en-GB"; u.rate = 0.95;
-        u.onend = stopSpeech;
-        speechSynthesis.speak(u);
-        speakingSide = 4; playing();
-      }catch(e){ stopSpeech(); }
+    if(!soundOn){
+      /* nothing to hear, so a whole story reads the caption at its own pace */
+      clearTimeout(tellStory.quiet);
+      if(done) tellStory.quiet = setTimeout(done, keys[0] === "asteroid" ? 9000 : 7000);
+      return;
     }
-    clip.addEventListener("error", fallback);
-    clip.play().then(function(){ if(speech === clip){ speakingSide = 4; playing(); } }).catch(fallback);
+    function next(){
+      var key = keys.shift();
+      var clip = new Audio("audio/map/" + key + ".mp3");
+      speech = clip;
+      speakingSide = 4; speakingId = "story";
+      function finished(){
+        if(keys.length){ speech = null; voiceNow = null; next(); }
+        else { storyGoesOn = true; stopSpeech(); storyGoesOn = false; if(done) done(); }
+      }
+      clip.addEventListener("ended", function(){ if(speech === clip) finished(); });
+      function fallback(){
+        if(speech !== clip) return;
+        speech = null;
+        try{
+          if(!window.speechSynthesis){ finished(); return; }
+          var u = new SpeechSynthesisUtterance(STORY[key]);
+          u.lang = "en-GB"; u.rate = 0.95;
+          u.onend = u.onerror = function(){ if(voiceNow === u) finished(); };
+          voiceNow = u;
+          speechSynthesis.speak(u);
+          speakingSide = 4; playing();
+        }catch(e){ stopSpeech(); }
+      }
+      clip.addEventListener("error", fallback);
+      clip.play().then(function(){ if(speech === clip){ speakingSide = 4; playing(); } }).catch(fallback);
+    }
+    next();
   }
   storyBtn.addEventListener("click", function(event){
     event.stopPropagation();
-    if(storyBtn.dataset.playing === "true"){ stopSpeech(); return; }
-    tellStory();
+    if(storyBtn.dataset.playing === "true"){ stopSpeech(); stopRun(); return; }
+    tellStory(stageById(mv.stage).say);
   });
 
-  function setThen(then){
-    if(mv.then === then) return;
-    mv.then = then;
-    mv.told = true;
-    if(then && !mv.period) mv.period = mv.picked ? byId(mv.picked).period : "Cretaceous";
-    paintChips(); paintLegend(); showWorld();
-    tellStory();
-    /* the land has moved, so go after the animal once its pin has */
-    glide(function(){ if(mv.picked) pickOnMap(mv.picked, true); });
-  }
-
-  mapWhen.addEventListener("click", function(event){
-    var btn = event.target.closest("button[role=radio]");
-    if(btn) setThen(btn.dataset.then === "1");
-  });
-  mapChips.addEventListener("click", function(event){
+  /* A stage button goes to its stage. Pressed again, the asteroid falls again. */
+  mapStages.addEventListener("click", function(event){
     var chip = event.target.closest(".map-chip");
-    if(!chip || chip.disabled) return;
-    var was = shownAge();
-    mv.period = chip.dataset.period;
-    if(mv.picked && !shown(byId(mv.picked))){ mv.picked = null; paintMapCard(); }
-    paintChips(); paintLegend(); showWorld();
-    if(mv.then && shownAge() !== was) tellStory();   /* a different world back then */
-    glide();
+    if(!chip) return;
+    stopRun();
+    var id = chip.dataset.stage;
+    if(id !== mv.stage || mv.anim !== null || id === "asteroid") worldTo(id, stageById(id).say);
+    else tellStory(stageById(id).say);
+  });
+
+  /* The whole story, stage after stage: each waits for its telling to end,
+     then a breath, then the land moves on to the next. */
+  function stopRun(){
+    if(!mv.run) return;
+    clearTimeout(mv.run.wait);
+    clearTimeout(tellStory.quiet);
+    mv.run = null;
+    paintChips();
+  }
+  function runStage(i){
+    var run = mv.run;
+    if(!run || mapEl.hidden) return;
+    run.i = i;
+    worldTo(STAGES[i].id, STAGES[i].say, function(){
+      if(mv.run !== run) return;
+      if(i + 1 >= STAGES.length){ stopRun(); return; }
+      run.wait = setTimeout(function(){ runStage(i + 1); }, 1200);
+    });
+    paintChips();
+  }
+  mapRun.addEventListener("click", function(){
+    if(mv.run){ stopRun(); stopSpeech(); return; }
+    mv.run = {i: 0, wait: null};
+    if(mv.picked){ mv.picked = null; paintMapCard(); }
+    runStage(0);
   });
   mapPlay.addEventListener("click", function(){
     if(mapPlay.dataset.playing === "true"){ stopSpeech(); return; }
@@ -2477,8 +3129,10 @@
     if(!mapPinsEl.childNodes.length) makePins();
     mapEl.hidden = false;
     measure();
+    loadDrift();
     var dino = id ? byId(id) : null;
-    if(dino && mv.period && mv.period !== dino.period) mv.period = mv.then ? dino.period : "";
+    /* back then, a card from the other age opens on its own world */
+    if(dino && mv.then && mv.period !== dino.period) setStage(stageOf(dino));
     paintChips(); paintLegend(); showWorld();
     setView(wholeWorld());
     drawMap();
@@ -2489,9 +3143,13 @@
   function closeMap(){
     if(mapEl.hidden) return;
     stopFly();
-    clearTimeout(glide.t);
-    mapPinsEl.dataset.glide = "false";
-    mapUnder.style.opacity = "";
+    /* a world still on the move lands where it was going */
+    if(mv.drift){ stopDrift(); showWorld(); }
+    stopRun();
+    /* the asteroid has been and gone; the dust stays if it fell */
+    var fell = mv.extinct;
+    clearImpact();
+    if(fell && mv.stage === "asteroid"){ mv.extinct = true; mapDust.dataset.on = "true"; }
     if(mv.frame){ cancelAnimationFrame(mv.frame); mv.frame = 0; }
     if(speakingSide === 3 || speakingSide === 4) stopSpeech();
     mapEl.hidden = true;
@@ -2856,7 +3514,11 @@
       var NOTE = {
         "Pterosaur": "Pterosaur \u2014 a flying reptile, not a dinosaur",
         "Marine reptile": "Marine reptile \u2014 a giant sea lizard, not a dinosaur",
-        "Plesiosaur": "Plesiosaur \u2014 a long-necked sea reptile, not a dinosaur"
+        "Plesiosaur": "Plesiosaur \u2014 a long-necked sea reptile, not a dinosaur",
+        "Pliosaur": "Pliosaur \u2014 a short-necked sea reptile, not a dinosaur",
+        "Ichthyosaur": "Ichthyosaur \u2014 a dolphin-shaped sea reptile, not a dinosaur",
+        "Sea turtle": "Sea turtle \u2014 a giant turtle, not a dinosaur",
+        "Early bird": "Early bird \u2014 one of the first birds, and a dinosaur too"
       };
       var badge = null;
       if(dino.group && NOTE[dino.group]){
@@ -2900,6 +3562,7 @@
                        : dino.food === "Fish"    ? "Fish \u2014 a fisher"
                        : dino.food === "Insects"  ? "Insects \u2014 a bug catcher"
                        : dino.food === "Anything" ? "Anything \u2014 a nibbler"
+                       : dino.food === "Jellyfish" ? "Jellyfish \u2014 a slurper"
                        : "Plants \u2014 a grazer";
       dietRow.appendChild(dl2); dietRow.appendChild(pill);
       stats.appendChild(dietRow);
@@ -2951,6 +3614,71 @@
       text.appendChild(rows);
       text.appendChild(fact);
 
+      /* More, folded away so the card stays short in the middle of a game */
+      var more = MORE[dino.id];
+      if(more){
+        var moreBox = document.createElement("div");
+        moreBox.className = "more";
+        var open = moreOpen[i] === dino.id;
+        var toggle = document.createElement("button");
+        toggle.type = "button";
+        toggle.className = "more-toggle";
+        toggle.setAttribute("aria-expanded", String(open));
+        toggle.textContent = "More about " + dino.name;
+        var body = document.createElement("div");
+        body.className = "more-body";
+        body.hidden = !open;
+        body.id = "more-" + i;
+        toggle.setAttribute("aria-controls", body.id);
+
+        var moreLine = function(key, words){
+          var line = document.createElement("div");
+          line.className = "more-line";
+          var b = document.createElement("button");
+          b.type = "button";
+          b.className = "play-x";
+          b.innerHTML = "&#9654;";
+          b.setAttribute("aria-label", "Read this aloud");
+          /* a repaint must not lose the line still being read */
+          if(extraKey === dino.id + ":" + key && (speech || voiceNow)){
+            extraBtn = b;
+            b.dataset.playing = "true"; b.innerHTML = "&#9632;"; b.setAttribute("aria-label", "Stop reading");
+          }
+          (function(id, side){
+            b.addEventListener("click", function(){
+              if(b.dataset.playing === "true"){ stopSpeech(); return; }
+              sayExtra(side, id, key, words, b);
+            });
+          })(dino.id, i);
+          var p = document.createElement("p");
+          p.textContent = words;
+          line.appendChild(b); line.appendChild(p);
+          return line;
+        };
+        var h1 = document.createElement("h3");
+        h1.textContent = "How it was found";
+        body.appendChild(h1);
+        body.appendChild(moreLine("found", more.found));
+        var h2 = document.createElement("h3");
+        h2.textContent = "Did you know?";
+        body.appendChild(h2);
+        more.facts.forEach(function(words, n){ body.appendChild(moreLine(String(n + 1), words)); });
+
+        (function(id, side, toggle, body){
+          toggle.addEventListener("click", function(){
+            var nowOpen = moreOpen[side] !== id;
+            moreOpen[side] = nowOpen ? id : null;
+            toggle.setAttribute("aria-expanded", String(nowOpen));
+            body.hidden = !nowOpen;
+            if(!nowOpen && extraBtn && body.contains(extraBtn)) stopSpeech();
+            if(nowOpen) body.scrollIntoView({block: "nearest", behavior: reduceMotion.matches ? "auto" : "smooth"});
+          });
+        })(dino.id, i, toggle, body);
+        moreBox.appendChild(toggle);
+        moreBox.appendChild(body);
+        text.appendChild(moreBox);
+      }
+
       var grow = document.createElement("button");
       grow.type = "button";
       grow.className = "portrait-btn";
@@ -2967,6 +3695,7 @@
   }
 
   var popped = {};   /* a badge pops in once, the first time it is drawn */
+  var moreOpen = [null, null];   /* whose More is unfolded in each box */
 
   /* who won a pair, read back off the deck the pair came from */
   function finderOf(id){

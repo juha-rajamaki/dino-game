@@ -10,17 +10,24 @@ at the time, not a scientific reconstruction.
 
     python3 tools/paleomap.py
 
-writes img/map/then-150.webp and img/map/then-70.webp, and prints the plate
+writes img/map/then-220.webp, then-150, then-70 and then-66, and prints the plate
 rotations that index.html uses to carry the fossil sites along with the land.
+
+    python3 tools/paleomap.py --drift
+
+also draws img/map/drift/000.webp to 220.webp, the world every five million
+years, which the map flips through to show the land moving. In between the two
+ages each plate turns smoothly along the same axis, exactly as index.html moves
+the pins (turnAt there, rotation_at here).
 """
-import json, math, os
+import json, math, os, sys
 import numpy as np
 from PIL import Image, ImageDraw, ImageFilter
 
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 SRC = os.path.join(ROOT, "img/map/earth.webp")
 W, H = 4096, 2048
-AGES = (150, 70)
+AGES = (220, 150, 70, 66)     # the Triassic, the Jurassic, the late Cretaceous, the asteroid
 
 # Coasts that once touched, as (lat, lon) on the moving plate -> on its anchor.
 FITS = {
@@ -35,11 +42,12 @@ FITS = {
 }
 # how closed each ocean still was: 1 = the coasts still touching, 0 = as today
 CLOSED = {
+    220: {"na": 1.0, "af": 1.0, "sa": 1.0, "an": 1.0, "in": 1.0, "au": 1.0},
     150: {"na": 1.0, "af": 0.85, "sa": 1.0, "an": 1.0, "in": 1.0, "au": 1.0},
     70:  {"na": 0.95, "af": 0.45, "sa": 0.5, "an": 0.4, "in": 0.5, "au": 0.95},
 }
 # Eurasia is the one plate placed outright: (lat, lon) its middle moves to
-EURASIA = {150: (40, 60), 70: (45, 60)}
+EURASIA = {220: (32, 52), 150: (40, 60), 70: (45, 60)}
 EURASIA_NOW = (50, 60)
 ORDER = ["eu", "na", "af", "sa", "an", "in", "au"]
 
@@ -102,6 +110,22 @@ def rotations(age):
     return rot
 
 
+def rotation_at(name, t):
+    """a plate's turn t million years ago: from today to 70 along one axis,
+    then on from 70 to 150 along another, and from 150 to 220 along a third"""
+    r70, r150, r220 = rotations(70)[name], rotations(150)[name], rotations(220)[name]
+    if t <= 70:
+        return part(r70, t / 70)
+    if t <= 150:
+        return r70 @ part(r70.T @ r150, (t - 70) / 80)
+    return r150 @ part(r150.T @ r220, (t - 150) / 70)
+
+
+def sea_at(t):
+    """how deep the inland seas of 70 million years ago are, t million years ago"""
+    return max(0.0, 1 - abs(t - 70) / 40)
+
+
 def plate_of(lat, lon):
     """which plate a piece of today's land belongs to"""
     lab = np.full(lat.shape, "eu", dtype=object)
@@ -128,14 +152,14 @@ OCEAN = np.array([14, 24, 58], float)
 SHALLOW = np.array([40, 104, 136], float)
 
 
-def build(age, src, labels, land):
+def build(t, src, labels, land, W=W, H=H):
     sh, sw = src.shape[:2]
     # the drowned lowlands of the time, painted on today's map before anything moves
     sea = Image.new("L", (sw, sh), 0)
     draw = ImageDraw.Draw(sea)
-    for poly in SEAS[age]:
+    for poly in SEAS[70]:
         draw.polygon([((lo + 180) / 360 * sw, (90 - la) / 180 * sh) for lo, la in poly], fill=255)
-    sea = np.array(sea.filter(ImageFilter.GaussianBlur(sw / 300))) / 255.0
+    sea = np.array(sea.filter(ImageFilter.GaussianBlur(sw / 300))) / 255.0 * sea_at(t)
 
     lat = 90 - (np.arange(H) + 0.5) * 180 / H
     lon = -180 + (np.arange(W) + 0.5) * 360 / W
@@ -145,7 +169,7 @@ def build(age, src, labels, land):
     out[:] = OCEAN
     filled = np.zeros((H, W), bool)
     drown = np.zeros((H, W), float)
-    rot = rotations(age)
+    rot = {name: rotation_at(name, t) for name in ORDER}
     for name in ORDER[::-1]:     # the first in ORDER is drawn last and wins an overlap
         back = v @ rot[name]     # the inverse turn, applied to every pixel
         blat = np.degrees(np.arcsin(back[..., 2].clip(-1, 1)))
@@ -162,7 +186,8 @@ def build(age, src, labels, land):
     out = out * (1 - drown[..., None] * 0.85) + water * (drown[..., None] * 0.85)
     # a band of shallow sea round every coast
     m = Image.fromarray((filled * 255).astype(np.uint8))
-    shelf = np.array(m.filter(ImageFilter.MaxFilter(13)).filter(ImageFilter.GaussianBlur(6))) / 255.0
+    k = max(3, round(13 * W / 4096) | 1)
+    shelf = np.array(m.filter(ImageFilter.MaxFilter(k)).filter(ImageFilter.GaussianBlur(6 * W / 4096))) / 255.0
     coast = OCEAN + (SHALLOW - OCEAN) * shelf[..., None] * 0.85
     out[~filled] = coast[~filled]
     return out.clip(0, 255).astype(np.uint8)
@@ -177,11 +202,25 @@ def main():
     labels = plate_of(LAT, LON)
     r, g, b = (src[..., i].astype(int) for i in range(3))
     land = ~((b > r + 18) & (b > g + 6))
-    for age in AGES:
-        Image.fromarray(build(age, src, labels, land)).save(
-            os.path.join(ROOT, "img/map/then-%d.webp" % age), quality=80, method=6)
+    if "--drift" in sys.argv:
+        # the in-between worlds only show while they move, so small is enough
+        small = np.array(Image.fromarray(src).resize((2048, 1024), Image.LANCZOS))
+        sl = 90 - (np.arange(1024) + 0.5) * 180 / 1024
+        so = -180 + (np.arange(2048) + 0.5) * 360 / 2048
+        SO, SL = np.meshgrid(so, sl)
+        slabels = plate_of(SL, SO)
+        r, g, b = (small[..., i].astype(int) for i in range(3))
+        sland = ~((b > r + 18) & (b > g + 6))
+        os.makedirs(os.path.join(ROOT, "img/map/drift"), exist_ok=True)
+        for t in range(0, 221, 5):
+            Image.fromarray(build(t, small, slabels, sland, 1024, 512)).save(
+                os.path.join(ROOT, "img/map/drift/%03d.webp" % t), quality=72, method=6)
+    else:
+        for age in AGES:
+            Image.fromarray(build(age, src, labels, land)).save(
+                os.path.join(ROOT, "img/map/then-%d.webp" % age), quality=80, method=6)
     table = {name: {str(age): [round(float(x), 5) for x in rotations(age)[name].flatten()]
-                    for age in AGES} for name in ORDER}
+                    for age in (220, 150, 70)} for name in ORDER}
     print(json.dumps(table, separators=(",", ":")))
 
 
