@@ -467,6 +467,16 @@
   }
   .blast.two{animation-delay:.35s; border-color:rgba(255,120,40,.8)}
   @keyframes blast{from{transform:scale(1); opacity:1} to{transform:scale(60); opacity:0}}
+  /* today they are all fossils: grey stone, a bone-coloured ring, a little bone */
+  .map-pin[data-fossil="true"]{--ring:#CFC3A6; filter:grayscale(1) sepia(.25) brightness(.92) contrast(1.08); transition:filter 1s, border-color 1s}
+  .map-pin[data-fossil="true"][data-picked="true"]{--ring:var(--amber); filter:grayscale(.85) sepia(.3) brightness(1)}
+  .map-pin .bone{
+    position:absolute; left:-1px; bottom:-1px; width:44%; height:44%; border-radius:50%;
+    display:grid; place-items:center; background:#2A2620; border:1px solid #CFC3A6; color:#E8DFC8;
+    opacity:0; transform:scale(.4); transition:opacity .5s .4s, transform .5s .4s;
+  }
+  .map-pin .bone svg{width:72%; height:72%}
+  .map-pin[data-fossil="true"] .bone{opacity:1; transform:none}
   .map-pin[data-extinct="true"]{filter:grayscale(1) brightness(.55); opacity:.5; transition:filter 1.2s, opacity 1.2s}
   .map-lines .crater{fill:rgba(255,122,61,.18); stroke:#FF7A3D; stroke-width:2; stroke-dasharray:5 4}
   .map-head .close-x{position:static; flex:none; width:38px; height:38px; font-size:24px}
@@ -1369,7 +1379,11 @@
     {id:"megalosaurus", speed:30, tonnes:1, name:"Megalosaurus", means:"\u201CGreat lizard\u201D",
      period:"Jurassic", ago:"166 million years ago", size:"6 m long \u2014 longer than a car",
      weight:"1 tonne \u2014 like a small car", food:"Meat", place:"England",
-     fact:"It was the very first dinosaur ever given a scientific name, in 1824, before anyone had even invented the word dinosaur. The first scientists thought it walked on four legs like a giant lizard. The writer Charles Dickens even put one in a story, waddling up a muddy London street."}
+     fact:"It was the very first dinosaur ever given a scientific name, in 1824, before anyone had even invented the word dinosaur. The first scientists thought it walked on four legs like a giant lizard. The writer Charles Dickens even put one in a story, waddling up a muddy London street."},
+    {id:"plateosaurus", speed:20, tonnes:1, name:"Plateosaurus", means:"\u201CBroad lizard\u201D",
+     period:"Triassic", ago:"214\u2013204 million years ago", size:"8 m long \u2014 as long as a small bus",
+     weight:"1 tonne \u2014 like a small car", food:"Plants", place:"Germany and Switzerland",
+     fact:"It was one of the first big dinosaurs, and an early cousin of the giant long-necks like Brontosaurus. It walked on its two back legs, not on all fours as scientists once thought. More than a hundred skeletons have been found, and scientists think many of them got stuck in deep mud and sank."}
   ];
 
   /* More about each animal, behind the card's "More about" button: how it was
@@ -1540,6 +1554,10 @@
       facts: ["Small bones inside some skeletons made scientists think it ate its own babies. A later study showed they belonged to little crocodile-like reptiles instead.",
               "It is the state fossil of New Mexico, chosen in 1981.",
               "It had a long, narrow head full of small, saw-edged teeth, and big eyes. It probably hunted small animals like lizards."]},
+    plateosaurus: {found: "Johann Engelhardt found its first bones near Nuremberg in Germany in 1834, and Hermann von Meyer named it in 1837.",
+      facts: ["It could not turn its hands palms-down like you can. Its palms always faced inwards, as if it were about to clap.",
+              "Growth rings in its bones show that grown-ups could be very different sizes. Some stopped growing at about five metres, others reached ten.",
+              "So many have been dug out of a clay pit at Frick in Switzerland that the little town opened its own dinosaur museum."]},
     megalosaurus: {found: "Bones from a quarry at Stonesfield near Oxford were studied by William Buckland, who named Megalosaurus in 1824.",
       facts: ["A piece of bone drawn in a book in 1677 probably came from a Megalosaurus. The scientist who drew it thought it came from a giant human.",
               "In 1842 Richard Owen invented the word dinosaur, meaning terrible lizard. Megalosaurus was one of the first three animals he used it for.",
@@ -2250,7 +2268,8 @@
     archaeopteryx:     [["Eichst\u00E4tt, Germany", 48.89, 11.18, "eu"], ["Solnhofen, Germany", 48.9, 10.98, "eu"]],
     carcharodontosaurus: [["Kem Kem, Morocco", 31.15, -4.35, "af"], ["Bahariya Oasis, Egypt", 28.3, 28.95, "af"]],
     coelophysis:       [["Ghost Ranch, New Mexico", 36.33, -106.47, "na"]],
-    megalosaurus:      [["Stonesfield, Oxfordshire", 51.85, -1.43, "eu"]]
+    megalosaurus:      [["Stonesfield, Oxfordshire", 51.85, -1.43, "eu"]],
+    plateosaurus:      [["Trossingen, Germany", 48.07, 8.63, "eu"], ["Frick, Switzerland", 47.51, 8.02, "eu"]]
   };
   /* what those places were like while the animal lived there */
   var THEN = {
@@ -2300,7 +2319,8 @@
     archaeopteryx: "warm, shallow lagoons dotted with dry, scrubby islands",
     carcharodontosaurus: "a land of wide rivers and swamps, full of giant fish and crocodiles",
     coelophysis: "a hot land of rivers and long dry seasons, in the middle of Pangaea",
-    megalosaurus: "warm coasts and islands in a shallow tropical sea"
+    megalosaurus: "warm coasts and islands in a shallow tropical sea",
+    plateosaurus: "a warm, dry land of rivers and muddy floodplains, near the edge of Pangaea"
   };
   /* How each plate has turned since then (row by row), from tools/paleomap.py,
      which draws img/map/then-*.webp with the very same numbers. */
@@ -2703,7 +2723,7 @@
       pin.className = "map-pin";
       pin.dataset.id = dino.id;
       pin.dataset.period = dino.period;
-      pin.setAttribute("aria-label", dino.name + (dino.group ? " (" + dino.group.toLowerCase() + ")" : "") + ", " + dino.place);
+      pin.setAttribute("aria-label", dino.name + (dino.group ? " (" + dino.group.toLowerCase() + ")" : "") + ", fossils found in " + dino.place);
       pin.title = dino.name;
       var img = document.createElement("img");
       img.alt = ""; img.loading = "lazy"; img.src = "img/" + dino.id + ".webp";
@@ -2715,6 +2735,11 @@
         kind.textContent = dino.group === "Pterosaur" || dino.group === "Early bird" ? "⤴" : "∿";   /* a flier, a swimmer */
         pin.appendChild(kind);
       }
+      var bone = document.createElement("span");
+      bone.className = "bone";
+      bone.setAttribute("aria-hidden", "true");
+      bone.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M7.2 3.5a2.6 2.6 0 0 0-2.3 3.8 2.6 2.6 0 0 0-1.4 4.5 2.6 2.6 0 0 0 3.9-.2l5.9 5.9a2.6 2.6 0 0 0-.2 3.9 2.6 2.6 0 0 0 4.5-1.4 2.6 2.6 0 0 0 3.8-2.3 2.6 2.6 0 0 0-4.4-1.9l-6-6a2.6 2.6 0 0 0-1.9-4.4z"/></svg>';
+      pin.appendChild(bone);
       pin.addEventListener("click", function(){ pickOnMap(dino.id === mv.picked ? null : dino.id, true); });
       pin.addEventListener("focus", function(){
         var a = freeArea(), box = pin.getBoundingClientRect(), stage = mapStage.getBoundingClientRect();
@@ -2796,6 +2821,8 @@
         p.pin.style.transitionDelay = Math.min(2.2, d / 500).toFixed(2) + "s";
         p.pin.dataset.extinct = "true";
       } else { p.pin.dataset.extinct = "false"; p.pin.style.transitionDelay = ""; }
+      /* once the land has come home to today, they are only bones */
+      p.pin.dataset.fossil = String(mv.stage === "today" && mv.anim === null);
     });
     /* where it hit, from the moment it lands and for ever after */
     if((mv.stage === "asteroid" && mv.extinct) || (mv.stage === "today" && mv.told && mv.anim === null)){

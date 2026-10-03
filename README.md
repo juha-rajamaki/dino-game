@@ -9,8 +9,9 @@ works for a child who cannot read yet.
 
 ## What is in it
 
-- **47 animals** — 36 dinosaurs, 5 pterosaurs and 6 sea reptiles, from every
-  continent and three ages: Coelophysis, one of the very first dinosaurs;
+- **48 animals** — 37 dinosaurs, 5 pterosaurs and 6 sea reptiles, from every
+  continent and three ages: Coelophysis and Plateosaurus, among the very first
+  dinosaurs;
   Megalosaurus, the first ever named; Brontosaurus, Giganotosaurus and
   Carcharodontosaurus; Archaeopteryx, one of the first birds; Quetzalcoatlus, as
   wide as a small plane; Albertosaurus and Edmontosaurus from Canada, Australovenator, Muttaburrasaurus and Leaellynasaura from
@@ -127,8 +128,8 @@ It is a single static page with no build step and no dependencies:
 
 ```
 index.html      the whole game - markup, styles and logic
-img/            47 card plates plus the background and the two foreground animals
-img/full/       the same 47 animals at full size, fetched only when one is opened
+img/            48 card plates plus the background and the two foreground animals
+img/full/       the same 48 animals at full size, fetched only when one is opened
 img/map/        the Earth today, small and large, the worlds of 220, 150, 70 and 66
                 million years ago, and drift/, the land every five million years between
 tools/          paleomap.py, which draws those worlds (needs numpy and Pillow)
