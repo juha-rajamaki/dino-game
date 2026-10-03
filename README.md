@@ -9,19 +9,20 @@ works for a child who cannot read yet.
 
 ## What is in it
 
-- **30 animals** — 24 dinosaurs, 4 pterosaurs, 1 marine reptile and 1
-  plesiosaur. The six that are not dinosaurs say so on their card, because
+- **34 animals** — 28 dinosaurs, 4 pterosaurs, 1 marine reptile and 1
+  plesiosaur, from every continent: Australovenator, Muttaburrasaurus and
+  Leaellynasaura from Australia, and Cryolophosaurus from Antarctica. The six that are not dinosaurs say so on their card, because
   Pteranodon, Mosasaurus and Elasmosaurus are mistaken for dinosaurs more often
   than almost anything else in this set.
 - **A start screen** where the size and the number of players are chosen. It is
   also what wakes the forest: a browser will not play audio until the player has
   done something, so the one tap that starts the game starts the sound with it.
   **New game** brings the screen back.
-- **Four sizes** — Easy (6 pairs), Medium (10), Hard (24) and Extra hard (all
-  30). The animals in a game are drawn at random each time, so the same size
+- **Four sizes** — Easy (6 pairs), Medium (10), Hard (24) and Extra hard (30).
+  The animals in a game are drawn at random each time, so the same size
   plays differently. One player on Hard gets a 6:00 countdown, and a
   *time's up* if it runs out. Extra hard is always against the clock — even for one
-  player, who gets 6:00 to find all thirty and a *time's up* if they do not.
+  player, who gets 6:00 to find all thirty pairs and a *time's up* if they do not.
   With more players each clock is shorter, since everyone sees everyone's
   cards, but the table gets a minute more for each player: 7:00 shared
   as 3:30 each for two, 8:00 as 2:40 each for three and 9:00 as 2:15
@@ -74,6 +75,22 @@ works for a child who cannot read yet.
   silences, the one on the right. A phone has one side of the table, so there
   everything stacks into the single sheet.
 - **All cards** — browse the whole collection without playing.
+- **Where they lived.** *All cards* has a **Map** button, and every card's
+  *Found in* row has one too. It opens a big terrain map of the world, NASA's
+  own picture of the Earth, with every animal standing on the spot where its
+  bones were dug up. Drag it, pinch it or scroll it to look closer. Tap an
+  animal and the map flies there: the places it was found glow, the others
+  step back, and a card says what each place was like back then. The play
+  button reads the card aloud, as everywhere else. **Back then** turns the clock
+  back to 150 or 70 million years ago and the continents drift to where they
+  were, carrying the animals with them: the Jurassic ones stand on a world that
+  is still almost one piece, and by the end of the Cretaceous a shallow sea cuts
+  North America in two, right past Tyrannosaurus's front door. Each turn of the
+  switch, and each change of age while back then, is told out loud: how the land
+  was all one piece, how it broke up, and how it is still drifting today, about
+  as fast as your fingernails grow. The caption keeps a play button to hear it
+  again. A row of
+  continents along the foot, as on a classroom poster, takes you to each one.
 - **The animals stand back.** The Tyrannosaurus and the velociraptors have the
   board to themselves while the start screen is up. As the game opens — once the
   first player has been named — the cards come up in front of them in a ripple
@@ -97,9 +114,12 @@ It is a single static page with no build step and no dependencies:
 
 ```
 index.html      the whole game - markup, styles and logic
-img/            30 card plates plus the background and the two foreground animals
-img/full/       the same 30 animals at full size, fetched only when one is opened
-audio/          24 narration clips, one per animal, plus the jungle loop
+img/            34 card plates plus the background and the two foreground animals
+img/full/       the same 34 animals at full size, fetched only when one is opened
+img/map/        the Earth today, small and large, and the two worlds of back then
+tools/          paleomap.py, which draws the back-then worlds (needs numpy and Pillow)
+audio/          a narration clip per animal, plus the jungle loop
+audio/map/      the three stories of the moving world, told on the map
 ```
 
 Open `index.html` in a browser, or serve the folder with anything:
@@ -114,6 +134,15 @@ Card art, the jungle background and the two foreground animals are the author's
 own images. Speeds and weights are scientists' best estimates — bones cannot be
 made to run — but they are the right order of magnitude, from Stegosaurus at
 7 km/h to Gallimimus at 60.
+
+The map of today is NASA's *Blue Marble: Land Surface, Shallow Water and Shaded
+Topography* (NASA Earth Observatory, public domain), cut down to 8192 × 4096.
+The back-then worlds are drawn from it by `tools/paleomap.py`: every piece of
+land is given to its plate and each plate is turned back as one piece, fitting
+coasts that once touched back together. It is simplified for children: the
+right shape of the world at the time, not a scientific reconstruction. The
+fossil sites are the best-known places each animal has been found, not all of
+them.
 
 The jungle ambience is *forest ambience* by nille, public domain, via Wikimedia
 Commons. It is cut into a 1:40 seamless loop by crossfading its tail into its

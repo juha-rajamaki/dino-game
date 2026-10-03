@@ -408,6 +408,198 @@
   }
   @media (prefers-reduced-motion: reduce){ .viewer,.viewer img{animation:none} }
 
+  /* ---------- where they lived: the world, with every animal on it ---------- */
+  .map{
+    position:fixed; inset:0; z-index:55; display:grid; grid-template-rows:auto minmax(0,1fr);
+    background:#050A10; animation:viewer-in .28s ease;
+    padding-top:env(safe-area-inset-top, 0px);
+  }
+  .map[hidden]{display:none}
+  .map-head{
+    display:flex; flex-wrap:wrap; align-items:center; gap:10px 14px; padding:10px 14px;
+    background:linear-gradient(180deg, rgba(8,14,10,.97), rgba(8,14,10,.9));
+    border-bottom:1px solid var(--edge-soft); position:relative; z-index:3;
+  }
+  .map-head h2{
+    margin:0; font-family:"Fredoka",sans-serif; font-size:22px; font-weight:600; color:var(--amber);
+    line-height:1.1; margin-right:auto;
+  }
+  .map-head h2 small{display:block; font-family:"Nunito",sans-serif; font-size:12px; font-weight:700; color:var(--bone-dim)}
+  .map-head .seg button{padding:7px 14px}
+  .map-chips{display:flex; gap:6px}
+  .map-chip{
+    appearance:none; cursor:pointer; display:flex; align-items:center; gap:7px;
+    font:600 14px "Fredoka",system-ui,sans-serif; padding:7px 13px; border-radius:999px;
+    background:var(--panel); color:var(--bone-dim); border:1px solid var(--edge-soft);
+  }
+  .map-chip .dot{width:9px; height:9px; border-radius:50%; background:var(--bone-faint)}
+  .map-chip .dot.Jurassic{background:var(--jurassic)} .map-chip .dot.Cretaceous{background:var(--cretaceous)}
+  .map-chip:hover{color:var(--bone)}
+  .map-chip[aria-pressed="true"]{color:var(--bone); border-color:var(--amber); background:rgba(242,171,62,.16)}
+  .map-chip:disabled{opacity:.35; cursor:default}
+  .map-head .close-x{position:static; flex:none; width:38px; height:38px; font-size:24px}
+
+  .map-stage{position:relative; overflow:hidden; touch-action:none; cursor:grab; user-select:none; -webkit-user-select:none}
+  .map-stage[data-drag="true"]{cursor:grabbing}
+  .map-world{position:absolute; left:0; top:0; width:2048px; height:1024px; transform-origin:0 0}
+  .map-world img{
+    position:absolute; inset:0; width:100%; height:100%; display:block;
+    transition:opacity .7s ease; -webkit-user-drag:none; pointer-events:none;
+  }
+  .map-world img[data-on="false"]{opacity:0}
+  /* the forest at the edge of the world, so the map sits inside the game */
+  .map-stage::after{
+    content:""; position:absolute; inset:0; pointer-events:none; z-index:2;
+    box-shadow:inset 0 0 90px 10px rgba(3,8,5,.85);
+  }
+  .map-lines{position:absolute; inset:0; width:100%; height:100%; pointer-events:none; overflow:visible}
+  .map-lines line{stroke:rgba(240,233,217,.75); stroke-width:1.5}
+  .map-lines .spot{fill:var(--bone); stroke:#0A120C; stroke-width:1.5}
+  .map-lines .halo{fill:url(#map-halo)}
+  .map-lines .ring{fill:none; stroke:var(--amber); stroke-width:2.5; animation:map-ring 1.8s ease-out infinite}
+  @keyframes map-ring{from{opacity:1; transform:scale(.4)} to{opacity:0; transform:scale(1.6)}}
+  .map-lines .ring{transform-box:fill-box; transform-origin:center}
+  .map-lines .site-name{
+    fill:var(--bone); font:700 12.5px "Nunito",sans-serif; paint-order:stroke;
+    stroke:rgba(5,10,8,.9); stroke-width:4px; stroke-linejoin:round;
+  }
+
+  .map-pins{position:absolute; inset:0; pointer-events:none}
+  .map-pin{
+    --ring:var(--bone-faint);
+    position:absolute; left:0; top:0; width:var(--pin); height:var(--pin); margin:calc(var(--pin) / -2) 0 0 calc(var(--pin) / -2);
+    padding:0; border-radius:50%; overflow:hidden; cursor:pointer; pointer-events:auto;
+    background:var(--plate-bg); border:2.5px solid var(--ring);
+    box-shadow:0 6px 14px -6px #000, 0 0 0 1px rgba(0,0,0,.5);
+    transition:opacity .3s, border-color .2s, box-shadow .2s, filter .3s;
+  }
+  .map{--pin:48px}
+  .map-pin[data-period="Jurassic"]{--ring:var(--jurassic)}
+  .map-pin[data-period="Cretaceous"]{--ring:var(--cretaceous)}
+  .map-pin img{width:100%; height:100%; object-fit:cover; display:block; transform:scale(1.06); pointer-events:none}
+  .map-pin:hover{border-color:var(--amber); z-index:2}
+  .map-pin[data-picked="true"]{border-color:var(--amber); box-shadow:0 0 0 4px rgba(242,171,62,.45), 0 0 26px rgba(242,171,62,.6); z-index:3}
+  .map-pin[data-dim="true"]{opacity:.38; filter:saturate(.3)}
+  .map-pin[data-gone="true"]{opacity:0; pointer-events:none}
+  .map-pins[data-glide="true"] .map-pin{transition:transform .9s cubic-bezier(.45,0,.2,1), opacity .3s}
+  .map-pin .kind{
+    position:absolute; right:0; bottom:0; width:40%; height:40%; border-radius:50%;
+    display:grid; place-items:center; font-size:10px; background:#0A1A24; color:#8CDBEB; border:1px solid #8CDBEB;
+  }
+
+  .map-caption{
+    position:absolute; left:50%; top:12px; transform:translateX(-50%); z-index:3; max-width:min(560px, calc(100% - 32px));
+    padding:8px 16px; border-radius:12px; text-align:center; font-size:13.5px; font-weight:700; color:var(--bone);
+    background:rgba(8,14,10,.86); border:1px solid var(--edge-soft);
+    -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px);
+  }
+  .map-caption b{color:var(--amber); font-family:"Fredoka",sans-serif; font-weight:600; font-size:15px}
+  .map-caption:not([hidden]){display:flex; align-items:center; gap:12px; text-align:left}
+  .map-caption .play-x{width:34px; height:34px}
+  .map-caption[hidden]{display:none}
+
+  .map-zoom{position:absolute; right:14px; top:14px; z-index:3; display:grid; gap:6px}
+  .map-zoom button{
+    appearance:none; width:40px; height:40px; border-radius:11px; cursor:pointer; padding:0;
+    display:grid; place-items:center; font:600 22px "Fredoka",sans-serif; line-height:1;
+    background:rgba(10,18,12,.86); color:var(--bone); border:1px solid var(--edge);
+  }
+  .map-zoom button:hover{background:var(--amber); color:#241603; border-color:var(--amber)}
+  .map-zoom svg{width:18px; height:18px}
+
+  /* the continents along the foot, as on the poster - tap one to go there */
+  .map-legend{
+    position:absolute; left:0; right:0; bottom:0; z-index:3; display:flex; gap:6px; overflow-x:auto;
+    padding:10px 14px calc(10px + env(safe-area-inset-bottom, 0px));
+    background:linear-gradient(0deg, rgba(5,10,8,.92), rgba(5,10,8,0));
+    scrollbar-width:none;
+  }
+  .map-legend::-webkit-scrollbar{display:none}
+  .map-legend button{
+    appearance:none; flex:none; cursor:pointer; padding:6px 12px; border-radius:999px;
+    font:700 13px "Nunito",sans-serif; color:var(--bone); white-space:nowrap;
+    background:rgba(10,18,12,.82); border:1px solid var(--edge);
+  }
+  .map-legend button b{color:var(--amber); font-family:"Fredoka",sans-serif; font-weight:600; margin-left:4px}
+  .map-legend button:hover{border-color:var(--amber)}
+
+  /* the animal that was picked, beside the map */
+  .map-card{
+    position:absolute; z-index:4; top:14px; right:66px; width:min(340px, calc(100% - 28px));
+    max-height:calc(100% - 92px); overflow-y:auto;
+    background:rgba(10,18,12,.95); border:1px solid var(--edge); border-radius:18px;
+    box-shadow:0 20px 50px -20px #000; padding:14px 16px 16px;
+    animation:map-card-in .3s cubic-bezier(.2,1,.4,1);
+    -webkit-backdrop-filter:blur(14px); backdrop-filter:blur(14px);
+  }
+  .map-card[hidden]{display:none}
+  @keyframes map-card-in{from{opacity:0; transform:translateX(16px)} to{opacity:1; transform:none}}
+  .map-card .close-x{top:10px; right:10px}
+  .map-card .mc-shot{
+    appearance:none; padding:0; border:0; cursor:zoom-in; display:block; width:100%;
+    aspect-ratio:16/10; border-radius:12px; overflow:hidden; background:var(--plate-bg); margin:6px 0 12px;
+  }
+  .map-card .mc-shot img{width:100%; height:100%; object-fit:cover; display:block}
+  .map-card .name-row{padding-right:34px}
+  .map-card .mc-name{margin:0; font-family:"Fredoka",sans-serif; font-size:22px; font-weight:600; color:var(--amber); line-height:1.1}
+  .map-card .mc-when{display:flex; align-items:center; gap:7px; margin:6px 0 0; font-size:13px; font-weight:700; color:var(--bone-dim)}
+  .map-card .mc-when .dot{width:9px; height:9px; border-radius:50%}
+  .map-card .mc-when .dot.Jurassic{background:var(--jurassic)} .map-card .mc-when .dot.Cretaceous{background:var(--cretaceous)}
+  .map-card h3{margin:14px 0 6px; font-size:10.5px; font-weight:800; letter-spacing:.11em; text-transform:uppercase; color:var(--bone-faint)}
+  .map-card ul{margin:0; padding:0; list-style:none; display:grid; gap:4px}
+  .map-card li button{
+    appearance:none; width:100%; text-align:left; cursor:pointer; display:flex; align-items:center; gap:9px;
+    padding:6px 10px; border-radius:10px; font:700 14px "Nunito",sans-serif; color:var(--bone);
+    background:rgba(255,255,255,.05); border:1px solid transparent;
+  }
+  .map-card li button:hover{border-color:var(--amber)}
+  .map-card li button::before{content:""; width:9px; height:9px; border-radius:50%; background:var(--amber); flex:none; box-shadow:0 0 0 3px rgba(242,171,62,.3)}
+  .map-card .mc-then{margin:0; font-size:14px; line-height:1.55; color:var(--bone)}
+  .map-card .mc-then b{color:var(--amber)}
+  .map-card .mc-more{margin-top:14px; width:100%}
+
+  /* on a "Found in" row: a small way onto the map */
+  .map-link{
+    appearance:none; cursor:pointer; display:inline-flex; align-items:center; gap:5px; margin-left:8px;
+    padding:2px 10px 2px 7px; border-radius:999px; vertical-align:1px;
+    font:700 12px "Nunito",sans-serif; color:var(--amber); background:rgba(242,171,62,.12);
+    border:1px solid rgba(242,171,62,.45);
+  }
+  .map-link:hover{background:var(--amber); color:#241603}
+  .map-link svg{width:13px; height:13px}
+  .album-map{display:flex; align-items:center; gap:7px}
+  .album-map svg{width:17px; height:17px}
+
+  @media (max-width:700px), (orientation:portrait) and (max-width:980px){
+    .map{--pin:40px}
+    .map-head{padding:8px 10px; gap:8px}
+    .map-head h2{font-size:19px; flex:1 1 auto}
+    .map-head .close-x{order:-1; margin-left:auto}
+    .map-head h2{order:-2}
+    .map-head h2 small{display:none}
+    .map-head .seg button{padding:6px 10px; font-size:14px}
+    .map-chip{padding:6px 10px; font-size:13px}
+    .map-zoom{top:12px; right:10px}
+    .map-zoom button{width:36px; height:36px}
+    .map-caption{top:10px; left:10px; right:58px; transform:none; max-width:none; font-size:12.5px; padding:7px 12px}
+    .map-card{
+      top:auto; bottom:0; left:0; right:0; width:auto; max-height:52%;
+      border-radius:18px 18px 0 0; padding-bottom:calc(16px + env(safe-area-inset-bottom, 0px));
+      display:grid; grid-template-columns:110px minmax(0,1fr); column-gap:12px; align-content:start;
+      animation-name:map-sheet-in;
+    }
+    .map-card .mc-shot{grid-row:span 2; margin:0; aspect-ratio:1}
+    .map-card > :not(.mc-shot):not(.name-row):not(.mc-when):not(.close-x){grid-column:1 / -1}
+    .map-card .name-row{align-self:end}
+    .map-card .mc-when{align-self:start}
+    .map-card .mc-name{font-size:19px}
+  }
+  @keyframes map-sheet-in{from{transform:translateY(40px); opacity:0} to{transform:none; opacity:1}}
+  @media (prefers-reduced-motion: reduce){
+    .map,.map-card,.map-lines .ring{animation:none}
+    .map-world img,.map-pins[data-glide="true"] .map-pin{transition:none}
+  }
+
   .facts .name{
     font-family:"Fredoka",sans-serif; font-size:24px; font-weight:600; color:var(--amber);
     margin:0; line-height:1.1; overflow-wrap:anywhere;   /* Rhamphorhynchus needs it */
@@ -878,6 +1070,49 @@
     <button type="button" class="close-x" id="viewer-close" aria-label="Close the picture">&times;</button>
   </div>
 
+  <div class="map" id="map" role="dialog" aria-modal="true" aria-labelledby="map-title" hidden>
+    <div class="map-head">
+      <h2 id="map-title">Where they lived<small>Tap an animal to see where its bones were found</small></h2>
+      <div class="seg" role="radiogroup" aria-label="Which world" id="map-when">
+        <button type="button" role="radio" data-then="0" aria-checked="true">Today</button>
+        <button type="button" role="radio" data-then="1" aria-checked="false">Back then</button>
+      </div>
+      <div class="map-chips" id="map-chips">
+        <button type="button" class="map-chip" data-period="" aria-pressed="true">All</button>
+        <button type="button" class="map-chip" data-period="Jurassic" aria-pressed="false"><span class="dot Jurassic"></span>Jurassic</button>
+        <button type="button" class="map-chip" data-period="Cretaceous" aria-pressed="false"><span class="dot Cretaceous"></span>Cretaceous</button>
+      </div>
+      <button type="button" class="close-x" id="map-close" aria-label="Close the map">&times;</button>
+    </div>
+    <div class="map-stage" id="map-stage">
+      <div class="map-world" id="map-world">
+        <img id="map-now" alt="" data-on="true">
+        <img id="map-then-150" alt="" data-on="false">
+        <img id="map-then-70" alt="" data-on="false">
+      </div>
+      <svg class="map-lines" id="map-lines" aria-hidden="true">
+        <defs>
+          <radialGradient id="map-halo">
+            <stop offset="0" stop-color="#F2AB3E" stop-opacity=".55"/>
+            <stop offset=".55" stop-color="#F2AB3E" stop-opacity=".18"/>
+            <stop offset="1" stop-color="#F2AB3E" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <g id="map-under"></g>
+      </svg>
+      <div class="map-pins" id="map-pins"></div>
+      <p class="map-caption" id="map-caption" hidden></p>
+      <div class="map-zoom">
+        <button type="button" id="map-in" aria-label="Zoom in">+</button>
+        <button type="button" id="map-out" aria-label="Zoom out">&minus;</button>
+        <button type="button" id="map-all" aria-label="Show the whole world"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 2h4v4M6 14H2v-4M14 2 9.5 6.5M2 14l4.5-4.5"/></svg></button>
+      </div>
+      <div class="map-legend" id="map-legend" aria-label="Go to a continent"></div>
+      <div class="map-card" id="map-card" hidden></div>
+      <p class="sr" role="status" aria-live="polite" id="map-live"></p>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -1004,8 +1239,28 @@
     {id:"elasmosaurus", speed:10, tonnes:2, group:"Plesiosaur", name:"Elasmosaurus", means:"\u201CThin-plate lizard\u201D",
      period:"Cretaceous", ago:"80\u201377 million years ago", size:"10 m long \u2014 as long as a bus, and most of it neck",
      weight:"2 tonnes \u2014 like a big car", food:"Fish", place:"North America",
-     fact:"Its neck was longer than the rest of its body put together, with 72 bones in it, while a giraffe has only seven. The first scientist to build its skeleton put the head on the end of the tail by mistake, and his rival never let him forget it. It could not hold its neck up like a swan; it paddled with four big flippers and snapped up small fish."}
+     fact:"Its neck was longer than the rest of its body put together, with 72 bones in it, while a giraffe has only seven. The first scientist to build its skeleton put the head on the end of the tail by mistake, and his rival never let him forget it. It could not hold its neck up like a swan; it paddled with four big flippers and snapped up small fish."},
+    {id:"australovenator", speed:40, tonnes:0.5, name:"Australovenator", means:"“Southern hunter”",
+     period:"Cretaceous", ago:"95 million years ago", size:"6 m long — longer than a car",
+     weight:"500 kg — like a horse", food:"Meat", place:"Australia",
+     fact:"It is nicknamed Banjo, after the poet Banjo Paterson, who wrote Waltzing Matilda near the town where it was found. Its bones lay mixed up with those of a giant long-necked plant-eater nicknamed Matilda. It was light and quick, and each hand carried three big hooked claws."},
+    {id:"muttaburrasaurus", speed:20, tonnes:2.8, name:"Muttaburrasaurus", means:"“Muttaburra lizard”",
+     period:"Cretaceous", ago:"110–100 million years ago", size:"8 m long — as long as a small bus",
+     weight:"2.8 tonnes — heavier than a rhinoceros", food:"Plants", place:"Australia",
+     fact:"A big hollow bump sat on top of its snout, and it may have used it to honk loudly or to smell better. Its teeth sliced past each other like scissors, so it could chop up tough plants. It is named after Muttaburra, the little Queensland town near where a farmer found it in 1963."},
+    {id:"leaellynasaura", speed:30, tonnes:0.01, name:"Leaellynasaura", means:"“Leaellyn's lizard”",
+     period:"Cretaceous", ago:"110 million years ago", size:"2 m long — and most of that was tail",
+     weight:"10 kg — like a bag of potatoes", food:"Plants", place:"Australia",
+     fact:"It lived so close to the South Pole that winter meant weeks of darkness. Its big eyes may have helped it see in the gloom, and its tail was three times as long as its body. It is named after Leaellyn, the daughter of the two scientists who dug it up."},
+    {id:"cryolophosaurus", speed:35, tonnes:0.465, name:"Cryolophosaurus", means:"“Frozen crested lizard”",
+     period:"Jurassic", ago:"190 million years ago", size:"6.5 m long — as long as a car and a half",
+     weight:"465 kg — like a horse", food:"Meat", place:"Antarctica",
+     fact:"It was the first meat-eating dinosaur ever found in Antarctica, high up on a mountain in 1991. The crest on its head ran from side to side like a quiff, so people nicknamed it Elvisaurus. Back then Antarctica was further from the pole, warmer, and covered in forests instead of ice."}
   ];
+
+  /* Extra hard is thirty pairs, the most the clocks and the board were made for,
+     drawn like every other size from all the animals there are */
+  var EXTRA_PAIRS = 30;
 
   var board = document.getElementById("board");
   var boardArea = document.getElementById("board-area");
@@ -1499,7 +1754,7 @@
     playBtns.forEach(function(btn){
       btn.dataset.playing = "false";
       btn.innerHTML = "&#9654;";
-      btn.setAttribute("aria-label", "Read this card aloud");
+      btn.setAttribute("aria-label", btn.dataset.say || "Read this card aloud");
     });
   }
 
@@ -1590,6 +1845,681 @@
       event.preventDefault();
       (document.activeElement === viewerClose ? viewerPlay : viewerClose).focus();
     }
+  });
+
+  /* ---------- where they lived: the map ---------- */
+  /* Where the bones were dug up, as [place, latitude, longitude, plate]. The
+     plate is the piece of the Earth's crust the place rides on, so that "Back
+     then" can carry it along with the land. */
+  var SITES = {
+    tyrannosaurus:     [["Hell Creek, Montana", 47.6, -106.9, "na"], ["Frenchman River, Saskatchewan", 49.4, -107.8, "na"]],
+    triceratops:       [["Hell Creek, Montana", 47.3, -106.2, "na"], ["Lance Creek, Wyoming", 43.0, -104.6, "na"]],
+    stegosaurus:       [["Morrison, Colorado", 39.65, -105.19, "na"], ["Como Bluff, Wyoming", 41.86, -106.05, "na"], ["Lourinhã, Portugal", 39.24, -9.31, "eu"]],
+    velociraptor:      [["Tugrikin Shireh, Mongolia", 44.2, 102.6, "eu"], ["Flaming Cliffs, Mongolia", 44.14, 103.73, "eu"]],
+    brachiosaurus:     [["Riggs Hill, Colorado", 39.06, -108.63, "na"]],
+    ankylosaurus:      [["Hell Creek, Montana", 47.5, -106.5, "na"], ["Red Deer River, Alberta", 51.9, -112.9, "na"]],
+    spinosaurus:       [["Kem Kem, Morocco", 31.0, -4.5, "af"], ["Bahariya Oasis, Egypt", 28.35, 28.85, "af"]],
+    parasaurolophus:   [["Dinosaur Provincial Park, Alberta", 50.76, -111.5, "na"], ["Bisti Badlands, New Mexico", 36.27, -108.25, "na"]],
+    allosaurus:        [["Cleveland-Lloyd Quarry, Utah", 39.32, -110.69, "na"], ["Lourinhã, Portugal", 39.27, -9.25, "eu"]],
+    pachycephalosaurus:[["Hell Creek, Montana", 47.4, -106.6, "na"], ["Lance Creek, Wyoming", 43.2, -104.4, "na"]],
+    therizinosaurus:   [["Nemegt Basin, Mongolia", 43.5, 101.0, "eu"]],
+    diplodocus:        [["Dinosaur National Monument, Utah", 40.44, -109.3, "na"], ["Como Bluff, Wyoming", 41.9, -106.1, "na"]],
+    carnotaurus:       [["Chubut, Argentina", -43.1, -69.4, "sa"]],
+    dilophosaurus:     [["Kayenta, Arizona", 36.1, -111.2, "na"]],
+    iguanodon:         [["Bernissart, Belgium", 50.47, 3.65, "eu"], ["Tilgate Forest, England", 51.1, -0.2, "eu"]],
+    styracosaurus:     [["Dinosaur Provincial Park, Alberta", 50.8, -111.4, "na"]],
+    pteranodon:        [["Smoky Hill Chalk, Kansas", 38.9, -100.9, "na"]],
+    rhamphorhynchus:   [["Solnhofen, Germany", 48.9, 11.0, "eu"]],
+    dimorphodon:       [["Lyme Regis, England", 50.72, -2.94, "eu"]],
+    ornithocheirus:    [["Cambridge, England", 52.2, 0.12, "eu"], ["Santana, Brazil", -7.2, -39.5, "sa"]],
+    mosasaurus:        [["Maastricht, Netherlands", 50.85, 5.69, "eu"], ["Monmouth County, New Jersey", 40.3, -74.4, "na"], ["Khouribga, Morocco", 32.9, -6.9, "af"]],
+    argentinosaurus:   [["Plaza Huincul, Argentina", -38.93, -69.2, "sa"]],
+    gallimimus:        [["Nemegt Basin, Mongolia", 43.6, 100.7, "eu"]],
+    compsognathus:     [["Jachenhausen, Germany", 48.95, 11.6, "eu"], ["Canjuers, France", 43.65, 6.45, "eu"]],
+    microraptor:       [["Liaoning, China", 41.6, 120.8, "eu"]],
+    oviraptor:         [["Flaming Cliffs, Mongolia", 44.14, 103.73, "eu"]],
+    protoceratops:     [["Flaming Cliffs, Mongolia", 44.1, 103.8, "eu"], ["Bayan Mandahu, China", 41.75, 106.75, "eu"]],
+    amargasaurus:      [["La Amarga, Argentina", -39.5, -70.1, "sa"]],
+    deinocheirus:      [["Altan Uul, Mongolia", 43.6, 100.4, "eu"]],
+    elasmosaurus:      [["Pierre Shale, Kansas", 38.8, -101.2, "na"]],
+    australovenator:   [["Winton, Queensland", -22.4, 143.04, "au"]],
+    muttaburrasaurus:  [["Muttaburra, Queensland", -22.6, 144.55, "au"], ["Lightning Ridge, New South Wales", -29.43, 147.98, "au"]],
+    leaellynasaura:    [["Dinosaur Cove, Victoria", -38.78, 143.4, "au"]],
+    cryolophosaurus:   [["Mount Kirkpatrick, Antarctica", -84.33, 166.42, "an"]]
+  };
+  /* what those places were like while the animal lived there */
+  var THEN = {
+    tyrannosaurus: "a warm, swampy coastal plain beside a great inland sea",
+    triceratops: "warm forests and rivers running down to an inland sea",
+    stegosaurus: "a wide plain cut by rivers, with fern meadows and conifer woods",
+    velociraptor: "a sandy desert with dunes, much like the Gobi is today",
+    brachiosaurus: "a broad river plain with tall conifer trees",
+    ankylosaurus: "warm forests beside an inland sea",
+    spinosaurus: "a huge river delta full of giant fish",
+    parasaurolophus: "lush swamps along the shore of an inland sea",
+    allosaurus: "a river plain with a wet season and a dry season",
+    pachycephalosaurus: "warm forests near the coast",
+    therizinosaurus: "wide rivers and lakes with plenty of trees",
+    diplodocus: "a dry plain with rivers and fern meadows",
+    carnotaurus: "a low coast with lagoons by the sea",
+    dilophosaurus: "a land of rivers and sand dunes",
+    iguanodon: "swampy forests with rivers and lakes",
+    styracosaurus: "a green river plain near the sea",
+    pteranodon: "open sea, far from shore — Kansas was under water!",
+    rhamphorhynchus: "warm, shallow lagoons dotted with little islands",
+    dimorphodon: "a warm, shallow sea along a rocky coast",
+    ornithocheirus: "coasts and shallow seas",
+    mosasaurus: "warm seas that covered much of Europe and North America",
+    argentinosaurus: "a wide plain of rivers and forests",
+    gallimimus: "rivers and lakes with forests around them",
+    compsognathus: "dry islands in a warm lagoon",
+    microraptor: "forests around lakes, near smoking volcanoes",
+    oviraptor: "a sandy desert with dunes",
+    protoceratops: "a sandy desert with dunes and oases",
+    amargasaurus: "a river plain with lakes",
+    deinocheirus: "wide rivers and wetlands",
+    elasmosaurus: "a great sea right across the middle of North America",
+    australovenator: "a wide, wet river plain with forests and billabongs",
+    muttaburrasaurus: "low land by the shore of a shallow inland sea",
+    leaellynasaura: "a cold forest near the South Pole, dark for weeks every winter",
+    cryolophosaurus: "a cool forest of conifers and ferns — not ice at all"
+  };
+  /* How each plate has turned since then (row by row), from tools/paleomap.py,
+     which draws img/map/then-*.webp with the very same numbers. */
+  var PLATES = {"eu":{"150":[0.9962,-0.00658,0.08682,-0.00658,0.98861,0.15038,-0.08682,-0.15038,0.98481],"70":[0.99905,-0.00165,0.04358,-0.00165,0.99715,0.07548,-0.04358,-0.07548,0.99619]},"na":{"150":[0.69572,-0.70171,0.15353,0.69888,0.71064,0.08104,-0.16597,0.05091,0.98482],"70":[0.72864,-0.67666,0.10586,0.67982,0.73334,0.00828,-0.08324,0.06593,0.99435]},"af":{"150":[0.98392,0.1635,0.07191,-0.17852,0.91263,0.36775,-0.0055,-0.37467,0.92714],"70":[0.97107,-0.23644,0.03333,0.22852,0.96073,0.15742,-0.06924,-0.14525,0.98697]},"sa":{"150":[0.80965,-0.57044,-0.13809,0.52189,0.80737,-0.27528,0.26852,0.15081,0.9514],"70":[0.82551,-0.56438,-0.00331,0.55356,0.8108,-0.19019,0.11002,0.15518,0.98174]},"au":{"150":[0.59059,0.58651,-0.55427,-0.47613,0.80782,0.34747,0.65154,0.05869,0.75634],"70":[0.91635,0.12524,-0.38029,-0.01696,0.96111,0.27565,0.40002,-0.24615,0.88283]},"an":{"150":[0.83093,0.17281,-0.52886,-0.31999,0.92604,-0.20016,0.45515,0.33555,0.82477],"70":[0.98001,-0.17182,-0.10026,0.15484,0.97524,-0.15787,0.1249,0.13919,0.98236]}};
+  var AGE_TEXT = {
+    150: "<b>150 million years ago</b> — the Jurassic. The land was still almost one piece, and the Atlantic Ocean was only a narrow sea.",
+    70: "<b>70 million years ago</b> — the end of the Cretaceous. The Atlantic was growing, India was an island, and a sea cut North America in two."
+  };
+  var NOW_TEXT = "<b>Today</b> \u2014 the continents are still drifting, about as fast as your fingernails grow.";
+  /* told out loud when the world is turned back or forward, in the card voice
+     (audio/map/<age>.mp3); the browser reads these if a clip is missing */
+  var STORY = {
+    "150": "Let's go back one hundred and fifty million years, to the Jurassic. Watch the land move! The continents were squeezed together into one giant piece. North America was still joined to Europe and Africa, and the Atlantic Ocean was only a thin sea between them. Africa, South America, Antarctica, India and Australia were all one big land in the south.",
+    "70": "Let's go back seventy million years, to the end of the Cretaceous. The giant land had broken into pieces, and they were slowly drifting apart. The Atlantic Ocean grew a little wider every year. India was an island, sailing north towards Asia. And a warm, shallow sea ran right through the middle of North America, cutting it in two.",
+    "now": "Back to today! Over millions and millions of years the continents kept on drifting, about as fast as your fingernails grow. The Atlantic Ocean became wide, India crashed into Asia and pushed up the Himalayas, and Australia broke away from Antarctica. They are still moving, even now."
+  };
+  var GLOBE = '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="8" cy="8" r="6.5"/><ellipse cx="8" cy="8" rx="2.8" ry="6.5"/><path d="M1.5 8h13"/></svg>';
+  var WORLD_W = 2048, WORLD_H = 1024;
+
+  var mapEl = document.getElementById("map"), mapStage = document.getElementById("map-stage");
+  var mapWorld = document.getElementById("map-world"), mapPinsEl = document.getElementById("map-pins");
+  var mapUnder = document.getElementById("map-under"), mapCaption = document.getElementById("map-caption");
+  var mapCard = document.getElementById("map-card"), mapLegend = document.getElementById("map-legend");
+  var mapClose = document.getElementById("map-close"), mapWhen = document.getElementById("map-when");
+  var mapChips = document.getElementById("map-chips"), mapLive = document.getElementById("map-live");
+  var mapImgs = {now: document.getElementById("map-now"),
+                 150: document.getElementById("map-then-150"), 70: document.getElementById("map-then-70")};
+  var mapPlay = document.createElement("button");
+  mapPlay.type = "button"; mapPlay.className = "play-x"; mapPlay.innerHTML = "&#9654;";
+  mapPlay.setAttribute("aria-label", "Read this card aloud");
+  playBtns.push(mapPlay);   /* speakingSide 3 */
+  var storyBtn = document.createElement("button");
+  storyBtn.type = "button"; storyBtn.className = "play-x"; storyBtn.innerHTML = "&#9654;";
+  storyBtn.dataset.say = "Tell the story of the moving world";
+  storyBtn.setAttribute("aria-label", storyBtn.dataset.say);
+  playBtns.push(storyBtn);  /* speakingSide 4: the story of the moving world */
+  var narrowMap = window.matchMedia("(max-width:700px), (orientation:portrait) and (max-width:980px)");
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  var mv = {then: false, period: "", picked: null, s: 1, tx: 0, ty: 0, W: 0, H: 0,
+            from: null, fly: null, frame: 0, pins: {}, pin: 48, loaded: false, told: false};
+
+  function ageOf(dino){ return dino.period === "Jurassic" ? 150 : 70; }
+  function shownAge(){ return mv.period === "Jurassic" ? 150 : 70; }
+  function continentOf(site){
+    var p = site[3];
+    if(p === "eu") return site[2] >= 45 ? "Asia" : "Europe";
+    return {na: "North America", sa: "South America", af: "Africa", au: "Australia", an: "Antarctica"}[p];
+  }
+
+  /* a place on the map, today or carried back to where it was then */
+  function project(site, age){
+    var lat = site[1], lon = site[2];
+    if(mv.then && PLATES[site[3]]){
+      var R = PLATES[site[3]][age];
+      var la = lat * Math.PI / 180, lo = lon * Math.PI / 180;
+      var x = Math.cos(la) * Math.cos(lo), y = Math.cos(la) * Math.sin(lo), z = Math.sin(la);
+      var px = R[0] * x + R[1] * y + R[2] * z, py = R[3] * x + R[4] * y + R[5] * z, pz = R[6] * x + R[7] * y + R[8] * z;
+      lat = Math.asin(Math.max(-1, Math.min(1, pz))) * 180 / Math.PI;
+      lon = Math.atan2(py, px) * 180 / Math.PI;
+    }
+    return {x: (lon + 180) / 360 * WORLD_W, y: (90 - lat) / 180 * WORLD_H};
+  }
+  function toScreen(p){ return {x: mv.tx + p.x * mv.s, y: mv.ty + p.y * mv.s}; }
+
+  function shown(dino){
+    if(mv.period && dino.period !== mv.period) return false;
+    return true;
+  }
+
+  function minScale(){ return Math.min(mv.W / WORLD_W, mv.H / WORLD_H); }
+  function maxScale(){ return Math.max(6, minScale() * 4); }
+  function clampView(){
+    mv.s = Math.max(minScale(), Math.min(maxScale(), mv.s));
+    var w = WORLD_W * mv.s, h = WORLD_H * mv.s;
+    mv.tx = w <= mv.W ? (mv.W - w) / 2 : Math.min(0, Math.max(mv.W - w, mv.tx));
+    mv.ty = h <= mv.H ? (mv.H - h) / 2 : Math.min(0, Math.max(mv.H - h, mv.ty));
+  }
+  function measure(){
+    mv.W = mapStage.clientWidth; mv.H = mapStage.clientHeight;
+    mv.pin = parseFloat(getComputedStyle(mapEl).getPropertyValue("--pin")) || 48;
+  }
+  /* the part of the map not hidden behind the animal's card */
+  function freeArea(){
+    var a = {x0: 0, y0: 0, x1: mv.W, y1: mv.H - 44};
+    if(mv.picked){
+      if(narrowMap.matches) a.y1 = mv.H - Math.min(mv.H * 0.52, mapCard.offsetHeight || mv.H * 0.4);
+      else a.x1 = mv.W - Math.min(mv.W * 0.5, 66 + (mapCard.offsetWidth || 340));
+    }
+    return a;
+  }
+  function wholeWorld(){
+    /* a tall phone would show a thin strip of world, so it starts closer in */
+    var s = Math.max(minScale(), Math.min(Math.max(mv.W / WORLD_W, mv.H / WORLD_H),
+                                          minScale() * (narrowMap.matches ? 2.6 : 1.8)));
+    /* filling the screen cuts a strip off the sides, so let the cut fall in the
+       empty Pacific: centre on the spread of the animals, not on Greenwich */
+    var x0 = Infinity, x1 = -Infinity;
+    SPECIES.forEach(function(dino){
+      if(!shown(dino)) return;
+      var p = project(SITES[dino.id][0], mv.then ? shownAge() : ageOf(dino));
+      x0 = Math.min(x0, p.x); x1 = Math.max(x1, p.x);
+    });
+    return {s: s, cx: x0 <= x1 ? (x0 + x1) / 2 : WORLD_W * 0.5, cy: WORLD_H * 0.42};
+  }
+  /* the view that frames some places, inside the free part of the map */
+  function framing(points, cap){
+    var a = freeArea(), pad = mv.pin * 1.6;
+    var x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    points.forEach(function(p){ x0 = Math.min(x0, p.x); y0 = Math.min(y0, p.y); x1 = Math.max(x1, p.x); y1 = Math.max(y1, p.y); });
+    var s = Math.min((a.x1 - a.x0 - 2 * pad) / Math.max(1, x1 - x0), (a.y1 - a.y0 - 2 * pad) / Math.max(1, y1 - y0));
+    s = Math.max(minScale(), Math.min(s, cap || Math.max(1.4, minScale() * 2.5), maxScale()));
+    var cx = (x0 + x1) / 2, cy = (y0 + y1) / 2;
+    /* the centre of the free area, said as a point in the world */
+    var mx = (a.x0 + a.x1) / 2, my = (a.y0 + a.y1) / 2;
+    return {s: s, cx: cx - (mx - mv.W / 2) / s, cy: cy - (my - mv.H / 2) / s};
+  }
+  function setView(v){
+    mv.s = v.s; mv.tx = mv.W / 2 - v.cx * v.s; mv.ty = mv.H / 2 - v.cy * v.s;
+    clampView();
+  }
+  function stopFly(){ if(mv.fly){ cancelAnimationFrame(mv.fly); mv.fly = null; } }
+  function flyTo(v){
+    stopFly();
+    if(reduceMotion.matches){ setView(v); drawMap(); return; }
+    var s0 = mv.s, c0x = (mv.W / 2 - mv.tx) / s0, c0y = (mv.H / 2 - mv.ty) / s0;
+    var t0 = performance.now(), dur = 800;
+    function step(now){
+      var t = Math.min(1, (now - t0) / dur);
+      var e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      setView({s: Math.exp(Math.log(s0) + (Math.log(v.s) - Math.log(s0)) * e),
+               cx: c0x + (v.cx - c0x) * e, cy: c0y + (v.cy - c0y) * e});
+      drawMap();
+      mv.fly = t < 1 ? requestAnimationFrame(step) : null;
+    }
+    mv.fly = requestAnimationFrame(step);
+  }
+  function zoomAt(px, py, f){
+    var s = Math.max(minScale(), Math.min(maxScale(), mv.s * f));
+    var wx = (px - mv.tx) / mv.s, wy = (py - mv.ty) / mv.s;
+    mv.s = s; mv.tx = px - wx * s; mv.ty = py - wy * s;
+    clampView();
+    requestDraw();
+  }
+  function requestDraw(){
+    if(mv.frame) return;
+    mv.frame = requestAnimationFrame(function(){ mv.frame = 0; drawMap(); });
+  }
+
+  /* the pictures: today's Earth arrives small first, then sharp */
+  function loadWorld(){
+    if(mv.loaded) return;
+    mv.loaded = true;
+    mapImgs.now.src = "img/map/earth-small.webp";
+    var big = new Image();
+    big.onload = function(){ mapImgs.now.src = big.src; };
+    big.src = "img/map/earth.webp";
+  }
+  function showWorld(){
+    var age = shownAge();
+    if(mv.then && !mapImgs[age].getAttribute("src")) mapImgs[age].src = "img/map/then-" + age + ".webp";
+    mapImgs.now.dataset.on = String(!mv.then);
+    mapImgs[150].dataset.on = String(mv.then && age === 150);
+    mapImgs[70].dataset.on = String(mv.then && age === 70);
+    /* today only gets a caption once the world has been turned back and forth */
+    mapCaption.hidden = !(mv.then || mv.told);
+    mapCaption.innerHTML = '<span>' + (mv.then ? AGE_TEXT[age] : NOW_TEXT) + '</span>';
+    mapCaption.appendChild(storyBtn);
+  }
+
+  function makePins(){
+    SPECIES.forEach(function(dino){
+      var pin = document.createElement("button");
+      pin.type = "button";
+      pin.className = "map-pin";
+      pin.dataset.id = dino.id;
+      pin.dataset.period = dino.period;
+      pin.setAttribute("aria-label", dino.name + (dino.group ? " (" + dino.group.toLowerCase() + ")" : "") + ", " + dino.place);
+      pin.title = dino.name;
+      var img = document.createElement("img");
+      img.alt = ""; img.loading = "lazy"; img.src = "img/" + dino.id + ".webp";
+      pin.appendChild(img);
+      if(dino.group){
+        var kind = document.createElement("span");
+        kind.className = "kind";
+        kind.setAttribute("aria-hidden", "true");
+        kind.textContent = dino.group === "Pterosaur" ? "⤴" : "∿";   /* a flier, a swimmer */
+        pin.appendChild(kind);
+      }
+      pin.addEventListener("click", function(){ pickOnMap(dino.id === mv.picked ? null : dino.id, true); });
+      pin.addEventListener("focus", function(){
+        var a = freeArea(), box = pin.getBoundingClientRect(), stage = mapStage.getBoundingClientRect();
+        var x = box.left - stage.left + box.width / 2, y = box.top - stage.top + box.height / 2;
+        if(x < a.x0 || x > a.x1 || y < a.y0 || y > a.y1){
+          var site = SITES[dino.id][0];
+          flyTo(framing([project(site, mv.then ? shownAge() : ageOf(dino))], mv.s));
+        }
+      });
+      mapPinsEl.appendChild(pin);
+      mv.pins[dino.id] = pin;
+    });
+  }
+
+  var SVGNS = "http://www.w3.org/2000/svg";
+  function svgEl(tag, attrs){
+    var el = document.createElementNS(SVGNS, tag);
+    for(var k in attrs) el.setAttribute(k, attrs[k]);
+    return el;
+  }
+
+  /* Everything that moves with the view: the world itself, then each pin.
+     Pins keep their size whatever the zoom, so where several animals were
+     found in one place they are eased apart and tied back to it by a thread. */
+  function drawMap(){
+    mapWorld.style.transform = "translate(" + mv.tx + "px," + mv.ty + "px) scale(" + mv.s + ")";
+    var age = shownAge(), list = [];
+    SPECIES.forEach(function(dino, i){
+      var pin = mv.pins[dino.id];
+      var on = shown(dino);
+      pin.dataset.gone = String(!on);
+      pin.tabIndex = on ? 0 : -1;
+      if(!on) return;
+      var a = toScreen(project(SITES[dino.id][0], mv.then ? age : ageOf(dino)));
+      /* animals found on the very same spot start apart, round a little circle */
+      var ang = i * 2.39996;
+      list.push({dino: dino, pin: pin, ax: a.x, ay: a.y, x: a.x + Math.cos(ang) * 0.5, y: a.y + Math.sin(ang) * 0.5});
+    });
+    var gap = mv.pin + 4;
+    for(var it = 0; it < 40; it++){
+      for(var i = 0; i < list.length; i++){
+        for(var j = i + 1; j < list.length; j++){
+          var p = list[i], q = list[j], dx = q.x - p.x, dy = q.y - p.y, d = Math.sqrt(dx * dx + dy * dy);
+          if(d >= gap) continue;
+          if(d < 0.01){ dx = 1; dy = 0; d = 1; }
+          var push = (gap - d) / 2 / d;
+          p.x -= dx * push; p.y -= dy * push; q.x += dx * push; q.y += dy * push;
+        }
+      }
+      list.forEach(function(p){ p.x += (p.ax - p.x) * 0.06; p.y += (p.ay - p.y) * 0.06; });
+    }
+    /* Antarctica sits on the bottom edge of the world: a pin there stands
+       just above the row of continents, tied down to its spot */
+    var floor = mv.H - 52 - mv.pin / 2, ceil = mv.pin / 2 + 6;
+    list.forEach(function(p){
+      if(p.ay > -mv.pin && p.ay < mv.H + mv.pin) p.y = Math.max(ceil, Math.min(floor, p.y));
+    });
+
+    mapUnder.textContent = "";
+    var picked = mv.picked ? byId(mv.picked) : null;
+    if(picked && shown(picked)){
+      SITES[picked.id].forEach(function(site){
+        var c = toScreen(project(site, mv.then ? age : ageOf(picked)));
+        mapUnder.appendChild(svgEl("circle", {"class": "halo", cx: c.x, cy: c.y, r: Math.max(46, Math.min(170, 34 * mv.s))}));
+        mapUnder.appendChild(svgEl("circle", {"class": "ring", cx: c.x, cy: c.y, r: 16}));
+      });
+    }
+    list.forEach(function(p){
+      if(Math.abs(p.x - p.ax) + Math.abs(p.y - p.ay) > 3)
+        mapUnder.appendChild(svgEl("line", {x1: p.ax, y1: p.ay, x2: p.x, y2: p.y}));
+      mapUnder.appendChild(svgEl("circle", {"class": "spot", cx: p.ax, cy: p.ay, r: 3.5}));
+      p.pin.style.transform = "translate(" + p.x.toFixed(1) + "px," + p.y.toFixed(1) + "px)";
+      if(picked) p.pin.dataset.dim = String(p.dino.id !== picked.id); else delete p.pin.dataset.dim;
+      p.pin.dataset.picked = String(!!picked && p.dino.id === picked.id);
+    });
+    if(picked && shown(picked)){
+      SITES[picked.id].forEach(function(site){
+        var c = toScreen(project(site, mv.then ? age : ageOf(picked)));
+        var label = svgEl("text", {"class": "site-name", x: c.x + 12, y: c.y + 26});
+        label.textContent = site[0];
+        mapUnder.appendChild(label);
+      });
+    }
+  }
+
+  function paintLegend(){
+    var count = {}, order = ["North America", "South America", "Europe", "Africa", "Asia", "Australia", "Antarctica"];
+    SPECIES.forEach(function(dino){
+      if(!shown(dino)) return;
+      var c = continentOf(SITES[dino.id][0]);
+      count[c] = (count[c] || 0) + 1;
+    });
+    mapLegend.textContent = "";
+    order.forEach(function(name){
+      if(!count[name]) return;
+      var b = document.createElement("button");
+      b.type = "button";
+      b.textContent = name;
+      var n = document.createElement("b");
+      n.textContent = String(count[name]);
+      b.appendChild(n);
+      b.setAttribute("aria-label", name + ", " + count[name] + (count[name] === 1 ? " animal" : " animals"));
+      b.addEventListener("click", function(){
+        pickOnMap(null, false);
+        var age = shownAge(), pts = [];
+        SPECIES.forEach(function(dino){
+          if(shown(dino) && continentOf(SITES[dino.id][0]) === name)
+            pts.push(project(SITES[dino.id][0], mv.then ? age : ageOf(dino)));
+        });
+        flyTo(framing(pts, 2.2));
+      });
+      mapLegend.appendChild(b);
+    });
+  }
+
+  function paintChips(){
+    Array.prototype.forEach.call(mapChips.querySelectorAll(".map-chip"), function(chip){
+      chip.setAttribute("aria-pressed", String(chip.dataset.period === mv.period));
+      /* the world back then is one age at a time */
+      chip.disabled = mv.then && chip.dataset.period === "";
+    });
+    Array.prototype.forEach.call(mapWhen.querySelectorAll("button"), function(el){
+      el.setAttribute("aria-checked", String((el.dataset.then === "1") === mv.then));
+    });
+  }
+
+  function paintMapCard(){
+    var dino = mv.picked ? byId(mv.picked) : null;
+    if(speakingSide === 3 && speakingId !== mv.picked) stopSpeech();
+    mapCard.textContent = "";
+    mapCard.hidden = !dino;
+    mapLive.textContent = dino ? dino.name + ": found at " + SITES[dino.id].map(function(x){ return x[0]; }).join(", ") : "";
+    if(!dino) return;
+
+    var close = document.createElement("button");
+    close.type = "button"; close.className = "close-x"; close.innerHTML = "&times;";
+    close.setAttribute("aria-label", "Put " + dino.name + " back");
+    close.addEventListener("click", function(){
+      pickOnMap(null, false);
+      var pin = mv.pins[dino.id];
+      (pin && pin.dataset.gone !== "true" ? pin : mapClose).focus({preventScroll: true});
+    });
+
+    var shot = document.createElement("button");
+    shot.type = "button"; shot.className = "mc-shot";
+    shot.setAttribute("aria-label", "Show " + dino.name + " on the whole screen");
+    var img = document.createElement("img");
+    img.src = "img/" + dino.id + ".webp"; img.alt = dino.name;
+    shot.appendChild(img);
+    shot.addEventListener("click", function(){ openViewer(dino.id, shot); });
+
+    var row = document.createElement("div");
+    row.className = "name-row";
+    var name = document.createElement("p");
+    name.className = "mc-name"; name.textContent = dino.name;
+    row.appendChild(name); row.appendChild(mapPlay);
+
+    var when = document.createElement("p");
+    when.className = "mc-when";
+    var dot = document.createElement("span");
+    dot.className = "dot " + dino.period;
+    when.appendChild(dot);
+    when.appendChild(document.createTextNode(dino.period + ", " + dino.ago));
+
+    var h1 = document.createElement("h3");
+    h1.textContent = "Bones found at";
+    var ul = document.createElement("ul");
+    SITES[dino.id].forEach(function(site){
+      var li = document.createElement("li");
+      var b = document.createElement("button");
+      b.type = "button"; b.textContent = site[0];
+      b.addEventListener("click", function(){
+        flyTo(framing([project(site, mv.then ? shownAge() : ageOf(dino))], Math.max(2.4, minScale() * 4)));
+      });
+      li.appendChild(b); ul.appendChild(li);
+    });
+
+    var h2 = document.createElement("h3");
+    h2.textContent = "Back then";
+    var then = document.createElement("p");
+    then.className = "mc-then";
+    then.appendChild(document.createTextNode("This was " + THEN[dino.id] + "."));
+
+    mapCard.appendChild(close);
+    mapCard.appendChild(shot);
+    mapCard.appendChild(row);
+    mapCard.appendChild(when);
+    mapCard.appendChild(h1);
+    mapCard.appendChild(ul);
+    mapCard.appendChild(h2);
+    mapCard.appendChild(then);
+
+    /* the whole card is only offered for an animal already turned up */
+    if(state && (state.mode === "album" || state.found.indexOf(dino.id) >= 0)){
+      var more = document.createElement("button");
+      more.type = "button"; more.className = "btn quiet mc-more";
+      more.textContent = "Read the whole card";
+      more.addEventListener("click", function(){ closeMap(); openCard(dino.id); });
+      mapCard.appendChild(more);
+    }
+  }
+
+  /* pick an animal (or nobody), and with fly go and look at where it lived */
+  function pickOnMap(id, fly){
+    var dino = id ? byId(id) : null;
+    mv.picked = dino ? dino.id : null;
+    if(dino && mv.then && mv.period !== dino.period){
+      mv.period = dino.period;
+      paintChips(); paintLegend(); showWorld();
+    }
+    paintMapCard();
+    if(dino && fly){
+      var age = mv.then ? shownAge() : ageOf(dino);
+      flyTo(framing(SITES[dino.id].map(function(site){ return project(site, age); })));
+    } else drawMap();
+  }
+
+  /* pins slide from today's places to the old ones, rather than jump */
+  function glide(then){
+    if(reduceMotion.matches){ drawMap(); if(then) then(); return; }
+    mapPinsEl.dataset.glide = "true";
+    mapUnder.style.opacity = "0";
+    drawMap();
+    clearTimeout(glide.t);
+    glide.t = setTimeout(function(){
+      mapPinsEl.dataset.glide = "false";
+      mapUnder.style.opacity = "";
+      drawMap();
+      if(then) then();
+    }, 900);
+  }
+
+  /* what happened to the world, said out loud as the land moves */
+  function tellStory(){
+    var key = mv.then ? String(shownAge()) : "now";
+    stopSpeech();
+    stopName();
+    stopTurn();
+    if(!soundOn) return;
+    var clip = new Audio("audio/map/" + key + ".mp3");
+    speech = clip;
+    speakingSide = 4; speakingId = "story";
+    clip.addEventListener("ended", stopSpeech);
+    function fallback(){
+      if(speech !== clip) return;
+      speech = null;
+      try{
+        if(!window.speechSynthesis) return;
+        var u = new SpeechSynthesisUtterance(STORY[key]);
+        u.lang = "en-GB"; u.rate = 0.95;
+        u.onend = stopSpeech;
+        speechSynthesis.speak(u);
+        speakingSide = 4; playing();
+      }catch(e){ stopSpeech(); }
+    }
+    clip.addEventListener("error", fallback);
+    clip.play().then(function(){ if(speech === clip){ speakingSide = 4; playing(); } }).catch(fallback);
+  }
+  storyBtn.addEventListener("click", function(event){
+    event.stopPropagation();
+    if(storyBtn.dataset.playing === "true"){ stopSpeech(); return; }
+    tellStory();
+  });
+
+  function setThen(then){
+    if(mv.then === then) return;
+    mv.then = then;
+    mv.told = true;
+    if(then && !mv.period) mv.period = mv.picked ? byId(mv.picked).period : "Cretaceous";
+    paintChips(); paintLegend(); showWorld();
+    tellStory();
+    /* the land has moved, so go after the animal once its pin has */
+    glide(function(){ if(mv.picked) pickOnMap(mv.picked, true); });
+  }
+
+  mapWhen.addEventListener("click", function(event){
+    var btn = event.target.closest("button[role=radio]");
+    if(btn) setThen(btn.dataset.then === "1");
+  });
+  mapChips.addEventListener("click", function(event){
+    var chip = event.target.closest(".map-chip");
+    if(!chip || chip.disabled) return;
+    var was = shownAge();
+    mv.period = chip.dataset.period;
+    if(mv.picked && !shown(byId(mv.picked))){ mv.picked = null; paintMapCard(); }
+    paintChips(); paintLegend(); showWorld();
+    if(mv.then && shownAge() !== was) tellStory();   /* a different world back then */
+    glide();
+  });
+  mapPlay.addEventListener("click", function(){
+    if(mapPlay.dataset.playing === "true"){ stopSpeech(); return; }
+    if(mv.picked){ speakingSide = 3; speak(mv.picked); speakingId = mv.picked; }
+  });
+  document.getElementById("map-in").addEventListener("click", function(){ stopFly(); zoomAt(mv.W / 2, mv.H / 2, 1.6); });
+  document.getElementById("map-out").addEventListener("click", function(){ stopFly(); zoomAt(mv.W / 2, mv.H / 2, 1 / 1.6); });
+  document.getElementById("map-all").addEventListener("click", function(){ flyTo(wholeWorld()); });
+  mapClose.addEventListener("click", closeMap);
+
+  /* drag to move, wheel or pinch to zoom, a tap on open ground puts the animal back */
+  var touches = {}, dragMoved = false;
+  mapStage.addEventListener("pointerdown", function(event){
+    if(event.target.closest("button, .map-card, .map-legend")) return;
+    stopFly();
+    touches[event.pointerId] = {x: event.clientX, y: event.clientY};
+    if(Object.keys(touches).length === 1) dragMoved = false;
+    try{ mapStage.setPointerCapture(event.pointerId); }catch(e){}
+    mapStage.dataset.drag = "true";
+  });
+  mapStage.addEventListener("pointermove", function(event){
+    var t = touches[event.pointerId];
+    if(!t) return;
+    var ids = Object.keys(touches);
+    if(ids.length === 1){
+      var dx = event.clientX - t.x, dy = event.clientY - t.y;
+      if(Math.abs(dx) + Math.abs(dy) > 4) dragMoved = true;
+      if(!dragMoved) return;
+      mv.tx += dx; mv.ty += dy;
+      clampView();
+      requestDraw();
+    } else if(ids.length === 2){
+      var other = touches[ids[0] === String(event.pointerId) ? ids[1] : ids[0]];
+      var before = Math.hypot(t.x - other.x, t.y - other.y);
+      var after = Math.hypot(event.clientX - other.x, event.clientY - other.y);
+      var box = mapStage.getBoundingClientRect();
+      var mx = (event.clientX + other.x) / 2 - box.left, my = (event.clientY + other.y) / 2 - box.top;
+      var pmx = (t.x + other.x) / 2 - box.left, pmy = (t.y + other.y) / 2 - box.top;
+      mv.tx += mx - pmx; mv.ty += my - pmy;
+      if(before > 0) zoomAt(mx, my, after / before);
+      dragMoved = true;
+    }
+    t.x = event.clientX; t.y = event.clientY;
+  });
+  function liftPointer(event){
+    if(!touches[event.pointerId]) return;
+    delete touches[event.pointerId];
+    if(Object.keys(touches).length) return;
+    mapStage.dataset.drag = "false";
+    if(!dragMoved && event.type === "pointerup" && mv.picked) pickOnMap(null, false);
+  }
+  mapStage.addEventListener("pointerup", liftPointer);
+  mapStage.addEventListener("pointercancel", liftPointer);
+  mapStage.addEventListener("lostpointercapture", liftPointer);
+  mapStage.addEventListener("wheel", function(event){
+    if(event.target.closest(".map-card, .map-legend")) return;
+    event.preventDefault();
+    stopFly();
+    var box = mapStage.getBoundingClientRect();
+    var dy = event.deltaMode === 1 ? event.deltaY * 32 : event.deltaY;
+    zoomAt(event.clientX - box.left, event.clientY - box.top, Math.exp(-dy * 0.0016));
+  }, {passive: false});
+  window.addEventListener("resize", function(){
+    if(mapEl.hidden) return;
+    var cx = (mv.W / 2 - mv.tx) / mv.s, cy = (mv.H / 2 - mv.ty) / mv.s;
+    measure();
+    setView({s: mv.s, cx: cx, cy: cy});
+    drawMap();
+  });
+
+  function openMap(id, from){
+    closeViewer();
+    mv.from = from || null;
+    loadWorld();
+    if(!mapPinsEl.childNodes.length) makePins();
+    mapEl.hidden = false;
+    measure();
+    var dino = id ? byId(id) : null;
+    if(dino && mv.period && mv.period !== dino.period) mv.period = mv.then ? dino.period : "";
+    paintChips(); paintLegend(); showWorld();
+    setView(wholeWorld());
+    drawMap();
+    mapClose.focus();
+    if(dino) pickOnMap(dino.id, true);
+    else pickOnMap(null, false);
+  }
+  function closeMap(){
+    if(mapEl.hidden) return;
+    stopFly();
+    clearTimeout(glide.t);
+    mapPinsEl.dataset.glide = "false";
+    mapUnder.style.opacity = "";
+    if(mv.frame){ cancelAnimationFrame(mv.frame); mv.frame = 0; }
+    if(speakingSide === 3 || speakingSide === 4) stopSpeech();
+    mapEl.hidden = true;
+    touches = {};
+    if(mv.from && document.body.contains(mv.from)) mv.from.focus();
+    mv.from = null;
+  }
+
+  document.addEventListener("keydown", function(event){
+    if(event.defaultPrevented || mapEl.hidden || !viewer.hidden) return;
+    if(event.key === "Escape"){ event.preventDefault(); closeMap(); return; }
+    if(event.key === "Tab"){
+      /* keep the keyboard inside the map while it is open */
+      var all = Array.prototype.filter.call(mapEl.querySelectorAll("button"), function(el){
+        return !el.disabled && el.tabIndex >= 0 && el.offsetParent !== null;
+      });
+      if(!all.length) return;
+      var first = all[0], last = all[all.length - 1];
+      if(event.shiftKey && (document.activeElement === first || !mapEl.contains(document.activeElement))){
+        event.preventDefault(); last.focus();
+      } else if(!event.shiftKey && (document.activeElement === last || !mapEl.contains(document.activeElement))){
+        event.preventDefault(); first.focus();
+      }
+      return;
+    }
+    if(event.ctrlKey || event.metaKey || event.altKey) return;
+    if(event.key === "+" || event.key === "="){ stopFly(); zoomAt(mv.W / 2, mv.H / 2, 1.4); }
+    else if(event.key === "-"){ stopFly(); zoomAt(mv.W / 2, mv.H / 2, 1 / 1.4); }
   });
 
   /* ---------- card back: a three-toed theropod track ---------- */
@@ -1782,6 +2712,13 @@
       a.appendChild(b);
       a.appendChild(document.createTextNode("animals — tap one to read about it"));
       scoreEl.appendChild(a);
+      var mapBtn = document.createElement("button");
+      mapBtn.type = "button";
+      mapBtn.className = "btn album-map";
+      mapBtn.innerHTML = GLOBE + "Map";
+      mapBtn.setAttribute("aria-label", "Where they lived: the map");
+      mapBtn.addEventListener("click", function(){ openMap(null, mapBtn); });
+      scoreEl.appendChild(mapBtn);
       return;
     }
 
@@ -1983,6 +2920,16 @@
         var dd = document.createElement("dd");
         if(typeof row[1] === "string") dd.textContent = row[1];
         else dd.appendChild(row[1]);
+        /* and from where it was found, straight onto the map */
+        if(row[0] === "Found in" && SITES[dino.id]){
+          var go = document.createElement("button");
+          go.type = "button";
+          go.className = "map-link";
+          go.innerHTML = GLOBE + "Map";
+          go.setAttribute("aria-label", "Show where " + dino.name + " lived on the map");
+          (function(id){ go.addEventListener("click", function(){ openMap(id, go); }); })(dino.id);
+          dd.appendChild(go);
+        }
         rows.appendChild(dt); rows.appendChild(dd);
       });
 
@@ -2275,6 +3222,7 @@
 
   function timeUp(){
     closeViewer();   /* the end of the game is not hidden behind a picture */
+    closeMap();      /* nor behind the map */
     stopClock();
     clearFlipTimer();
     lock = true;
@@ -2408,6 +3356,7 @@
   /* The album: every dinosaur face up, nothing to match — just a look at the cards. */
   function openAlbum(){
     closeViewer();
+    closeMap();
     stopTurn();
     stopClock();
     clearFlipTimer();
@@ -2434,6 +3383,7 @@
 
   function newGame(opts){
     closeViewer();
+    closeMap();
     stopSpeech();
     stopName();
     stopTurn();
@@ -2448,13 +3398,13 @@
 
     var timed = opts.timed !== undefined ? opts.timed
               : (state && state.timed !== undefined ? state.timed : false);
-    /* Extra hard is every animal there is, and it is always against the clock -
+    /* Extra hard is thirty pairs, the most there are of any size, and it is always against the clock -
        even for one player, who otherwise only ever sees the time count up.
        Alone you get six minutes; at a table everybody sees everybody's
        cards and takes a share of the turns, so the table shares the time,
        with a minute more for each player after the first. The cards will
        not stay put. */
-    var extra = pairs >= SPECIES.length;
+    var extra = pairs >= EXTRA_PAIRS;
     var table = 360 + 60 * (players - 1);   /* 6:00, 7:00, 8:00, 9:00 in all */
     var each = extra ? Math.round(table / players)   /* 6:00, 3:30, 2:40, 2:15 each */
                      : Math.max(90, pairs * 15);   /* 1:30 Easy, 2:30 Medium, 6:00 Hard */
@@ -2723,9 +3673,9 @@
   /* extra hard is always against the clock, so there is nothing to choose */
   /* a speedrun is one player racing the clock up, so extra hard, with its own clock, has none */
   function showRows(){
-    speedRow.hidden = startPlayers > 1 || startPairs >= SPECIES.length;
+    speedRow.hidden = startPlayers > 1 || startPairs >= EXTRA_PAIRS;
     keepRow.hidden = startPlayers < 2;
-    timerRow.hidden = startPlayers < 2 || startPairs >= SPECIES.length;
+    timerRow.hidden = startPlayers < 2 || startPairs >= EXTRA_PAIRS;
   }
   wirePick("start-size", "pairs", function(v){ startPairs = v; showRows(); });
   wirePick("start-players", "players", function(v){
@@ -2739,6 +3689,7 @@
   /* Coming back to it keeps whatever was last played selected. */
   function openStart(){
     closeViewer();
+    closeMap();
     stopSpeech();
     stopClock();
     if(state){
@@ -2771,7 +3722,7 @@
     jungleStart();
     newGame({pairs: startPairs, players: startPlayers,
              keepTurn: startKeep === 1, timed: startTimed === 1,
-             speedrun: startSpeed === 1 && startPlayers === 1 && startPairs < SPECIES.length});
+             speedrun: startSpeed === 1 && startPlayers === 1 && startPairs < EXTRA_PAIRS});
   });
 
   /* ---------- boot ---------- */
