@@ -2415,7 +2415,8 @@
     state = {
       mode: "album", pairs: state ? state.pairs : 10, players: state ? state.players : 1,
       keepTurn: state ? state.keepTurn : true, holding: false,
-      timed: state ? state.timed : false, clocks: null, timeout: null,
+      timed: state ? state.timed : false, speedrun: state ? state.speedrun : false,
+      clocks: null, timeout: null,
       deck: SPECIES.map(function(d){ return {id: d.id, matched: false}; }),
       found: [], scores: seatArray(0), turn: 0, won: false,
       sides: [{last: null, open: false}, {last: null, open: false}],
@@ -2459,7 +2460,8 @@
                      : Math.max(90, pairs * 15);   /* 1:30 Easy, 2:30 Medium, 6:00 Hard */
     /* Hard alone is against the clock too: the same 6:00 a player gets at a table */
     /* a speedrun only ever counts up */
-    var speedrun = !!opts.speedrun && players === 1 && !extra;
+    var speedrun = (opts.speedrun !== undefined ? !!opts.speedrun : !!(state && state.speedrun)) &&
+                   players === 1 && !extra;
     var countdown = extra || (players >= 2 && timed) || (players === 1 && pairs === 24 && !speedrun);
     state = {pairs: pairs, players: players, keepTurn: keepTurn, deck: deck, found: [],
              scores: seatArray(0), turn: 0, won: false, timeout: null,
