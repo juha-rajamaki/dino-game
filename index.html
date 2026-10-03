@@ -467,13 +467,8 @@
   }
   .blast.two{animation-delay:.35s; border-color:rgba(255,120,40,.8)}
   @keyframes blast{from{transform:scale(1); opacity:1} to{transform:scale(60); opacity:0}}
-  /* today they are all fossils: grey stone, a bone-coloured ring, a little bone */
-  /* (period rings and dimming come later in the sheet, so these name the
-     period too to win over them) */
-  .map-pin[data-fossil="true"][data-period]{--ring:#CFC3A6; filter:grayscale(1) sepia(.25) brightness(.92) contrast(1.08);
-    transition:filter 1s, border-color 1s, opacity .3s, box-shadow .2s}
-  .map-pin[data-fossil="true"][data-period][data-dim="true"]{filter:grayscale(1) sepia(.25) brightness(.8)}
-  .map-pin[data-fossil="true"][data-period][data-picked="true"]{--ring:var(--amber); filter:grayscale(.85) sepia(.3) brightness(1)}
+  /* today they are all fossils, but each keeps its own picture and period
+     ring: only a little bone in the corner says so */
   .map-pin .bone{
     position:absolute; left:-1px; bottom:-1px; width:44%; height:44%; border-radius:50%;
     display:grid; place-items:center; background:#2A2620; border:1px solid #CFC3A6; color:#E8DFC8;
@@ -893,8 +888,14 @@
     -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px);
   }
   .start[hidden]{display:none}
+  .start-close{
+    position:absolute; top:10px; right:10px; width:36px; height:36px; border-radius:50%;
+    border:1px solid var(--edge); background:transparent; color:var(--bone-dim);
+    font-size:22px; line-height:1; cursor:pointer;
+  }
+  .start-close:hover,.start-close:focus-visible{color:var(--bone); border-color:var(--amber)}
   .start-card{
-    width:min(430px,100%); text-align:center;
+    position:relative; width:min(430px,100%); text-align:center;
     background:rgba(10,18,12,.92); border:1px solid var(--edge); border-radius:20px;
     padding:26px 22px 22px; box-shadow:0 30px 70px -24px #000;
     -webkit-backdrop-filter:blur(16px); backdrop-filter:blur(16px);
@@ -1058,6 +1059,7 @@
 
 <div class="start" id="start">
   <div class="start-card">
+    <button type="button" class="start-close" id="start-close" aria-label="Close, and look around first">&times;</button>
     <h1>Dinomemory</h1>
     <p class="lead">Turn over two cards. If they are the same dinosaur, you keep them.</p>
 
@@ -3013,7 +3015,7 @@
         p.pin.style.transitionDelay = Math.min(2.2, d / 500).toFixed(2) + "s";
         p.pin.dataset.extinct = "true";
       } else { p.pin.dataset.extinct = "false"; p.pin.style.transitionDelay = ""; }
-      /* once the land has come home to today, they are only bones */
+      /* once the land has come home to today, a bone marks them as fossils */
       p.pin.dataset.fossil = String(mv.stage === "today" && mv.anim === null);
     });
     /* where it hit, from the moment it lands and for ever after */
@@ -4542,7 +4544,7 @@
   document.getElementById("new-btn").addEventListener("click", openStart);
 
   albumBtn.addEventListener("click", function(){
-    if(state.mode === "album" && albumFromStart){ albumFromStart = false; openStart(); }
+    if(state.mode === "album" && albumFromStart) openStart();   /* shut again, it is still this album */
     else if(state.mode === "album") newGame();
     else openAlbum();
   });
@@ -4649,10 +4651,12 @@
   wirePick("start-speed", "speed", function(v){ startSpeed = v; });
 
   /* Coming back to it keeps whatever was last played selected. */
+  var startWasRunning = false;   /* a game paused by opening this, picked up again if it is shut */
   function openStart(){
     closeViewer();
     closeMap();
     stopSpeech();
+    startWasRunning = !!(state && state.running);
     stopClock();
     /* an album's state holds defaults, not choices: leave the card as it was */
     if(state && state.mode !== "album"){
@@ -4679,6 +4683,27 @@
     showRows();
     startOverlay.hidden = false;
   }
+  /* Shut without starting: the cards already dealt are still there to play,
+     and the bar - all the cards, the map - is free to look through first. */
+  function closeStart(){
+    if(startOverlay.hidden) return;
+    startOverlay.hidden = true;
+    jungleStart();
+    if(startWasRunning && state.mode !== "album" && !state.won) startClock();
+    startWasRunning = false;
+    document.getElementById("new-btn").focus({preventScroll: true});
+  }
+  document.getElementById("start-close").addEventListener("click", closeStart);
+  /* only a press that began on the backdrop: a drag out of the card is not a close */
+  var startPress = null;
+  startOverlay.addEventListener("pointerdown", function(event){ startPress = event.target; });
+  startOverlay.addEventListener("click", function(event){
+    if(event.target === startOverlay && startPress === startOverlay) closeStart();
+  });
+  document.addEventListener("keydown", function(event){
+    if(event.defaultPrevented || startOverlay.hidden || !mapEl.hidden || !viewer.hidden) return;
+    if(event.key === "Escape"){ event.preventDefault(); closeStart(); }
+  });
 
   /* Before a game: the album opens over the forest, and the map over the start
      card itself, so closing the map lands back here. */
@@ -4695,6 +4720,7 @@
   document.getElementById("start-btn").addEventListener("click", function(){
     startOverlay.hidden = true;
     albumFromStart = false;
+    startWasRunning = false;
     jungleStart();
     newGame({pairs: startPairs, players: startPlayers,
              keepTurn: startKeep === 1, timed: startTimed === 1,
