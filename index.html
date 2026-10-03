@@ -618,6 +618,7 @@
   .map-link svg{width:13px; height:13px}
   .album-map{display:flex; align-items:center; gap:7px}
   .album-map svg{width:17px; height:17px}
+  .album-map[hidden]{display:none}
 
   @media (max-width:700px), (orientation:portrait) and (max-width:980px){
     .map{--pin:40px}
@@ -923,6 +924,9 @@
   .start .seg button.extra[aria-checked="true"] .sure{visibility:visible}
   .start .seg button small{font-size:10.5px; opacity:.75; font-family:"Nunito",sans-serif; font-weight:700}
   .start .go{width:100%; margin-top:10px; font-size:19px; padding:14px}
+  /* a look around before playing: every card, and the world they lived in */
+  .start-look{display:flex; gap:8px; margin-top:10px}
+  .start-look .btn{flex:1; justify-content:center}
 
   /* ---------- phones and small tablets ---------- */
   .menu-btn{display:none}
@@ -953,6 +957,7 @@
     body[data-menu="open"] .bar > .seg,
     body[data-menu="open"] .bar > .btn:not(.menu-btn):not(.cards-tab){display:flex; justify-content:center}
     body[data-menu="open"] .bar > .cards-tab{display:none}
+    .bar > .btn[hidden]{display:none !important}
     body[data-menu="open"] .spacer{display:none}
 
     /* the card slides up over the board instead of sitting under it */
@@ -1101,6 +1106,10 @@
     </div>
 
     <button type="button" class="btn go" id="start-btn">Start</button>
+    <div class="start-look">
+      <button type="button" class="btn quiet" id="start-album">All cards</button>
+      <button type="button" class="btn quiet album-map" id="start-map" aria-label="Where they lived: the map">Map</button>
+    </div>
   </div>
 </div>
 
@@ -1111,6 +1120,7 @@
     <div class="spacer"></div>
     <div class="score" id="score"></div>
     <button type="button" class="btn quiet" id="album-btn" aria-pressed="false">All cards</button>
+    <button type="button" class="btn quiet album-map" id="map-btn" aria-label="Where they lived: the map">Map</button>
     <button type="button" class="btn quiet" id="full-btn" hidden>Fullscreen</button>
     <button type="button" class="btn quiet toggle" id="jungle-btn" aria-pressed="true">Jungle</button>
     <button type="button" class="btn quiet toggle" id="sound-btn" aria-pressed="true">Sound</button>
@@ -1655,6 +1665,8 @@
   var live = document.getElementById("live");
   var soundBtn = document.getElementById("sound-btn");
   var albumBtn = document.getElementById("album-btn");
+  var barMapBtn = document.getElementById("map-btn");
+  var albumFromStart = false;   /* looked at before any game began: back goes to the start */
 
   var state = null, lock = false, flipHandle = null, tickHandle = null, timerValue = null;
   var turnBack = null;   /* sends a missed pair back down */
@@ -1850,6 +1862,179 @@
     }catch(e){}
   }
 
+  /* The asteroid, in two parts. While it falls, a roar of air that climbs and
+     thickens as it comes. When it lands: a crack that has no pitch, a boom that
+     drops out of hearing into the floor, a body of churned earth, then a long
+     rumble with stones still coming down, all in a big open space. Everything
+     runs through one bus, so leaving the asteroid fades the lot. */
+  var quakeBuf = null, quakeHall = null, quakeBus = null;
+  function quakeReady(){
+    if(!audio) audio = new (window.AudioContext || window.webkitAudioContext)();
+    if(audio.state === "suspended") audio.resume();
+    var sr = audio.sampleRate;
+    if(!quakeBuf){
+      /* brown noise: white noise run through a leaky sum, all weight and no hiss */
+      var len = Math.floor(sr * 7), last = 0;
+      quakeBuf = audio.createBuffer(2, len, sr);
+      for(var ch = 0; ch < 2; ch++){
+        var d = quakeBuf.getChannelData(ch); last = 0;
+        for(var i = 0; i < len; i++){
+          last = (last + 0.02 * (Math.random() * 2 - 1)) / 1.02;
+          d[i] = last * 3.5;
+        }
+      }
+    }
+    if(!quakeHall){
+      /* a canyon of a room: four seconds of decaying noise, darker as it fades */
+      var hl = Math.floor(sr * 4);
+      quakeHall = audio.createBuffer(2, hl, sr);
+      for(var c = 0; c < 2; c++){
+        var h = quakeHall.getChannelData(c), lp = 0;
+        for(var j = 0; j < hl; j++){
+          var x = j / hl, k = 0.5 - 0.42 * x;
+          lp += k * ((Math.random() * 2 - 1) - lp);
+          h[j] = lp * Math.pow(1 - x, 3);
+        }
+      }
+    }
+  }
+  function quakeOut(){
+    /* each asteroid gets its own bus; the old one is let go */
+    var t = audio.currentTime;
+    var bus = audio.createGain();
+    bus.gain.value = 0.9;
+    var squash = audio.createDynamicsCompressor();
+    squash.threshold.value = -16; squash.knee.value = 8; squash.ratio.value = 6;
+    squash.attack.value = 0.004; squash.release.value = 0.35;
+    var hall = audio.createConvolver(), wet = audio.createGain(), dry = audio.createGain();
+    hall.buffer = quakeHall; wet.gain.value = 0.55; dry.gain.value = 0.85;
+    bus.connect(dry); bus.connect(hall); hall.connect(wet);
+    dry.connect(squash); wet.connect(squash); squash.connect(audio.destination);
+    quakeBus = {bus: bus, born: t};
+    return bus;
+  }
+  function noise(at, dur, rate){
+    var src = audio.createBufferSource();
+    src.buffer = quakeBuf;
+    src.playbackRate.value = rate || 1;
+    src.start(at, Math.random() * 2, dur * (rate || 1));   /* dur in seconds heard */
+    return src;
+  }
+  function quakeStop(){
+    if(!quakeBus || !audio) return;
+    var g = quakeBus.bus.gain, t = audio.currentTime;
+    g.cancelScheduledValues(t);
+    g.setValueAtTime(g.value, t);
+    g.linearRampToValueAtTime(0, t + 0.6);
+    var bus = quakeBus.bus;
+    setTimeout(function(){ try{ bus.disconnect(); }catch(e){} }, 700);
+    quakeBus = null;
+  }
+  /* the fall: `dur` seconds of rushing air, louder and brighter as it nears */
+  function asteroidFall(dur){
+    if(!soundOn) return;
+    try{
+      quakeReady();
+      quakeStop();
+      var bus = quakeOut(), t0 = audio.currentTime;
+      var air = noise(t0, dur + 0.1, 1);
+      var bp = audio.createBiquadFilter();
+      bp.type = "bandpass"; bp.Q.value = 0.7;
+      bp.frequency.setValueAtTime(180, t0);
+      bp.frequency.exponentialRampToValueAtTime(1600, t0 + dur);
+      var g = audio.createGain();
+      g.gain.setValueAtTime(0.0001, t0);
+      g.gain.exponentialRampToValueAtTime(0.5, t0 + dur * 0.92);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur + 0.08);
+      air.connect(bp); bp.connect(g); g.connect(bus);
+      /* under the air, a low engine-like groan rising to meet the ground */
+      var groan = audio.createOscillator(), gg = audio.createGain(), gl = audio.createBiquadFilter();
+      groan.type = "sawtooth";
+      groan.frequency.setValueAtTime(38, t0);
+      groan.frequency.exponentialRampToValueAtTime(95, t0 + dur);
+      gl.type = "lowpass"; gl.frequency.value = 260;
+      gg.gain.setValueAtTime(0.0001, t0);
+      gg.gain.exponentialRampToValueAtTime(0.14, t0 + dur * 0.95);
+      gg.gain.exponentialRampToValueAtTime(0.0001, t0 + dur + 0.05);
+      groan.connect(gl); gl.connect(gg); gg.connect(bus);
+      groan.start(t0); groan.stop(t0 + dur + 0.1);
+    }catch(e){}
+  }
+  /* the landing */
+  function asteroidBoom(){
+    if(!soundOn) return;
+    try{
+      quakeReady();
+      var bus = quakeBus && audio.currentTime - quakeBus.born < 4 ? quakeBus.bus : quakeOut();
+      var t0 = audio.currentTime + 0.01;
+
+      /* the crack: a split second of everything at once */
+      var crack = noise(t0, 0.25, 4);
+      var hp = audio.createBiquadFilter();
+      hp.type = "highpass"; hp.frequency.value = 900;
+      var cg = audio.createGain();
+      cg.gain.setValueAtTime(0.0001, t0);
+      cg.gain.exponentialRampToValueAtTime(0.9, t0 + 0.004);
+      cg.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.22);
+      crack.connect(hp); hp.connect(cg); cg.connect(bus);
+
+      /* the boom: a sine that falls from a punch to below hearing */
+      [[1, 0.95], [1.5, 0.35]].forEach(function(p){
+        var o = audio.createOscillator(), og = audio.createGain();
+        o.type = "sine";
+        o.frequency.setValueAtTime(110 * p[0], t0);
+        o.frequency.exponentialRampToValueAtTime(42 * p[0], t0 + 0.25);
+        o.frequency.exponentialRampToValueAtTime(24 * p[0], t0 + 2.2);
+        og.gain.setValueAtTime(0.0001, t0);
+        og.gain.exponentialRampToValueAtTime(p[1], t0 + 0.012);
+        og.gain.exponentialRampToValueAtTime(p[1] * 0.4, t0 + 0.5);
+        og.gain.exponentialRampToValueAtTime(0.0001, t0 + 2.6);
+        o.connect(og); og.connect(bus);
+        o.start(t0); o.stop(t0 + 2.7);
+      });
+
+      /* the body: earth and water thrown up, a low roar that closes over */
+      var body = noise(t0, 2.4, 1);
+      var bl = audio.createBiquadFilter();
+      bl.type = "lowpass"; bl.Q.value = 0.9;
+      bl.frequency.setValueAtTime(3200, t0);
+      bl.frequency.exponentialRampToValueAtTime(140, t0 + 1.8);
+      var bg = audio.createGain();
+      bg.gain.setValueAtTime(0.0001, t0);
+      bg.gain.exponentialRampToValueAtTime(1.0, t0 + 0.02);
+      bg.gain.exponentialRampToValueAtTime(0.0001, t0 + 2.3);
+      body.connect(bl); bl.connect(bg); bg.connect(bus);
+
+      /* the rumble: the ground still shaking long after, in slow uneven waves */
+      var rum = noise(t0 + 0.15, 5.5, 0.6);
+      var rl = audio.createBiquadFilter();
+      rl.type = "lowpass"; rl.frequency.value = 120;
+      var shake = audio.createGain(), lfo = audio.createOscillator(), depth = audio.createGain();
+      lfo.frequency.value = 2.3; depth.gain.value = 0.35; shake.gain.value = 0.65;
+      lfo.connect(depth); depth.connect(shake.gain);
+      var rg = audio.createGain();
+      rg.gain.setValueAtTime(0.0001, t0 + 0.15);
+      rg.gain.exponentialRampToValueAtTime(0.9, t0 + 0.6);
+      rg.gain.setTargetAtTime(0.0001, t0 + 1.4, 1.3);
+      rum.connect(rl); rl.connect(shake); shake.connect(rg); rg.connect(bus);
+      lfo.start(t0); lfo.stop(t0 + 5.7);
+
+      /* debris: stones and spray coming back down, scattered, fewer as it goes */
+      for(var i = 0; i < 26; i++){
+        var at = t0 + 0.35 + Math.pow(Math.random(), 1.7) * 3.2;
+        var grain = noise(at, 0.08, 2 + Math.random() * 3);
+        var gf = audio.createBiquadFilter();
+        gf.type = "bandpass"; gf.Q.value = 2;
+        gf.frequency.value = 500 + Math.random() * 2200;
+        var gn = audio.createGain(), lv = 0.05 + Math.random() * 0.12 * (1 - (at - t0) / 4);
+        gn.gain.setValueAtTime(0.0001, at);
+        gn.gain.exponentialRampToValueAtTime(Math.max(0.01, lv), at + 0.003);
+        gn.gain.exponentialRampToValueAtTime(0.0001, at + 0.07);
+        grain.connect(gf); gf.connect(gn); gn.connect(bus);
+      }
+    }catch(e){}
+  }
+
   var sfx = {
     hover: rustle,
     flip:  flipSound,
@@ -1876,7 +2061,7 @@
     soundOn = !soundOn;
     soundBtn.setAttribute("aria-pressed", String(soundOn));
     soundBtn.setAttribute("aria-label", soundOn ? "Sounds on" : "Sounds off");
-    if(!soundOn){ stopSpeech(); stopTurn(); }
+    if(!soundOn){ stopSpeech(); stopTurn(); quakeStop(); }
   });
 
   /* ---------- the forest itself: a looping ambience of birds and insects ---------- */
@@ -2659,6 +2844,7 @@
   /* ---------- the asteroid ---------- */
   function clearImpact(){
     mv.gen++;   /* a rock still falling from before lands nowhere */
+    quakeStop();
     mv.impact.forEach(function(h){ clearTimeout(h); });
     mv.impact = [];
     mapImpact.textContent = "";
@@ -2682,6 +2868,7 @@
       mapDust.style.setProperty("--x", c.x + "px");
       mapDust.style.setProperty("--y", c.y + "px");
       if(reduceMotion.matches){ land(c); return; }
+      asteroidFall(1.5);
       /* the streak: in from the top right, over a second and a half */
       var sx = mv.W + 60, sy = -60, dx = c.x - sx, dy = c.y - sy;
       var len = Math.sqrt(dx * dx + dy * dy), ang = Math.atan2(dy, dx);
@@ -2702,6 +2889,7 @@
     });
     function land(c){
       if(gen !== mv.gen || mapEl.hidden || mv.stage !== "asteroid") return;
+      asteroidBoom();
       if(!reduceMotion.matches){
         var flash = document.createElement("div");
         flash.className = "flash";
@@ -4140,7 +4328,8 @@
       seconds: 0, turns: 0, running: false
     };
     albumBtn.setAttribute("aria-pressed", "true");
-    albumBtn.textContent = "Back to game";
+    albumBtn.textContent = albumFromStart ? "Back to start" : "Back to game";
+    barMapBtn.hidden = true;   /* the album has its own, beside the count */
     renderBoard(); renderScore(); renderFacts(); renderBanner();
     live.textContent = "Looking at all " + SPECIES.length + " animals. Tap one to read about it.";
   }
@@ -4192,6 +4381,7 @@
     stopClock();
     albumBtn.setAttribute("aria-pressed", "false");
     albumBtn.textContent = "All cards";
+    barMapBtn.hidden = false;
     renderBoard(); renderScore(); renderFacts(); renderBanner();
     live.textContent = pairs + " pairs of cards. " + (players >= 2 ? "Player 1 starts." : "Find them all!");
     /* Said out loud, so the table knows who begins - and as the naming ends the
@@ -4352,9 +4542,13 @@
   document.getElementById("new-btn").addEventListener("click", openStart);
 
   albumBtn.addEventListener("click", function(){
-    if(state.mode === "album") newGame();
+    if(state.mode === "album" && albumFromStart){ albumFromStart = false; openStart(); }
+    else if(state.mode === "album") newGame();
     else openAlbum();
   });
+  /* the map is there mid-game too: closing it comes back to the cards as they lay */
+  barMapBtn.addEventListener("click", function(){ openMap(null, barMapBtn); });
+  barMapBtn.innerHTML = GLOBE + "Map";
 
   BOXES.forEach(function(box, i){
     box.close.addEventListener("click", function(){
@@ -4460,7 +4654,8 @@
     closeMap();
     stopSpeech();
     stopClock();
-    if(state){
+    /* an album's state holds defaults, not choices: leave the card as it was */
+    if(state && state.mode !== "album"){
       startPairs = state.pairs; startPlayers = state.players;
       startKeep = state.keepTurn === false ? 0 : 1;
       startTimed = state.timed === true ? 1 : 0;
@@ -4485,8 +4680,21 @@
     startOverlay.hidden = false;
   }
 
+  /* Before a game: the album opens over the forest, and the map over the start
+     card itself, so closing the map lands back here. */
+  document.getElementById("start-album").addEventListener("click", function(){
+    startOverlay.hidden = true;
+    jungleStart();
+    albumFromStart = true;
+    openAlbum();
+  });
+  var startMapBtn = document.getElementById("start-map");
+  startMapBtn.innerHTML = GLOBE + "Map";
+  startMapBtn.addEventListener("click", function(){ openMap(null, startMapBtn); });
+
   document.getElementById("start-btn").addEventListener("click", function(){
     startOverlay.hidden = true;
+    albumFromStart = false;
     jungleStart();
     newGame({pairs: startPairs, players: startPlayers,
              keepTurn: startKeep === 1, timed: startTimed === 1,
