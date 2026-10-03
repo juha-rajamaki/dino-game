@@ -426,7 +426,6 @@
   }
   .map-head h2 small{display:block; font-family:"Nunito",sans-serif; font-size:12px; font-weight:700; color:var(--bone-dim)}
   .map-head .seg button{padding:7px 14px}
-  .map-chips{display:flex; gap:6px}
   .map-chip{
     appearance:none; cursor:pointer; display:flex; align-items:center; gap:7px;
     font:600 14px "Fredoka",system-ui,sans-serif; padding:7px 13px; border-radius:999px;
@@ -615,7 +614,7 @@
     .map-head h2 small{display:none}
     .map-head .seg button{padding:6px 10px; font-size:14px}
     .map-chip{padding:6px 9px; font-size:13px; flex:none}
-    .map-stages{flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; flex:1 1 100%; min-width:0; order:1}
+    .map-stages{flex-wrap:nowrap; overflow-x:auto; scrollbar-width:none; flex:1 1 100%; min-width:0; order:1; padding:4px 2px}
     .map-run{order:-1}
     .map-stages::-webkit-scrollbar{display:none}
     .map-chip small{display:none}
@@ -2389,8 +2388,9 @@
   }
 
   /* The turn of a plate t million years ago, the way tools/paleomap.py
-     draws the land (rotation_at there): from today to 70 about one axis, then
-     on to 150 about another, so the pins ride exactly with the land. */
+     draws the land (rotation_at there): from today to 70 about one axis, on
+     to 150 about another and to 220 about a third, so the pins ride exactly
+     with the land. */
   function mul(A, B){
     var C = [];
     for(var r = 0; r < 3; r++) for(var c = 0; c < 3; c++)
@@ -2544,8 +2544,8 @@
   }
 
   /* The world every five million years, from tools/paleomap.py --drift. They
-     are only seen while the land moves, so they are small, and fetched as soon
-     as the map opens so they are there when they are wanted. */
+     are only seen while the land moves, so they are small, and fetched the
+     first time a stage is chosen, so a map only looked at costs nothing. */
   var driftCanvas = document.getElementById("map-drift"), driftCtx = driftCanvas.getContext("2d");
   var driftFrames = null;
   function loadDrift(){
@@ -2851,7 +2851,11 @@
 
   function paintChips(){
     Array.prototype.forEach.call(mapStages.querySelectorAll(".map-chip"), function(chip){
-      chip.setAttribute("aria-pressed", String(chip.dataset.stage === mv.stage));
+      var on = chip.dataset.stage === mv.stage;
+      chip.setAttribute("aria-pressed", String(on));
+      /* on a phone the stages scroll: keep the one on show in sight */
+      if(on && !mapEl.hidden && mapStages.scrollWidth > mapStages.clientWidth)
+        mapStages.scrollTo({left: chip.offsetLeft - (mapStages.clientWidth - chip.offsetWidth) / 2, behavior: reduceMotion.matches ? "auto" : "smooth"});
     });
     mapRun.dataset.on = String(!!mv.run);
     mapRun.innerHTML = mv.run ? "&#9632; Stop the story" : "&#9654; Whole story";
@@ -2974,7 +2978,8 @@
      the last one is heard to the end */
   function tellStory(keys, done){
     keys = keys.slice();
-    storyGoesOn = true; stopSpeech(); storyGoesOn = false;
+    storyGoesOn = true;
+    try{ stopSpeech(); } finally { storyGoesOn = false; }
     stopName();
     stopTurn();
     if(!soundOn){
@@ -2990,7 +2995,11 @@
       speakingSide = 4; speakingId = "story";
       function finished(){
         if(keys.length){ speech = null; voiceNow = null; next(); }
-        else { storyGoesOn = true; stopSpeech(); storyGoesOn = false; if(done) done(); }
+        else {
+          storyGoesOn = true;
+          try{ stopSpeech(); } finally { storyGoesOn = false; }
+          if(done) done();
+        }
       }
       clip.addEventListener("ended", function(){ if(speech === clip) finished(); });
       function fallback(){
@@ -3004,7 +3013,7 @@
           voiceNow = u;
           speechSynthesis.speak(u);
           speakingSide = 4; playing();
-        }catch(e){ stopSpeech(); }
+        }catch(e){ finished(); }
       }
       clip.addEventListener("error", fallback);
       clip.play().then(function(){ if(speech === clip){ speakingSide = 4; playing(); } }).catch(fallback);
@@ -3013,7 +3022,7 @@
   }
   storyBtn.addEventListener("click", function(event){
     event.stopPropagation();
-    if(storyBtn.dataset.playing === "true"){ stopSpeech(); stopRun(); return; }
+    if(storyBtn.dataset.playing === "true" || mv.run){ stopSpeech(); stopRun(); return; }
     tellStory(stageById(mv.stage).say);
   });
 
@@ -3129,7 +3138,6 @@
     if(!mapPinsEl.childNodes.length) makePins();
     mapEl.hidden = false;
     measure();
-    loadDrift();
     var dino = id ? byId(id) : null;
     /* back then, a card from the other age opens on its own world */
     if(dino && mv.then && mv.period !== dino.period) setStage(stageOf(dino));
