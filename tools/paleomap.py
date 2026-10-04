@@ -1,5 +1,8 @@
 """Builds the two "Back then" maps from today's NASA terrain.
 
+Today's ice on Antarctica and Greenland is painted green first, as the forest
+that grew there before the ice sheets came (see ICE_SINCE).
+
 Every piece of land in img/map/earth.webp is given to one of a handful of
 plates, and each plate is turned, as one solid piece, to roughly where it sat
 150 and 70 million years ago. Neighbouring coasts are fitted back together the
@@ -147,6 +150,46 @@ def plate_of(lat, lon):
     return lab
 
 
+# Ice came late. 66 million years ago and before, the world was far warmer and
+# there were no ice sheets: Antarctica and Greenland were green with forest.
+# Antarctica's ice sheet grew about 34 million years ago, Greenland's only
+# about 3 million years ago, so the in-between worlds put the ice back then.
+ICE_SINCE = {"antarctica": 34, "greenland": 3, "arctic": 3, "patagonia": 7}
+FOREST_DARK = np.array([26, 50, 26], float)
+FOREST_LIGHT = np.array([92, 116, 62], float)
+
+
+def ice_areas(lat, lon):
+    """where today's ice sheets lie: all of Antarctica, and Greenland"""
+    greenland = (lat > 59) & (lat < 84) & (lon > -75) & (lon < -10)
+    return {"antarctica": lat < -60,
+            "greenland": greenland,
+            "arctic": (lat > 60) & ~greenland,              # the ice caps on the islands of the far north
+            "patagonia": (lat < -40) & (lat >= -60)}        # the ice fields at the tip of South America
+
+
+def green_ice(src, lat, lon, land, t):
+    """today's ice painted over as the forest that grew there t million years ago:
+    the ice's own light and shade kept, so its mountains and valleys still show"""
+    out = src.astype(float).copy()
+    lum = out.mean(-1) / 255.0
+    sat = out.max(-1) - out.min(-1)
+    # forest is never one flat colour: a soft mottle of darker and lighter woods
+    rng = np.random.default_rng(66)
+    h, w = lum.shape
+    mottle = sum(np.array(Image.fromarray((rng.random((h // f + 1, w // f + 1)) * 255).astype(np.uint8))
+                          .resize((w, h), Image.BICUBIC)) / 255.0 * wgt for f, wgt in ((64, .5), (16, .3), (4, .2)))
+    for name, where in ice_areas(lat, lon).items():
+        if t < ICE_SINCE[name]:
+            continue
+        icy = where & land & (lum > 0.45) & (sat < 60)
+        if name == "antarctica":
+            icy = where & land     # bare rock there was forest too
+        k = (((lum - 0.55) / 0.45).clip(0, 1) * 0.55 + mottle * 0.45)[..., None]
+        out[icy] = (FOREST_DARK + (FOREST_LIGHT - FOREST_DARK) * k)[icy]
+    return out.clip(0, 255).astype(np.uint8)
+
+
 OCEAN = np.array([14, 24, 58], float)
 SHALLOW = np.array([40, 104, 136], float)
 
@@ -212,11 +255,11 @@ def main():
         sland = ~((b > r + 18) & (b > g + 6))
         os.makedirs(os.path.join(ROOT, "img/map/drift"), exist_ok=True)
         for t in range(0, 221, 5):
-            Image.fromarray(build(t, small, slabels, sland, 1024, 512)).save(
+            Image.fromarray(build(t, green_ice(small, SL, SO, sland, t), slabels, sland, 1024, 512)).save(
                 os.path.join(ROOT, "img/map/drift/%03d.webp" % t), quality=72, method=6)
     else:
         for age in AGES:
-            Image.fromarray(build(age, src, labels, land)).save(
+            Image.fromarray(build(age, green_ice(src, LAT, LON, land, age), labels, land)).save(
                 os.path.join(ROOT, "img/map/then-%d.webp" % age), quality=80, method=6)
     table = {name: {str(age): [round(float(x), 5) for x in rotations(age)[name].flatten()]
                     for age in (220, 150, 70)} for name in ORDER}
