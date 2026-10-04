@@ -451,6 +451,11 @@
     transition:opacity 3.5s ease;
   }
   .map-dust[data-on="true"]{opacity:1}
+  /* the sky glowing hot as what the blast threw up falls back through it */
+  .map-heat{
+    position:absolute; inset:0; z-index:1; pointer-events:none; opacity:0;
+    background:radial-gradient(circle at var(--x,50%) var(--y,50%), rgba(255,130,50,.38), rgba(220,80,25,.16) 50%, rgba(160,50,20,.08) 100%);
+  }
   .map-impact{position:absolute; inset:0; z-index:5; pointer-events:none; overflow:hidden}
   .meteor{
     position:absolute; left:0; top:0; width:14px; height:14px; margin:-7px 0 0 -7px; border-radius:50%;
@@ -467,6 +472,13 @@
   }
   .blast.two{animation-delay:.35s; border-color:rgba(255,120,40,.8)}
   @keyframes blast{from{transform:scale(1); opacity:1} to{transform:scale(60); opacity:0}}
+  /* the air pushed out by the blast: a grey wall of pressure rolling away
+     over the land, the front sharp and the air behind it hazy */
+  .shock{
+    position:absolute; left:0; top:0; width:100px; height:100px; margin:-50px 0 0 -50px; border-radius:50%; opacity:0;
+    background:radial-gradient(circle, rgba(120,118,114,0) 38%, rgba(120,118,114,.25) 54%, rgba(170,167,162,.75) 65%,
+      rgba(95,92,88,.55) 69%, rgba(90,88,84,0) 72%);
+  }
   /* what the blast threw up: hot rocks, glowing at the edges, and sparks */
   .rock{
     position:absolute; left:0; top:0; background:radial-gradient(circle at 35% 30%, #8A5A3A, #3B2416 70%);
@@ -484,6 +496,57 @@
     background:radial-gradient(circle, rgba(6,5,4,.82), rgba(14,11,9,.55) 42%, rgba(20,16,12,0) 70%);
   }
   .ember{position:absolute; left:0; top:0; border-radius:50%; background:#FFE2A0; box-shadow:0 0 6px 2px rgba(255,140,40,.9)}
+  /* the crater, seen from above: drawn once (see crater() in the script), and
+     a glow over its molten middle that breathes */
+  .crater-art{position:absolute; left:0; top:0}
+  .tsunami{position:absolute; left:0; top:0; pointer-events:none}
+  .melt{position:absolute; left:0; top:0; border-radius:50%;
+    background:radial-gradient(circle, rgba(255,214,120,.55), rgba(255,110,30,.3) 45%, rgba(200,50,10,0) 72%)}
+  /* the forests around it on fire, then burnt out to a black scar on the land.
+     Each fire: an orange glow on the ground, tongues of flame white-hot at the
+     root and red at the tips, each flickering to its own uneven beat, sparks
+     going up, and smoke rolling off and drifting away. */
+  .fire{position:absolute; left:0; top:0}
+  .fire u{position:absolute; left:-60%; bottom:-35%; width:220%; height:90%; border-radius:50%;
+    background:radial-gradient(ellipse, rgba(255,150,50,.55), rgba(255,80,20,.25) 45%, rgba(255,60,10,0) 72%);
+    animation:fire-glow 1.3s ease-in-out infinite alternate}
+  .fire i{position:absolute; bottom:0; border-radius:50% 50% 40% 40% / 75% 75% 25% 25%; transform-origin:50% 100%;
+    background:
+      radial-gradient(ellipse 40% 30% at 50% 88%, #FFFDF0, rgba(255,240,180,0) 100%),
+      linear-gradient(to top, #FFD86A 0, #FFA22E 25%, #FF6A1A 55%, rgba(205,40,10,.85) 80%, rgba(140,20,6,0) 100%);
+    animation:flame .9s ease-in-out infinite}
+  .fire i:nth-of-type(1){left:22%; width:56%; height:100%}
+  .fire i:nth-of-type(2){left:0; width:42%; height:72%; animation-duration:.73s; animation-delay:-.3s}
+  .fire i:nth-of-type(3){left:58%; width:40%; height:66%; animation-duration:.81s; animation-delay:-.55s}
+  .fire i:nth-of-type(4){left:34%; width:30%; height:84%; animation-duration:.61s; animation-delay:-.2s; opacity:.85}
+  .fire s{position:absolute; left:50%; bottom:30%; width:8%; height:8%; border-radius:50%; background:#FFE9A8;
+    box-shadow:0 0 2px 1px rgba(255,140,40,.9); opacity:0; animation:fire-spark 1.7s ease-out infinite}
+  .fire s + s{left:35%; animation-duration:2.1s; animation-delay:-.9s}
+  .fire b{position:absolute; left:-10%; bottom:110%; width:120%; height:120%; border-radius:50%; opacity:0;
+    background:radial-gradient(circle, rgba(6,5,4,.82), rgba(14,11,9,.55) 42%, rgba(20,16,12,0) 70%);   /* the crater's own black smoke */
+    animation:fire-smoke 5s ease-out infinite}
+  .fire b + b{animation-delay:-1.7s; left:-20%}
+  .fire b + b + b{animation-delay:-3.4s; left:0}
+  /* nothing flickers until the fire has caught */
+  .fire:not([data-lit]) *{animation-play-state:paused}
+  @keyframes flame{
+    0%{transform:scale(1,1) skewX(0)}
+    18%{transform:scale(.92,1.14) skewX(-6deg)}
+    37%{transform:scale(1.06,.9) skewX(3deg)}
+    55%{transform:scale(.88,1.22) skewX(7deg) translateX(4%)}
+    76%{transform:scale(1.04,.96) skewX(-3deg)}
+    100%{transform:scale(1,1) skewX(0)}}
+  @keyframes fire-glow{from{opacity:.7; transform:scale(1)} to{opacity:1; transform:scale(1.12)}}
+  @keyframes fire-spark{
+    0%{transform:translate(0,0); opacity:0}
+    10%{opacity:1}
+    100%{transform:translate(160%,-1500%); opacity:0}}
+  @keyframes fire-smoke{
+    0%{transform:translate(0,0) scale(.5); opacity:0}
+    12%{opacity:.8}
+    60%{opacity:.7}
+    100%{transform:translate(40%,-200%) scale(3); opacity:0}}
+  .scorch{position:absolute; left:0; top:0; border-radius:50%; background:radial-gradient(circle, rgba(18,12,8,.75), rgba(18,12,8,0) 70%)}
   /* today they are all fossils: grey stone, a bone-coloured ring, a little bone.
      They are that from the first moment of today, with no fade from colour. */
   /* (period rings and dimming come later in the sheet, so these name the
@@ -670,6 +733,7 @@
   @keyframes map-sheet-in{from{transform:translateY(40px); opacity:0} to{transform:none; opacity:1}}
   @media (prefers-reduced-motion: reduce){
     .map,.map-card,.map-lines .ring,.blast,.flash{animation:none}
+    .fire,.fire *{animation:none !important}
     .blast,.meteor,.meteor-tail{display:none}
     .map-dust{transition:none}
     .map-world img,.map-world canvas{transition:none}
@@ -1210,6 +1274,7 @@
         <g id="map-under"></g>
       </svg>
       <div class="map-dust" id="map-dust" aria-hidden="true"></div>
+      <div class="map-heat" id="map-heat" aria-hidden="true"></div>
       <div class="map-fallout" id="map-fallout" aria-hidden="true"></div>
       <div class="map-pins" id="map-pins"></div>
       <div class="map-impact" id="map-impact" aria-hidden="true"></div>
@@ -2555,7 +2620,7 @@
     "now": "Back to today! Since then, over millions and millions of years, the continents kept on drifting, about as fast as your fingernails grow. The Atlantic Ocean became wide, India crashed into Asia and pushed up the Himalayas, and Australia broke away from Antarctica. The animals in this game are only bones now, dug up from the places on this map.",
     "jurassic": "The Jurassic began about two hundred million years ago, and it lasted for more than fifty million years. The world was warm and damp, with no ice at the poles. Giant long-necked plant-eaters like Brachiosaurus and Diplodocus walked through forests of conifers, ferns and cycads. There was no grass, and not a single flower yet. Allosaurus was the top hunter, pterosaurs flew overhead, and the very first birds were just learning to fly.",
     "cretaceous": "The Cretaceous lasted for almost eighty million years. It was the time of Tyrannosaurus, Triceratops and Velociraptor, and of Spinosaurus, fishing in the rivers of Africa. The first flowers bloomed, and bees began to visit them. The seas were high and warm, full of mosasaurs, long-necked plesiosaurs and giant turtles. Dinosaurs lived on every continent, even near the South Pole.",
-    "asteroid": "Sixty-six million years ago, a giant rock from space, about ten kilometres wide, came racing towards the Earth. It crashed into the sea near Mexico, where the town of Chicxulub is today. The blast was stronger than every bomb ever made, all put together. Dust and smoke filled the sky and hid the sun, the world grew cold and dark, and plants stopped growing. The big dinosaurs, the pterosaurs and the great sea reptiles all died out. But some small animals survived: mammals, crocodiles, turtles, and little feathered dinosaurs. We call them birds.",
+    "asteroid": "Sixty-six million years ago, a giant rock from space, about ten kilometres wide, came racing towards the Earth. It crashed into the sea near Mexico, where the town of Chicxulub is today. The blast was stronger than every bomb ever made, all put together. A wall of air rushed out across the land, and the ground shook harder than any earthquake we have ever felt. The rock it hit melted, and the crater glowed like lava, until the sea came rushing back in and boiled into clouds of steam. A giant wave, as tall as a mountain, raced out across the oceans. Stones thrown up into space fell back down burning hot, so the whole sky glowed like an oven, and forests caught fire. Then dust and black smoke filled the sky and hid the sun, the world grew cold and dark, and plants stopped growing. The big dinosaurs, the pterosaurs and the great sea reptiles all died out. But some small animals survived: mammals, crocodiles, turtles, and a few small feathered dinosaurs. Those little dinosaurs never died out. They are the birds you see outside today.",
     "220": "Two hundred and twenty million years ago, in the Triassic, all the land on Earth was joined together in one giant supercontinent, called Pangaea, with one enormous ocean all around it. You could have walked from one side of the world to the other without ever crossing the sea. The middle of Pangaea was far from the ocean, hot and dry, with great deserts.",
     "triassic": "The Triassic is when the very first dinosaurs appeared. They were small and quick, running on two legs, and many animals around them were bigger: giant crocodile cousins, and the ancestors of mammals. The first pterosaurs took to the air, and ichthyosaurs swam in the sea. By the end of the Triassic, dinosaurs were spreading all over Pangaea."
   };
@@ -2565,11 +2630,12 @@
   var mapEl = document.getElementById("map"), mapStage = document.getElementById("map-stage");
   var mapFallout = document.getElementById("map-fallout");
   var mapWorld = document.getElementById("map-world"), mapPinsEl = document.getElementById("map-pins");
+  var mapLinesEl = document.getElementById("map-lines");
   var mapUnder = document.getElementById("map-under"), mapCaption = document.getElementById("map-caption");
   var mapCard = document.getElementById("map-card"), mapLegend = document.getElementById("map-legend");
   var mapClose = document.getElementById("map-close"), mapStages = document.getElementById("map-stages");
   var mapRun = document.getElementById("map-run"), mapLive = document.getElementById("map-live");
-  var mapDust = document.getElementById("map-dust"), mapImpact = document.getElementById("map-impact");
+  var mapHeat = document.getElementById("map-heat"), mapDust = document.getElementById("map-dust"), mapImpact = document.getElementById("map-impact");
   var mapImgs = {now: document.getElementById("map-now"), 220: document.getElementById("map-then-220"),
                  150: document.getElementById("map-then-150"),
                  70: document.getElementById("map-then-70"), 66: document.getElementById("map-then-66")};
@@ -2603,7 +2669,7 @@
      the moment the asteroid lands until the world moves on. */
   var mv = {stage: "today", age: 0, anim: null, then: false, period: "", picked: null, extinct: false,
             s: 1, tx: 0, ty: 0, W: 0, H: 0, from: null, fly: null, frame: 0, drift: null, run: null,
-            impact: [], gen: 0, pins: {}, pin: 48, loaded: false, told: false};
+            impact: [], fx: [], gen: 0, craterR: 0, pins: {}, pin: 48, loaded: false, told: false};
 
   function stageById(id){ for(var i = 0; i < STAGES.length; i++) if(STAGES[i].id === id) return STAGES[i]; return null; }
   function ageOf(dino){ return dino.period === "Triassic" ? 220 : dino.period === "Jurassic" ? 150 : 70; }
@@ -2871,8 +2937,10 @@
   /* ---------- the asteroid ---------- */
   function clearImpact(keepFallout){
     mv.gen++;   /* a rock still falling from before lands nowhere */
-    if(!keepFallout) mapFallout.textContent = "";
+    if(!keepFallout){ mapFallout.textContent = ""; mv.craterR = 0; }
     quakeStop();
+    mv.fx.forEach(function(a){ a.cancel(); });
+    mv.fx = [];
     mv.impact.forEach(function(h){ clearTimeout(h); });
     mv.impact = [];
     mapImpact.textContent = "";
@@ -2930,12 +2998,41 @@
           mapImpact.appendChild(ring);
         });
         debris(c);
+        shockwave(c);
+        heat(c);
+        whenMap66(tsunami);
       }
       smoke(c);
+      crater(c);
+      fires(c);
       mapDust.dataset.on = "true";
       mv.extinct = true;
       drawMap();
-      later(3200, function(){ mapImpact.textContent = ""; });
+      later(3800, function(){ mapImpact.textContent = ""; });
+    }
+    /* The pressure wave: grey air pushed out from the crater, rolling over
+       everything, and the whole map shaking as it goes, hardest at first. */
+    function shockwave(c){
+      if(!document.body.animate) return;
+      var far = 2.6 * Math.max(mv.W, mv.H) / 100;   /* past every edge of the map */
+      [0, 450].forEach(function(after, n){
+        var wave = document.createElement("div");
+        wave.className = "shock";
+        wave.style.left = c.x + "px"; wave.style.top = c.y + "px";
+        mapImpact.appendChild(wave);
+        wave.animate([{transform: "scale(.3)", opacity: n ? .5 : .95}, {opacity: n ? .4 : .8, offset: .35}, {transform: "scale(" + far + ")", opacity: 0}],
+                     {duration: 3000, delay: 200 + after, easing: "cubic-bezier(.2,.65,.35,1)", fill: "both"});
+      });
+      /* the layers shake, not the stage: its own box stays put, so a pinch or
+         the wheel still aims true. `translate` leaves their pan and zoom alone. */
+      var shake = [], n = 26;
+      for(var i = 0; i <= n; i++){
+        var k = i / n, amp = i === n ? 0 : 11 * Math.pow(1 - k, 1.6);
+        shake.push({translate: ((Math.random() * 2 - 1) * amp).toFixed(1) + "px " + ((Math.random() * 2 - 1) * amp).toFixed(1) + "px"});
+      }
+      [mapWorld, mapFallout, mapLinesEl, mapPinsEl, mapImpact].forEach(function(layer){
+        mv.fx.push(layer.animate(shake, {duration: 2400, delay: 180, easing: "linear"}));
+      });
     }
     function toWorld(x, y){ return {x: (x - mv.tx) / mv.s, y: (y - mv.ty) / mv.s}; }
     /* Black smoke over the crater: a heap of soft puffs, each rolling on its
@@ -2966,6 +3063,220 @@
         cloud.animate([{transform: "scale(.08)", opacity: 0}, {opacity: 1, offset: 0.04}, {transform: "scale(1)", opacity: 1}],
                       {duration: 45000, easing: "cubic-bezier(.2,.6,.3,1)", fill: "forwards"});
       }
+    }
+    /* The crater as it was in the first hours, seen from above, the way the
+       big ones look on the Moon. Chicxulub is a "peak-ring" crater:
+       - round it, a blanket of thrown-out rock, streaked into rays;
+       - a raised rim, lit from the top left so it stands up;
+       - inner walls that slumped inwards in steps;
+       - a ring of mountains standing up inside;
+       - and in the middle, rock the blast melted, glowing through cracks in
+         its crust. That went on glowing for thousands of years, so it stays.
+       Drawn once at about the size of the crater ring; the map's pan and zoom
+       carry it from there. */
+    function crater(c){
+      var w = toWorld(c.x, c.y), R = Math.max(10, 7 * mv.s) / mv.s;   /* the rim, in world pixels */
+      var size = R * 2 * 100 / 48, id = "cr" + mv.gen, seed = 1 + Math.floor(Math.random() * 999);
+      mv.craterR = R;
+      function rnd(lo, hi){ return lo + Math.random() * (hi - lo); }
+      function f(n){ return n.toFixed(1); }
+      var rays = "", peaks = "", crust = "";
+      for(var i = 0; i < 26; i++){
+        var a = i / 26 * Math.PI * 2 + rnd(-.1, .1), wd = rnd(.03, .09), out = rnd(62, 99);
+        rays += '<path d="M' + f(Math.cos(a - wd) * 48) + ' ' + f(Math.sin(a - wd) * 48) +
+                ' L' + f(Math.cos(a) * out) + ' ' + f(Math.sin(a) * out) +
+                ' L' + f(Math.cos(a + wd) * 48) + ' ' + f(Math.sin(a + wd) * 48) + 'Z" opacity="' + rnd(.25, .6).toFixed(2) + '"/>';
+      }
+      for(var j = 0; j < 17; j++){
+        var b = j / 17 * Math.PI * 2 + rnd(-.12, .12), d = rnd(18, 23), x = Math.cos(b) * d, y = Math.sin(b) * d;
+        var rx = rnd(2, 4), ry = rnd(1.6, 3.2);
+        peaks += '<ellipse cx="' + f(x + 1) + '" cy="' + f(y + 1.2) + '" rx="' + f(rx) + '" ry="' + f(ry) + '" fill="#120A06" opacity=".55"/>' +
+                 '<ellipse cx="' + f(x) + '" cy="' + f(y) + '" rx="' + f(rx) + '" ry="' + f(ry) + '" fill="url(#' + id + 'p)"/>';
+      }
+      for(var k = 0; k < 16; k++){
+        var ca = rnd(0, Math.PI * 2), cd = k ? rnd(4, 15) : 0;
+        crust += '<ellipse cx="' + f(Math.cos(ca) * cd) + '" cy="' + f(Math.sin(ca) * cd) + '" rx="' + f(rnd(2.4, 4.4)) + '" ry="' + f(rnd(1.8, 3.4)) +
+                 '" transform="rotate(' + Math.round(rnd(0, 180)) + ' ' + f(Math.cos(ca) * cd) + ' ' + f(Math.sin(ca) * cd) + ')"/>';
+      }
+      /* drawn once into a picture: rough edges are slow to work out, and a
+         picture costs nothing to pan and zoom */
+      var art = document.createElement("canvas"), px = 512;
+      art.className = "crater-art";
+      art.width = art.height = px;
+      art.style.width = art.style.height = size + "px";
+      art.style.left = (w.x - size / 2) + "px"; art.style.top = (w.y - size / 2) + "px";
+      var head = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="-100 -100 200 200" width="' + px + '" height="' + px + '">' +
+        '<defs>' +
+          /* rough edges: nothing a rock did is a clean circle */
+          '<filter id="' + id + 'r" x="-25%" y="-25%" width="150%" height="150%"><feTurbulence type="fractalNoise" baseFrequency=".05" numOctaves="3" seed="' + seed + '"/>' +
+            '<feDisplacementMap in="SourceGraphic" scale="5" xChannelSelector="R" yChannelSelector="G"/></filter>' +
+          '<filter id="' + id + 'f" x="-25%" y="-25%" width="150%" height="150%"><feTurbulence type="fractalNoise" baseFrequency=".16" numOctaves="2" seed="' + (seed + 7) + '"/>' +
+            '<feDisplacementMap in="SourceGraphic" scale="4" xChannelSelector="R" yChannelSelector="G"/></filter>' +
+          '<radialGradient id="' + id + 'e"><stop offset=".46" stop-color="#5E4634" stop-opacity=".9"/><stop offset=".7" stop-color="#4A3628" stop-opacity=".5"/>' +
+            '<stop offset="1" stop-color="#3A2A20" stop-opacity="0"/></radialGradient>' +
+          /* the light comes from the top left: what faces it is pale, what faces away is dark */
+          '<linearGradient id="' + id + 'l" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#E2C49A"/><stop offset=".5" stop-color="#94704F"/><stop offset="1" stop-color="#2E1E14"/></linearGradient>' +
+          '<linearGradient id="' + id + 'w" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#140C08"/><stop offset=".55" stop-color="#3A2619"/><stop offset="1" stop-color="#86603F"/></linearGradient>' +
+          '<linearGradient id="' + id + 'p" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#A88664"/><stop offset=".55" stop-color="#5C4330"/><stop offset="1" stop-color="#24170F"/></linearGradient>' +
+          '<radialGradient id="' + id + 'm"><stop offset="0" stop-color="#FFF4C0"/><stop offset=".3" stop-color="#FFB83C"/><stop offset=".62" stop-color="#F0601A"/>' +
+            '<stop offset=".88" stop-color="#8E260B"/><stop offset="1" stop-color="#3A160A"/></radialGradient>' +
+        '</defs>';
+      var svg = head +
+        '<circle r="98" fill="url(#' + id + 'e)" filter="url(#' + id + 'r)"/>' +
+        '<g fill="#2E2018" filter="url(#' + id + 'f)">' + rays + '</g>' +
+        '<circle r="54" fill="none" stroke="#1A120C" stroke-opacity=".45" stroke-width="6" filter="url(#' + id + 'r)"/>' +
+        '<circle r="50" fill="none" stroke="url(#' + id + 'l)" stroke-width="8" stroke-opacity=".85" filter="url(#' + id + 'f)"/>' +
+        '<circle r="46" fill="url(#' + id + 'w)" filter="url(#' + id + 'r)"/>' +
+        /* the walls slumped in, in steps: each step a dark drop with a pale lip */
+        '<g fill="none" filter="url(#' + id + 'f)">' +
+          '<circle r="40" stroke="#0E0805" stroke-opacity=".45" stroke-width="2"/><circle cx="-.7" cy="-.7" r="41" stroke="#D9B98E" stroke-opacity=".3" stroke-width="1"/>' +
+          '<circle r="33" stroke="#0E0805" stroke-opacity=".45" stroke-width="2"/><circle cx="-.7" cy="-.7" r="34" stroke="#D9B98E" stroke-opacity=".25" stroke-width="1"/>' +
+        '</g>' +
+        '<circle r="29" fill="url(#' + id + 'm)" filter="url(#' + id + 'r)"/>' +
+        /* the crust on the melt, dark plates with the glow in the seams between */
+        '<g fill="#2A140B" opacity=".6" filter="url(#' + id + 'f)">' + crust + '</g>' +
+        '<g filter="url(#' + id + 'f)">' + peaks + '</g></svg>';
+      var glow = document.createElement("div"), gs = R * 1.5;
+      glow.className = "melt";
+      glow.style.width = glow.style.height = gs + "px";
+      glow.style.left = (w.x - gs / 2) + "px"; glow.style.top = (w.y - gs / 2) + "px";
+      mapFallout.appendChild(art);
+      mapFallout.appendChild(glow);
+      var pic = new Image();
+      pic.onload = function(){ if(art.isConnected) art.getContext("2d").drawImage(pic, 0, 0, px, px); };
+      pic.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+      if(reduceMotion.matches || !art.animate) return;
+      /* it opens out from where the rock went in */
+      art.animate([{transform: "scale(.25)", opacity: 0}, {transform: "scale(1)", opacity: 1}],
+                  {duration: 2500, easing: "cubic-bezier(.15,.7,.3,1)"});
+      glow.animate([{opacity: 0}, {opacity: 1}], {duration: 2500});
+      /* the melt glows brighter and dimmer, slowly, for as long as the map is on the asteroid */
+      glow.animate([{opacity: 1}, {opacity: .45}],
+                   {duration: 1900, iterations: Infinity, direction: "alternate", easing: "ease-in-out", delay: 2500});
+    }
+    /* The tsunami: the sea thrown out of the crater comes back as a wave
+       taller than a mountain, racing away over the oceans and dying down as it
+       spreads. Drawn only over the sea, and gone once it has passed. */
+    function tsunami(){
+      var land = landOf66();
+      if(!land || !document.body.animate) return;
+      var at = project(IMPACT), reach = 760, res = mv.W < 500 ? 224 : 384, scale = res / (reach * 2);
+      var mask = document.createElement("canvas"), cv = document.createElement("canvas");
+      mask.width = mask.height = cv.width = cv.height = res;
+      var mg = mask.getContext("2d"), md = mg.createImageData(res, res);
+      for(var y = 0; y < res; y++) for(var x = 0; x < res; x++){
+        var wx = at.x - reach + x / scale, wy = at.y - reach + y / scale;
+        var sea = wx >= 0 && wx < WORLD_W && wy >= 0 && wy < WORLD_H && !land(wx, wy);
+        md.data[(y * res + x) * 4 + 3] = sea ? 255 : 0;
+      }
+      mg.putImageData(md, 0, 0);
+      cv.className = "tsunami";
+      cv.style.width = cv.style.height = reach * 2 + "px";
+      cv.style.left = (at.x - reach) + "px"; cv.style.top = (at.y - reach) + "px";
+      mapFallout.appendChild(cv);
+      var g = cv.getContext("2d"), t0 = performance.now(), dur = 9000, c = res / 2;
+      (function roll(now){
+        if(gen !== mv.gen || !cv.isConnected){ cv.remove(); return; }
+        var k = Math.min(1, (now - t0) / dur);
+        if(k >= 1){ cv.remove(); return; }
+        var rad = 6 + (c - 6) * (1 - Math.pow(1 - k, 1.4)), band = 2 + rad * 0.055, fade = Math.pow(1 - k, 0.8);
+        g.clearRect(0, 0, res, res);
+        g.globalCompositeOperation = "source-over";
+        var grad = g.createRadialGradient(c, c, Math.max(0, rad - band * 1.4), c, c, rad + band * 0.5);
+        grad.addColorStop(0, "rgba(30,70,110,0)");
+        grad.addColorStop(0.5, "rgba(20,55,95," + (0.3 * fade).toFixed(3) + ")");     /* the trough behind */
+        grad.addColorStop(0.86, "rgba(170,215,240," + (0.85 * fade).toFixed(3) + ")"); /* the face */
+        grad.addColorStop(0.94, "rgba(245,252,255," + fade.toFixed(3) + ")");          /* the white crest */
+        grad.addColorStop(1, "rgba(245,252,255,0)");
+        g.fillStyle = grad;
+        g.beginPath(); g.arc(c, c, rad + band * 0.5, 0, Math.PI * 2); g.fill();
+        g.globalCompositeOperation = "destination-in";
+        g.drawImage(mask, 0, 0);
+        requestAnimationFrame(roll);
+      })(t0);
+    }
+    /* The sky glowing hot: what the blast threw out of the air came back down
+       all round the world, burning, for about an hour. Here, a few seconds. */
+    function heat(c){
+      mapHeat.style.setProperty("--x", c.x + "px");
+      mapHeat.style.setProperty("--y", c.y + "px");
+      if(!mapHeat.animate) return;
+      mv.fx.push(mapHeat.animate([{opacity: 0}, {opacity: .8, offset: .15}, {opacity: .6, offset: .55}, {opacity: 0}],
+                                 {duration: 7000, delay: 600, easing: "ease-in-out", fill: "backwards"}));
+    }
+    /* Fires: what the blast threw up came back down burning hot all over the
+       sky, and set the forests alight. Not in the crater itself, which is molten
+       rock: they start a little way off, are thick across the Americas and only
+       here and there on the rest of the world. They spread out from the crater,
+       smoke as they burn, burn out and leave the land black. */
+    function fires(){ whenMap66(spread); }
+    /* the old map may still be on its way: wait for it, so the sea can be told apart */
+    function whenMap66(fn){
+      var img = mapImgs[66];
+      if(img.getAttribute("src") && !img.complete){
+        img.addEventListener("load", function(){ if(gen === mv.gen) fn(); }, {once: true});
+        img.addEventListener("error", function(){ if(gen === mv.gen) fn(); }, {once: true});
+      } else fn();
+    }
+    function spread(){
+      var land = landOf66();
+      var at = project(IMPACT), many = mv.W < 500 ? 0.5 : 1, flames = [];
+      function add(near, far, count){
+        for(var tries = 0; tries < count * 12 && count > 0; tries++){
+          var a = Math.random() * Math.PI * 2, d = near + Math.sqrt(Math.random()) * (far - near);
+          var x = at.x + Math.cos(a) * d, y = at.y + Math.sin(a) * d * 0.8;
+          if(x < 0 || x >= WORLD_W || y < 0 || y >= WORLD_H || (land && !land(x, y))) continue;
+          flames.push({x: x, y: y, d: d}); count--;
+        }
+      }
+      if(!land) return;   /* not knowing where the sea is, no fires rather than fires on the water */
+      add(40, 260, 30 * many);    /* the Americas, away from the molten crater */
+      add(260, 1000, 14 * many);  /* far away, here and there */
+      var small = mv.W < 500, px = 1 / mv.s, still = reduceMotion.matches || !document.body.animate;
+      flames.forEach(function(f){
+        var size = (f.d < 260 ? 11 : 8) * px * (0.8 + Math.random() * 0.5);
+        var wait = still ? 0 : 400 + f.d * 9 + Math.random() * 900;   /* the nearer, the sooner */
+        var burn = 25000 + Math.random() * 30000;
+        var scar = document.createElement("div");
+        scar.className = "scorch";
+        scar.style.width = scar.style.height = size * 1.6 + "px";
+        scar.style.left = (f.x - size * 0.8) + "px"; scar.style.top = (f.y - size * 0.8) + "px";
+        var fire = document.createElement("div");
+        fire.className = "fire";
+        fire.innerHTML = small ? "<b></b><b></b><u></u><i></i><i></i><i></i><s></s>"   /* a phone: less of each */
+                              : "<b></b><b></b><b></b><u></u><i></i><i></i><i></i><i></i><s></s><s></s>";
+        fire.style.width = size + "px"; fire.style.height = size * 1.3 + "px";
+        fire.style.left = (f.x - size / 2) + "px"; fire.style.top = (f.y - size * 1.3) + "px";
+        mapFallout.appendChild(scar);
+        if(still) return;   /* no flickering: only the black land they left */
+        mapFallout.appendChild(fire);
+        scar.animate([{opacity: 0}, {opacity: 1}], {duration: 6000, delay: wait, fill: "backwards"});
+        var flame = fire.animate([{transform: "scale(0)", opacity: 0, offset: 0}, {transform: "scale(1)", opacity: 1, offset: 0.06},
+                      {transform: "scale(1)", opacity: 1, offset: 0.8}, {transform: "scale(.3)", opacity: 0, offset: 1}],
+                     {duration: burn, delay: wait, fill: "both", easing: "linear"});
+        fire.animate([{}, {}], {duration: 1, delay: wait}).onfinish = function(){ fire.dataset.lit = "true"; };
+        /* burnt out, it goes, so its flicker stops too */
+        flame.onfinish = function(){ fire.remove(); };
+      });
+    }
+    /* Which bits of the world 66 million years ago are land: the map's own
+       picture, read small, where the sea is the blue. Null if it can't be read. */
+    function landOf66(){
+      var img = mapImgs[66];
+      if(!img.complete || !img.naturalWidth) return null;
+      if(landOf66.src === img.currentSrc) return landOf66.fn;
+      try {
+        var cw = 512, ch = 256, cv = document.createElement("canvas");
+        cv.width = cw; cv.height = ch;
+        var g = cv.getContext("2d");
+        g.drawImage(img, 0, 0, cw, ch);
+        var px = g.getImageData(0, 0, cw, ch).data;
+        landOf66.src = img.currentSrc;
+        return landOf66.fn = function(x, y){
+          var i = (Math.floor(y / WORLD_H * ch) * cw + Math.floor(x / WORLD_W * cw)) * 4;
+          return !(px[i + 2] > px[i] + 25 && px[i + 2] >= px[i + 1]);
+        };
+      } catch(e){ return null; }
     }
     /* Rocks and sparks thrown out every way from where it hit. Seen from above,
        each one rises towards us as it flies (it grows), then falls back and
@@ -3125,8 +3436,10 @@
     });
     /* where it hit, from the moment it lands and for ever after */
     if((mv.stage === "asteroid" && mv.extinct) || (mv.stage === "today" && mv.told && mv.anim === null)){
-      mapUnder.appendChild(svgEl("circle", {"class": "crater", cx: craterX, cy: craterY, r: Math.max(10, 7 * mv.s)}));
-      var cl = svgEl("text", {"class": "site-name", x: craterX + Math.max(10, 7 * mv.s) + 6, y: craterY + 4});
+      /* on the asteroid the crater itself is there to see; today it lies buried, so a ring marks it */
+      var drawn = mv.stage === "asteroid" && mv.craterR, cr = drawn ? mv.craterR * mv.s * 1.25 : Math.max(10, 7 * mv.s);
+      if(!drawn) mapUnder.appendChild(svgEl("circle", {"class": "crater", cx: craterX, cy: craterY, r: cr}));
+      var cl = svgEl("text", {"class": "site-name", x: craterX + cr + 6, y: craterY + 4});
       cl.textContent = "Where the asteroid hit";
       mapUnder.appendChild(cl);
     }
@@ -3302,6 +3615,7 @@
 
   /* the stories said out loud, one after the other; done is called only if
      the last one is heard to the end */
+  var MAP_CLIP_VERSION = {asteroid: 2};
   function tellStory(keys, done){
     keys = keys.slice();
     storyGoesOn = true;
@@ -3311,12 +3625,13 @@
     if(!soundOn){
       /* nothing to hear, so a whole story reads the caption at its own pace */
       clearTimeout(tellStory.quiet);
-      if(done) tellStory.quiet = setTimeout(done, keys[0] === "asteroid" ? 9000 : 7000);
+      if(done) tellStory.quiet = setTimeout(done, keys[0] === "asteroid" ? 16000 : 7000);
       return;
     }
     function next(){
       var key = keys.shift();
-      var clip = new Audio("audio/map/" + key + ".mp3");
+      /* a clip recorded again gets a new version, so a browser that kept the old one fetches it afresh */
+      var clip = new Audio("audio/map/" + key + ".mp3" + (MAP_CLIP_VERSION[key] ? "?v=" + MAP_CLIP_VERSION[key] : ""));
       speech = clip;
       speakingSide = 4; speakingId = "story";
       function finished(){
