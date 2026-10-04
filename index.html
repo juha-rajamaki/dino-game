@@ -603,6 +603,30 @@
     transition:opacity .3s, border-color .2s, box-shadow .2s, filter .3s;
   }
   .map{--pin:48px}
+  /* The animals that lived through it, shown once the others have gone grey:
+     a green ring, a little drawing, and a line about how each made it. */
+  .survivor{
+    position:absolute; left:0; top:0; width:40px; height:40px; margin:-20px 0 0 -20px; padding:0;
+    border:0; background:none; cursor:pointer; pointer-events:auto; z-index:2;
+  }
+  .survivor[data-on="false"]{pointer-events:none; visibility:hidden}
+  .survivor > span{
+    display:grid; place-items:center; width:100%; height:100%; border-radius:50%;
+    background:#10261A; border:2.5px solid #7BD88F; color:#CFF5D6;
+    box-shadow:0 6px 14px -6px #000, 0 0 0 1px rgba(0,0,0,.5);
+  }
+  .survivor > span{overflow:hidden}
+  .survivor img{width:100%; height:100%; object-fit:cover; display:block; pointer-events:none}
+  .survivor:focus-visible > span, .survivor[aria-expanded="true"] > span{border-color:#B8F5C4; box-shadow:0 0 0 3px rgba(123,216,143,.45), 0 6px 14px -6px #000}
+  .survivor-tip{
+    position:absolute; left:0; top:0; width:min(270px, 72vw); z-index:3; pointer-events:none;
+    background:rgba(10,20,14,.95); border:1px solid #7BD88F; border-radius:12px; padding:9px 11px;
+    color:var(--bone); font:600 13.5px/1.35 "Nunito",sans-serif; box-shadow:0 10px 24px -10px #000;
+  }
+  .survivor-tip img{display:block; width:calc(100% + 22px); margin:-9px -11px 8px; border-radius:11px 11px 0 0; aspect-ratio:3/2; object-fit:cover}
+  .survivor-tip b{display:block; color:#9BE8AC; font:700 14.5px "Fredoka",sans-serif; margin-bottom:2px}
+  .survivor-tip[hidden]{display:none}
+  @media (max-height:520px){ .survivor-tip img{display:none} }   /* a phone on its side: the words fit, the picture does not */
   .map-pin[data-period="Triassic"]{--ring:var(--triassic)}
   .map-pin[data-period="Jurassic"]{--ring:var(--jurassic)}
   .map-pin[data-period="Cretaceous"]{--ring:var(--cretaceous)}
@@ -2719,7 +2743,7 @@
   var STORY = {
     "150": "One hundred and fifty million years ago, in the Jurassic, the continents were squeezed together into one giant piece. Watch the land move! North America was still joined to Europe and Africa, and the Atlantic Ocean was only a thin sea between them. Africa, South America, Antarctica, India and Australia were all one big land in the south.",
     "70": "Seventy million years ago, near the end of the Cretaceous, the giant land had broken into pieces, and they were slowly drifting apart. The Atlantic Ocean grew a little wider every year. India was an island, sailing north towards Asia. And a warm, shallow sea ran right through the middle of North America, cutting it in two.",
-    "now": "Back to today! Since then, over millions and millions of years, the continents kept on drifting, about as fast as your fingernails grow. The Atlantic Ocean became wide, India crashed into Asia and pushed up the Himalayas, and Australia broke away from Antarctica. Then a cold ocean current began to swirl all the way round Antarctica, the world slowly cooled, and about thirty-four million years ago its green forests disappeared under thick ice. Greenland froze much later, only about three million years ago. The animals in this game are only bones now, dug up from the places on this map.",
+    "now": "Back to today! Since then, over millions and millions of years, the continents kept on drifting, about as fast as your fingernails grow. The Atlantic Ocean became wide, India crashed into Asia and pushed up the Himalayas, and Australia broke away from Antarctica. When the dinosaurs lived, Antarctica was warm enough for forests, but now it was left all alone at the bottom of the world, right over the South Pole. Once South America had drifted away from it too, a cold ocean current began to swirl all the way round it and kept the warm water away. At the same time the air slowly lost some of the gas that keeps the Earth warm, so the whole world cooled. Snow that fell in winter stopped melting in summer, and piled up, year after year, until about thirty-four million years ago Antarctica\'s green forests disappeared under thick ice. Greenland froze much later, only about three million years ago. The animals in this game are only bones now, dug up from the places on this map.",
     "jurassic": "The Jurassic began about two hundred million years ago, and it lasted for more than fifty million years. The world was warm and damp, with no ice at the poles. Giant long-necked plant-eaters like Brachiosaurus and Diplodocus walked through forests of conifers, ferns and cycads. There was no grass, and not a single flower yet. Allosaurus was the top hunter, pterosaurs flew overhead, and the very first birds were just learning to fly.",
     "cretaceous": "The Cretaceous lasted for almost eighty million years. It was the time of Tyrannosaurus, Triceratops and Velociraptor, and of Spinosaurus, fishing in the rivers of Africa. The first flowers bloomed, and bees began to visit them. The seas were high and warm, full of mosasaurs, long-necked plesiosaurs and giant turtles. Dinosaurs lived on every continent, even near the South Pole.",
     "asteroid": "Sixty-six million years ago, a giant rock from space, about ten kilometres wide, came racing towards the Earth. It crashed into the sea near Mexico, where the town of Chicxulub is today. The blast was stronger than every bomb ever made, all put together. A wall of air rushed out across the land, and the ground shook harder than any earthquake we have ever felt. The rock it hit melted, and the crater glowed like lava, until the sea came rushing back in and boiled into clouds of steam. A giant wave, as tall as a mountain, raced out across the oceans. Stones thrown up into space fell back down burning hot, so the whole sky glowed like an oven, and forests caught fire. Then dust and black smoke filled the sky and hid the sun, the world grew cold and dark, and plants stopped growing. The big dinosaurs, the pterosaurs and the great sea reptiles all died out. But some small animals survived: mammals, crocodiles, turtles, and a few small feathered dinosaurs. Those little dinosaurs never died out. They are the birds you see outside today.",
@@ -2771,7 +2795,7 @@
      the moment the asteroid lands until the world moves on. */
   var mv = {stage: "today", age: 0, anim: null, then: false, period: "", picked: null, extinct: false,
             s: 1, tx: 0, ty: 0, W: 0, H: 0, from: null, fly: null, frame: 0, drift: null, run: null,
-            impact: [], fx: [], gen: 0, craterR: 0, pins: {}, pin: 48, loaded: false, told: false};
+            impact: [], fx: [], gen: 0, craterR: 0, revealed: {}, pins: {}, pin: 48, loaded: false, told: false};
 
   function stageById(id){ for(var i = 0; i < STAGES.length; i++) if(STAGES[i].id === id) return STAGES[i]; return null; }
   function ageOf(dino){ return dino.period === "Triassic" ? 220 : dino.period === "Jurassic" ? 150 : 70; }
@@ -2933,8 +2957,11 @@
     big.onload = function(){ mapImgs.now.src = big.src; };
     big.src = "img/map/earth.webp";
   }
+  /* the old maps are drawn again now and then (tools/paleomap.py); a new
+     number makes a browser that kept the old pictures fetch them afresh */
+  var OLD_MAPS_VERSION = 2;   /* 2: no ice on Antarctica and Greenland */
   function sharpWorld(age){
-    if(age && !mapImgs[age].getAttribute("src")) mapImgs[age].src = "img/map/then-" + age + ".webp";
+    if(age && !mapImgs[age].getAttribute("src")) mapImgs[age].src = "img/map/then-" + age + ".webp?v=" + OLD_MAPS_VERSION;
   }
   function showWorld(){
     var age = mv.age;
@@ -2958,7 +2985,7 @@
     for(var t = 0; t <= 220; t += 5){
       var im = new Image();
       im.decoding = "async";
-      im.src = "img/map/drift/" + ("00" + t).slice(-3) + ".webp";
+      im.src = "img/map/drift/" + ("00" + t).slice(-3) + ".webp?v=" + OLD_MAPS_VERSION;
       driftFrames[t] = im;
     }
   }
@@ -3336,12 +3363,16 @@
       cv.style.width = cv.style.height = reach * 2 + "px";
       cv.style.left = (at.x - reach) + "px"; cv.style.top = (at.y - reach) + "px";
       mapFallout.appendChild(cv);
-      var g = cv.getContext("2d"), t0 = performance.now(), dur = 9000, c = res / 2;
+      /* Slow, as a real one was (it took a day or two to cross the oceans): it
+         is still rolling out across the sea as the story of the asteroid ends. */
+      var g = cv.getContext("2d"), t0 = performance.now(), dur = 63000, c = res / 2, frame = 0;
       (function roll(now){
         if(gen !== mv.gen || !cv.isConnected){ cv.remove(); return; }
         var k = Math.min(1, (now - t0) / dur);
         if(k >= 1){ cv.remove(); return; }
-        var rad = 6 + (c - 6) * (1 - Math.pow(1 - k, 1.4)), band = 2 + rad * 0.055, fade = Math.pow(1 - k, 0.8);
+        if(res < 384 && frame++ % 2){ requestAnimationFrame(roll); return; }   /* a phone draws it every other frame */
+        /* fast out of the crater, then steady across the open sea; fading only near the end */
+        var rad = 6 + (c - 6) * (1 - Math.pow(1 - k, 1.6)), band = 2 + rad * 0.055, fade = Math.min(1, (1 - k) * 4) * (1 - k * 0.45);
         g.clearRect(0, 0, res, res);
         g.globalCompositeOperation = "source-over";
         var grad = g.createRadialGradient(c, c, Math.max(0, rad - band * 1.4), c, c, rad + band * 0.5);
@@ -3598,6 +3629,114 @@
     }
   }
 
+  /* The ones that lived through it. None of the animals in the game did, but
+     these kinds did: each is shown where fossils of its kind were found from
+     around that time. */
+  var SURVIVORS = [
+    {id: "turtle", name: "Turtles", site: ["Hell Creek, Montana", 47.9, -107.4, "na"],
+     text: "Turtles made it through. Many lived in rivers and lakes, where they could stay under the water or dig into the mud while the world above burned and froze."},
+    {id: "mammal", name: "Little mammals", site: ["Hell Creek, Montana", 46.9, -105.6, "na"],
+     text: "Small furry mammals such as Purgatorius, a tiny cousin of the first primates, hid in burrows and ate seeds and insects. One day their family would lead to monkeys, apes and us."},
+    {id: "croc", name: "Crocodiles", site: ["New Jersey", 39.8, -74.8, "na"],
+     text: "Crocodiles survived too. They can go a very long time without eating, and in the rivers there was still food to find when the plants stopped growing."},
+    {id: "bird", name: "Birds", site: ["Vega Island, Antarctica", -63.8, -57.3, "an"],
+     text: "Some small birds lived on, like the relatives of Vegavis, a duck-like bird found in Antarctica, where forests grew then. Birds are dinosaurs, so the dinosaurs never quite died out."}
+  ];
+  var survivorTip = null, survivorOpen = null;
+  function makeSurvivors(){
+    survivorTip = document.createElement("div");
+    survivorTip.className = "survivor-tip";
+    survivorTip.hidden = true;
+    survivorTip.id = "survivor-tip";
+    mapPinsEl.appendChild(survivorTip);
+    SURVIVORS.forEach(function(sv){
+      var b = document.createElement("button");
+      b.type = "button";
+      b.className = "survivor";
+      b.dataset.on = "false";
+      b.setAttribute("aria-label", sv.name + " survived. " + sv.text);
+      b.setAttribute("aria-expanded", "false");
+      b.setAttribute("aria-controls", "survivor-tip");
+      b.title = sv.name + " survived";
+      b.innerHTML = '<span><img alt="" src="img/survivors/' + sv.id + '-pin.webp"></span>';
+      b.addEventListener("click", function(){ openSurvivor(survivorOpen === sv.id ? null : sv.id); });
+      mapPinsEl.appendChild(b);
+      sv.el = b;
+    });
+    /* a tap anywhere else - the map, a pin, the bar - puts the note away */
+    document.addEventListener("pointerdown", function(event){
+      if(!survivorOpen) return;
+      var t = event.target;
+      if(t.closest && (t.closest(".survivor") || t.closest(".survivor-tip"))) return;
+      openSurvivor(null);
+    }, true);
+  }
+  function openSurvivor(id){
+    survivorOpen = id;
+    SURVIVORS.forEach(function(sv){ sv.el.setAttribute("aria-expanded", String(sv.id === id)); });
+    drawMap();
+  }
+  /* The asteroid's story names them - "mammals, crocodiles, turtles, and a few
+     small feathered dinosaurs" - and each comes up on the map as it is said:
+     seconds into audio/map/asteroid.mp3. Recording that clip again means
+     timing these again. */
+  var SURVIVOR_CUES = {mammal: 53.3, croc: 53.8, turtle: 54.45, bird: 56.0};
+  var SURVIVOR_WORDS = {mammal: "mammals,", croc: "crocodiles,", turtle: "turtles,", bird: "feathered dinosaurs"};   /* the same, for the browser's own voice */
+  function revealSurvivor(id, quiet){
+    if(mv.revealed[id]) return;
+    mv.revealed[id] = true;
+    if(!quiet && !mapEl.hidden) drawMap();
+  }
+  function revealSurvivors(){
+    SURVIVORS.forEach(function(sv){ revealSurvivor(sv.id, true); });
+    if(!mapEl.hidden) drawMap();   /* once, for all of them */
+  }
+  function allRevealed(){ return SURVIVORS.every(function(sv){ return mv.revealed[sv.id]; }); }
+  function survivorsShown(){ return !!survivorTip && mv.stage === "asteroid" && mv.extinct && mv.anim === null; }
+  /* placed with the pins (drawMap puts them where they stand); seen only on
+     the asteroid, once it has landed */
+  function placeSurvivors(){
+    if(!survivorTip) return;
+    var on = survivorsShown();
+    if(!on && survivorOpen) survivorOpen = null;
+    if(!on && document.activeElement && document.activeElement.classList.contains("survivor")) mapClose.focus();
+    var open = null;
+    SURVIVORS.forEach(function(sv){
+      var was = sv.el.dataset.on === "true", seen = on && !!mv.revealed[sv.id];
+      sv.el.dataset.on = String(seen);
+      sv.el.tabIndex = seen ? 0 : -1;
+      if(!seen){ if(survivorOpen === sv.id) survivorOpen = null; return; }
+      var c = sv.at;
+      if(!was && sv.el.animate && !reduceMotion.matches){
+        /* each pops up as the story names it */
+        sv.el.firstChild.animate([{transform: "scale(.3)", opacity: 0}, {transform: "scale(1.2)", opacity: 1, offset: .65}, {transform: "scale(1)", opacity: 1}],
+                                 {duration: 600, easing: "ease-out"});
+      }
+      if(sv.id === survivorOpen) open = {sv: sv, c: c};
+    });
+    survivorTip.hidden = !open;
+    if(!open){ delete survivorTip.dataset.for; return; }
+    if(survivorTip.dataset.for !== open.sv.id){   /* filled when it opens, not on every move of the map */
+      survivorTip.dataset.for = open.sv.id;
+      survivorTip.textContent = "";
+      var pic = document.createElement("img");
+      pic.alt = open.sv.name;
+      pic.src = "img/survivors/" + open.sv.id + ".webp";
+      pic.onload = pic.onerror = function(){ drawMap(); };   /* its size has changed: place it again */
+      survivorTip.appendChild(pic);
+      var head = document.createElement("b");
+      head.textContent = open.sv.name + " survived";
+      survivorTip.appendChild(head);
+      survivorTip.appendChild(document.createTextNode(open.sv.text));
+    }
+    /* beside the marker, kept inside the map */
+    var w = survivorTip.offsetWidth, h = survivorTip.offsetHeight;
+    /* below the story caption, above the row of continents */
+    var cap = mapCaption.hidden ? 0 : mapCaption.getBoundingClientRect().bottom - mapStage.getBoundingClientRect().top;
+    var x = Math.max(8, Math.min(mv.W - w - 8, open.c.x + 26)), y = Math.max(cap + 8, Math.min(mv.H - h - 60, open.c.y - h / 2));
+    if(open.c.x + 26 + w > mv.W - 8) x = Math.max(8, open.c.x - 26 - w);
+    survivorTip.style.transform = "translate(" + x.toFixed(0) + "px," + y.toFixed(0) + "px)";
+  }
   function makePins(){
     SPECIES.forEach(function(dino){
       var pin = document.createElement("button");
@@ -3661,6 +3800,12 @@
       var ang = i * 2.39996;
       list.push({dino: dino, pin: pin, ax: a.x, ay: a.y, x: a.x + Math.cos(ang) * 0.5, y: a.y + Math.sin(ang) * 0.5});
     });
+    /* the survivors are eased apart from the pins the same way */
+    if(survivorsShown()) SURVIVORS.forEach(function(sv, k){
+      if(!mv.revealed[sv.id]) return;
+      var a = toScreen(project(sv.site)), ang = (k + 60) * 2.39996;
+      list.push({surv: sv, pin: sv.el, ax: a.x, ay: a.y, x: a.x + Math.cos(ang) * 0.5, y: a.y + Math.sin(ang) * 0.5});
+    });
     var gap = mv.pin + 4;
     for(var it = 0; it < 40; it++){
       for(var i = 0; i < list.length; i++){
@@ -3695,6 +3840,7 @@
         mapUnder.appendChild(svgEl("line", {x1: p.ax, y1: p.ay, x2: p.x, y2: p.y}));
       mapUnder.appendChild(svgEl("circle", {"class": "spot", cx: p.ax, cy: p.ay, r: 3.5}));
       p.pin.style.transform = "translate(" + p.x.toFixed(1) + "px," + p.y.toFixed(1) + "px)";
+      if(p.surv){ p.surv.at = {x: p.x, y: p.y}; return; }
       if(picked) p.pin.dataset.dim = String(p.dino.id !== picked.id); else delete p.pin.dataset.dim;
       p.pin.dataset.picked = String(!!picked && p.dino.id === picked.id);
       /* the nearer the blast, the sooner gone */
@@ -3706,6 +3852,7 @@
       /* today, they are only bones - already while the land is still coming home */
       p.pin.dataset.fossil = String(mv.stage === "today");
     });
+    placeSurvivors();
     /* where it hit, from the moment it lands and for ever after */
     if((mv.stage === "asteroid" && mv.extinct) || (mv.stage === "today" && mv.told && mv.anim === null)){
       /* on the asteroid the crater itself is there to see; today it lies buried, so a ring marks it */
@@ -3887,17 +4034,31 @@
 
   /* the stories said out loud, one after the other; done is called only if
      the last one is heard to the end */
-  var MAP_CLIP_VERSION = {asteroid: 2, now: 2};
+  var MAP_CLIP_VERSION = {asteroid: 2, now: 3};
   function tellStory(keys, done){
     keys = keys.slice();
     storyGoesOn = true;
     try{ stopSpeech(); } finally { storyGoesOn = false; }
     stopName();
     stopTurn();
+    var token = tellStory.token = (tellStory.token || 0) + 1;
+    (tellStory.reveals || []).forEach(clearTimeout);
+    tellStory.reveals = [];
+    /* the asteroid's story starts over, so its survivors wait to be named again */
+    if(keys[0] === "asteroid"){ mv.revealed = {}; if(!mapEl.hidden) drawMap(); }
+    /* without the story to name them, they come up one by one, a while after it lands */
+    function revealSlowly(){
+      SURVIVORS.forEach(function(sv, k){
+        tellStory.reveals.push(setTimeout(function(){ if(tellStory.token === token) revealSurvivor(sv.id); }, 7000 + k * 600));
+      });
+    }
+    /* and whatever happens to the story, they are all up by the time it would have ended */
+    if(keys[0] === "asteroid") tellStory.reveals.push(setTimeout(function(){ if(tellStory.token === token) revealSurvivors(); }, 70000));
     if(!soundOn){
       /* nothing to hear, so a whole story reads the caption at its own pace */
+      if(keys[0] === "asteroid") revealSlowly();
       clearTimeout(tellStory.quiet);
-      if(done) tellStory.quiet = setTimeout(done, keys[0] === "asteroid" ? 16000 : keys[0] === "now" ? 12000 : 7000);
+      if(done) tellStory.quiet = setTimeout(done, keys[0] === "asteroid" ? 16000 : keys[0] === "now" ? 18000 : 7000);
       return;
     }
     function next(){
@@ -3921,6 +4082,14 @@
         try{
           if(!window.speechSynthesis){ finished(); return; }
           var u = new SpeechSynthesisUtterance(STORY[key]);
+          u.storyToken = token;
+          /* the browser's own voice says where it has got to, word by word */
+          if(key === "asteroid") u.onboundary = function(ev){
+            SURVIVORS.forEach(function(sv){
+              var at = STORY.asteroid.indexOf(SURVIVOR_WORDS[sv.id]);
+              if(at >= 0 && ev.charIndex >= at && tellStory.token === token) revealSurvivor(sv.id);
+            });
+          };
           u.lang = "en-GB"; u.rate = 0.95;
           u.onend = u.onerror = function(){ if(voiceNow === u) finished(); };
           voiceNow = u;
@@ -3929,6 +4098,17 @@
         }catch(e){ finished(); }
       }
       clip.addEventListener("error", fallback);
+      /* the asteroid's story brings up each survivor as it names it; stopped or
+         cut short, whatever is left comes up when it ends (not when another
+         story takes over, which starts the count again) */
+      if(key === "asteroid") (function watch(){
+        if(tellStory.token !== token || allRevealed()) return;   /* nothing left to bring up */
+        var told = speech === clip || (voiceNow && voiceNow.storyToken === token);
+        if(!told){ if(mv.extinct) revealSurvivors(); else revealSlowly(); return; }
+        if(speech === clip) for(var id in SURVIVOR_CUES) if(clip.currentTime >= SURVIVOR_CUES[id]) revealSurvivor(id);
+        if(speech === clip && clip.ended){ revealSurvivors(); return; }
+        requestAnimationFrame(watch);
+      })();
       clip.play().then(function(){ if(speech === clip){ speakingSide = 4; playing(); } }).catch(fallback);
     }
     next();
@@ -4048,7 +4228,7 @@
     closeViewer();
     mv.from = from || null;
     loadWorld();
-    if(!mapPinsEl.childNodes.length) makePins();
+    if(!mapPinsEl.childNodes.length){ makePins(); makeSurvivors(); }
     mapEl.hidden = false;
     measure();
     var dino = id ? byId(id) : null;
@@ -4081,7 +4261,12 @@
 
   document.addEventListener("keydown", function(event){
     if(event.defaultPrevented || mapEl.hidden || !viewer.hidden) return;
-    if(event.key === "Escape"){ event.preventDefault(); closeMap(); return; }
+    if(event.key === "Escape"){
+      event.preventDefault();
+      if(survivorOpen){ var was = survivorOpen; openSurvivor(null); SURVIVORS.forEach(function(sv){ if(sv.id === was) sv.el.focus(); }); }
+      else closeMap();
+      return;
+    }
     if(event.key === "Tab"){
       /* keep the keyboard inside the map while it is open */
       var all = Array.prototype.filter.call(mapEl.querySelectorAll("button"), function(el){
