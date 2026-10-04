@@ -617,6 +617,10 @@
   }
   .survivor > span{overflow:hidden}
   .survivor img{width:100%; height:100%; object-fit:cover; display:block; pointer-events:none}
+  /* On Today the crater's red circle itself opens its note: an unseen button over it, glowing when pointed at */
+  .survivor.crater-spot > span{background:none; border:0; box-shadow:none; border-radius:50%; transition:box-shadow .2s}
+  .survivor.crater-spot:hover > span, .survivor.crater-spot:focus-visible > span, .survivor.crater-spot[aria-expanded="true"] > span{
+    box-shadow:0 0 0 2px rgba(255,122,61,.9), 0 0 16px 4px rgba(255,122,61,.55)}
   .survivor:focus-visible > span, .survivor[aria-expanded="true"] > span{border-color:#B8F5C4; box-shadow:0 0 0 3px rgba(123,216,143,.45), 0 6px 14px -6px #000}
   .survivor-tip{
     position:absolute; left:0; top:0; width:min(270px, 72vw); z-index:3; pointer-events:none;
@@ -2768,6 +2772,47 @@
   var mapImgs = {now: document.getElementById("map-now"), 220: document.getElementById("map-then-220"),
                  150: document.getElementById("map-then-150"),
                  70: document.getElementById("map-then-70"), 66: document.getElementById("map-then-66")};
+  /* What is on the ground 66 million years ago, read from that map once: the
+     big picture is first shrunk off to one side (createImageBitmap), so
+     nothing stops at the moment the asteroid lands. The asteroid's fires and
+     wave wait for it. */
+  var ground66 = {src: null, fn: null, busy: null, waiting: []};
+  function readGround66(){
+    var img = mapImgs[66];
+    if(!img.complete || !img.naturalWidth || ground66.src === img.currentSrc || ground66.busy === img.currentSrc) return;
+    var src = ground66.busy = img.currentSrc, cw = 512, ch = 256;
+    function build(from){
+      ground66.busy = null;
+      try{
+        var cv = document.createElement("canvas");
+        cv.width = cw; cv.height = ch;
+        var g = cv.getContext("2d");
+        g.drawImage(from, 0, 0, cw, ch);
+        var px = g.getImageData(0, 0, cw, ch).data;
+        ground66.src = src;
+        /* blue sea, white ice, green forest, and the tan of desert and dry land */
+        ground66.fn = function(x, y){
+          var i = (Math.floor(y / WORLD_H * ch) * cw + Math.floor(x / WORLD_W * cw)) * 4, R = px[i], G = px[i + 1], B = px[i + 2];
+          if(B > R + 25 && B >= G) return "sea";
+          if(R > 175 && G > 175 && B > 175) return "ice";
+          return G >= R - 4 ? "forest" : "desert";
+        };
+      }catch(e){ ground66.fn = null; }
+      if(src !== img.currentSrc){ readGround66(); return; }   /* the picture changed while it was being read: read the new one */
+      ground66.waiting.splice(0).forEach(function(fn){ fn(); });
+    }
+    if(window.createImageBitmap) createImageBitmap(img, {resizeWidth: cw, resizeHeight: ch, resizeQuality: "medium"}).then(build, function(){ build(img); });
+    else build(img);
+  }
+  function whenGround66(fn){
+    var img = mapImgs[66];
+    if(ground66.fn && ground66.src === img.currentSrc){ fn(); return; }
+    ground66.waiting.push(fn);
+    if(img.complete && img.naturalWidth) readGround66();
+    else if(!img.getAttribute("src") || (img.complete && !img.naturalWidth)) ground66.waiting.splice(0).forEach(function(f){ f(); });   /* nothing to read */
+  }
+  mapImgs[66].addEventListener("load", readGround66);
+  mapImgs[66].addEventListener("error", function(){ ground66.waiting.splice(0).forEach(function(f){ f(); }); });
   var mapPlay = document.createElement("button");
   mapPlay.type = "button"; mapPlay.className = "play-x"; mapPlay.innerHTML = "&#9654;";
   mapPlay.setAttribute("aria-label", "Read this card aloud");
@@ -3192,11 +3237,11 @@
         debris(c);
         shockwave(c);
         heat(c);
-        whenMap66(tsunami);
+        later(500, function(){ whenMap66(tsunami); });   /* after the flash: the wave takes a while to show anyway */
       }
       smoke(c);
       crater(c);
-      fires();
+      later(250, fires);   /* thrown out as the blast spreads, a moment after the flash */
       mapDust.dataset.on = "true";
       mv.extinct = true;
       drawMap();
@@ -3449,13 +3494,7 @@
        smoke as they burn, burn out and leave the land black. */
     function fires(){ whenMap66(function(){ fireArt().whenReady(function(){ if(gen === mv.gen) spread(); }); }); }
     /* the old map may still be on its way: wait for it, so the sea can be told apart */
-    function whenMap66(fn){
-      var img = mapImgs[66];
-      if(img.getAttribute("src") && !img.complete){
-        img.addEventListener("load", function(){ if(gen === mv.gen) fn(); }, {once: true});
-        img.addEventListener("error", function(){ if(gen === mv.gen) fn(); }, {once: true});
-      } else fn();
-    }
+    function whenMap66(fn){ whenGround66(function(){ if(gen === mv.gen) fn(); }); }
     function spread(){
       var ground = groundOf66();
       if(!ground) return;   /* not knowing where the sea is, no fires rather than fires on the water */
@@ -3478,13 +3517,21 @@
           /* all thrown out at once by the blast; the further one goes, the faster and higher it flies, so it lands later */
           var thrown = Math.random() * 120, flight = 700 + Math.sqrt(d) * 125 + Math.random() * 300, lands = thrown + flight;
           var size = (d < 260 ? 11 : 8) * px * (0.8 + Math.random() * 0.5);
-          if(!still) fly(at, spot, size, thrown, flight);
-          var near = Math.max(0.25, 1 - d / 1100);
-          if(heard < hearMost && near > 0.35){ heard++; pieceLands(lands / 1000, kind, near); }
-          if(kind === "sea"){ if(!still) splash(spot, size, lands); continue; }
-          if(burns(kind)) catchFire(spot, size, lands, 3);
-          else if(roomFor(spot, size)) light(spot, size * 0.8, lands, 3500 + Math.random() * 2500);   /* nothing to burn: it flares and dies */
+          var loud = Math.max(0.25, 1 - d / 1100), heardIt = heard < hearMost && loud > 0.35;
+          if(heardIt) heard++;
+          jobs.push(piece.bind(null, spot, kind, size, thrown, flight, lands, loud, heardIt));
         }
+      }
+      /* One piece: its flight, its sound, and what it does where it lands.
+         `lag` is how long after the blast it is being made, taken off every
+         wait so it still flies and lands on time. */
+      function piece(spot, kind, size, thrown, flight, lands, loud, heardIt, lag){
+        thrown = Math.max(0, thrown - lag); lands = Math.max(0, lands - lag);
+        if(!still) fly(at, spot, size, thrown, flight);
+        if(heardIt) pieceLands(Math.max(0, lands) / 1000, kind, loud);
+        if(kind === "sea"){ if(!still) splash(spot, size, lands); return; }
+        if(burns(kind)) catchFire(spot, size, lands, 3);
+        else if(roomFor(spot, size)) light(spot, size * 0.8, lands, 3500 + Math.random() * 2500);   /* nothing to burn: it flares and dies */
       }
       /* A fire in the forest: it burns a long while, and every few seconds it
          jumps to forest next to it, a few steps on from where it began. */
@@ -3565,8 +3612,16 @@
         /* burnt out, it goes, so its flicker stops too */
         flame.onfinish = function(){ fire.remove(); };
       }
+      var jobs = [], base = performance.now();
       throwSome(40, 260, 34 * many);    /* round the Americas, away from the molten crater */
       throwSome(260, 1000, 18 * many);  /* far away, here and there */
+      /* made a few at a time, a few milliseconds a frame, so the blast never stops on screen */
+      (function pump(){
+        if(gen !== mv.gen) return;
+        var t = performance.now();
+        while(jobs.length && performance.now() - t < 6) jobs.shift()(performance.now() - base);
+        if(jobs.length) requestAnimationFrame(pump);
+      })();
     }
     /* a piece going into the sea: a ring of white water, and a second behind it */
     function splash(spot, size, when){
@@ -3608,23 +3663,7 @@
     /* What is on the ground there, from the colour of the old map: blue sea,
        white ice, green forest, and the tan of desert and dry land. */
     function groundOf66(){
-      var img = mapImgs[66];
-      if(!img.complete || !img.naturalWidth) return null;
-      if(groundOf66.src === img.currentSrc) return groundOf66.fn;
-      try {
-        var cw = 512, ch = 256, cv = document.createElement("canvas");
-        cv.width = cw; cv.height = ch;
-        var g = cv.getContext("2d");
-        g.drawImage(img, 0, 0, cw, ch);
-        var px = g.getImageData(0, 0, cw, ch).data;
-        groundOf66.src = img.currentSrc;
-        return groundOf66.fn = function(x, y){
-          var i = (Math.floor(y / WORLD_H * ch) * cw + Math.floor(x / WORLD_W * cw)) * 4, R = px[i], G = px[i + 1], B = px[i + 2];
-          if(B > R + 25 && B >= G) return "sea";
-          if(R > 175 && G > 175 && B > 175) return "ice";
-          return G >= R - 4 ? "forest" : "desert";
-        };
-      } catch(e){ return null; }
+      return ground66.fn && ground66.src === mapImgs[66].currentSrc ? ground66.fn : null;
     }
     /* Rocks and sparks thrown out every way from where it hit. Seen from above,
        each one rises towards us as it flies (it grows), then falls back and
@@ -3713,7 +3752,8 @@
       b.setAttribute("aria-expanded", "false");
       b.setAttribute("aria-controls", "survivor-tip");
       b.title = sv.head || sv.name + " survived";
-      b.innerHTML = '<span><img alt="" src="img/survivors/' + sv.id + '-pin.webp"></span>';
+      if(sv.today) b.classList.add("crater-spot");
+      b.innerHTML = sv.today ? "<span></span>" : '<span><img alt="" src="img/survivors/' + sv.id + '-pin.webp"></span>';
       b.addEventListener("click", function(){ openSurvivor(survivorOpen === sv.id ? null : sv.id); });
       mapPinsEl.appendChild(b);
       sv.el = b;
@@ -3740,11 +3780,25 @@
   function revealSurvivor(id, quiet){
     if(mv.revealed[id]) return;
     mv.revealed[id] = true;
-    if(!quiet && !mapEl.hidden) drawMap();
+    if(!quiet && !mapEl.hidden){ drawMap(); bringSurvivorsIntoView(); }
   }
   function revealSurvivors(){
     SURVIVORS.forEach(function(sv){ revealSurvivor(sv.id, true); });
-    if(!mapEl.hidden) drawMap();   /* once, for all of them */
+    if(!mapEl.hidden){ drawMap(); bringSurvivorsIntoView(); }   /* once, for all of them */
+  }
+  /* A survivor named off the edge of the view - the bird in Antarctica, on a
+     tall narrow screen - would never be seen: the map steps back to take in
+     the crater and every survivor so far. It only ever steps back, never in. */
+  function bringSurvivorsIntoView(){
+    if(mapEl.hidden || mv.stage !== "asteroid" || mv.anim !== null || mapStage.dataset.drag === "true") return;   /* not while being dragged */
+    var a = freeArea(), m = 30, pts = [project(IMPACT)], out = false;
+    SURVIVORS.forEach(function(sv){
+      if(!mv.revealed[sv.id]) return;
+      var w = project(sv.site), c = toScreen(w);
+      pts.push(w);
+      if(c.x < a.x0 + m || c.x > a.x1 - m || c.y < a.y0 + m || c.y > a.y1 - m) out = true;
+    });
+    if(out) flyTo(framing(pts, mv.s));
   }
   function allRevealed(){ return SURVIVORS.every(function(sv){ return mv.revealed[sv.id]; }); }
   function survivorsShown(){ return !!survivorTip && mv.stage === "asteroid" && mv.extinct && mv.anim === null; }
@@ -3855,10 +3909,8 @@
     });
     /* the survivors are eased apart from the pins the same way */
     MARKERS.forEach(function(sv, k){
-      if(!markerSeen(sv)) return;
+      if(!markerSeen(sv) || sv.today) return;   /* the crater's spot is placed on its circle, below */
       var a = toScreen(project(sv.site)), ang = (k + 60) * 2.39996;
-      /* the crater's own marker stands just below its circle, so the circle still shows */
-      if(sv.today) a = {x: a.x, y: a.y + Math.max(10, 7 * mv.s) + 30};
       list.push({surv: sv, pin: sv.el, ax: a.x, ay: a.y, x: a.x + Math.cos(ang) * 0.5, y: a.y + Math.sin(ang) * 0.5});
     });
     var gap = mv.pin + 4;
@@ -3891,13 +3943,9 @@
       });
     }
     list.forEach(function(p){
-      if(p.surv && p.surv.today)   /* tied by a thread to the bottom of the crater's circle */
-        mapUnder.appendChild(svgEl("line", {x1: craterX, y1: craterY + Math.max(10, 7 * mv.s), x2: p.x, y2: p.y}));
-      else {
-        if(Math.abs(p.x - p.ax) + Math.abs(p.y - p.ay) > 3)
-          mapUnder.appendChild(svgEl("line", {x1: p.ax, y1: p.ay, x2: p.x, y2: p.y}));
-        mapUnder.appendChild(svgEl("circle", {"class": "spot", cx: p.ax, cy: p.ay, r: 3.5}));
-      }
+      if(Math.abs(p.x - p.ax) + Math.abs(p.y - p.ay) > 3)
+        mapUnder.appendChild(svgEl("line", {x1: p.ax, y1: p.ay, x2: p.x, y2: p.y}));
+      mapUnder.appendChild(svgEl("circle", {"class": "spot", cx: p.ax, cy: p.ay, r: 3.5}));
       p.pin.style.transform = "translate(" + p.x.toFixed(1) + "px," + p.y.toFixed(1) + "px)";
       if(p.surv){ p.surv.at = {x: p.x, y: p.y}; return; }
       if(picked) p.pin.dataset.dim = String(p.dino.id !== picked.id); else delete p.pin.dataset.dim;
@@ -3911,6 +3959,14 @@
       /* today, they are only bones - already while the land is still coming home */
       p.pin.dataset.fossil = String(mv.stage === "today");
     });
+    /* on Today the crater's red circle is its button: laid right over it, never smaller than a finger */
+    if(markerSeen(CRATER_TODAY)){
+      var hit = Math.max(36, 2 * Math.max(10, 7 * mv.s) + 10), ce = CRATER_TODAY.el;
+      CRATER_TODAY.at = {x: craterX, y: craterY};
+      ce.style.width = ce.style.height = hit + "px";
+      ce.style.margin = (-hit / 2) + "px 0 0 " + (-hit / 2) + "px";
+      ce.style.transform = "translate(" + craterX.toFixed(1) + "px," + craterY.toFixed(1) + "px)";
+    }
     placeSurvivors();
     /* where it hit, from the moment it lands and for ever after */
     if((mv.stage === "asteroid" && mv.extinct) || (mv.stage === "today" && mv.told && mv.anim === null)){
