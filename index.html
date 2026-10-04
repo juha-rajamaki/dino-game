@@ -612,7 +612,7 @@
   .survivor[data-on="false"]{pointer-events:none; visibility:hidden}
   .survivor > span{
     display:grid; place-items:center; width:100%; height:100%; border-radius:50%;
-    background:#10261A; border:2.5px solid #7BD88F; color:#CFF5D6;
+    background:var(--plate-bg); border:2.5px solid #7BD88F; color:#CFF5D6;
     box-shadow:0 6px 14px -6px #000, 0 0 0 1px rgba(0,0,0,.5);
   }
   .survivor > span{overflow:hidden}
@@ -623,7 +623,10 @@
     background:rgba(10,20,14,.95); border:1px solid #7BD88F; border-radius:12px; padding:9px 11px;
     color:var(--bone); font:600 13.5px/1.35 "Nunito",sans-serif; box-shadow:0 10px 24px -10px #000;
   }
-  .survivor-tip img{display:block; width:calc(100% + 22px); margin:-9px -11px 8px; border-radius:11px 11px 0 0; aspect-ratio:3/2; object-fit:cover}
+  /* the animal cut out on the game's own dark plate, like every other animal; the crater's photo fills its frame */
+  .survivor-tip img{display:block; width:calc(100% + 22px); margin:-9px -11px 8px; border-radius:11px 11px 0 0; aspect-ratio:3/2;
+    object-fit:contain; background:var(--plate-bg); padding:6px; box-sizing:border-box}
+  .survivor-tip[data-for="crater-today"] img{object-fit:cover; padding:0}
   .survivor-tip b{display:block; color:#9BE8AC; font:700 14.5px "Fredoka",sans-serif; margin-bottom:2px}
   .survivor-tip[hidden]{display:none}
   @media (max-height:520px){ .survivor-tip img{display:none} }   /* a phone on its side: the words fit, the picture does not */
@@ -2743,7 +2746,7 @@
   var STORY = {
     "150": "One hundred and fifty million years ago, in the Jurassic, the continents were squeezed together into one giant piece. Watch the land move! North America was still joined to Europe and Africa, and the Atlantic Ocean was only a thin sea between them. Africa, South America, Antarctica, India and Australia were all one big land in the south.",
     "70": "Seventy million years ago, near the end of the Cretaceous, the giant land had broken into pieces, and they were slowly drifting apart. The Atlantic Ocean grew a little wider every year. India was an island, sailing north towards Asia. And a warm, shallow sea ran right through the middle of North America, cutting it in two.",
-    "now": "Back to today! Since then, over millions and millions of years, the continents kept on drifting, about as fast as your fingernails grow. The Atlantic Ocean became wide, India crashed into Asia and pushed up the Himalayas, and Australia broke away from Antarctica. When the dinosaurs lived, Antarctica was warm enough for forests, but now it was left all alone at the bottom of the world, right over the South Pole. Once South America had drifted away from it too, a cold ocean current began to swirl all the way round it and kept the warm water away. At the same time the air slowly lost some of the gas that keeps the Earth warm, so the whole world cooled. Snow that fell in winter stopped melting in summer, and piled up, year after year, until about thirty-four million years ago Antarctica\'s green forests disappeared under thick ice. Greenland froze much later, only about three million years ago. The animals in this game are only bones now, dug up from the places on this map.",
+    "now": "Back to today! When the dinosaurs lived, Antarctica was warm enough for forests. But over millions and millions of years the continents kept on drifting, about as fast as your fingernails grow. Australia and South America moved away from Antarctica, until it was left all alone at the bottom of the world, right over the South Pole. A cold ocean current began to swirl all the way round it and kept the warm water away. At the same time the air slowly lost some of the gas that keeps the Earth warm, so the whole world cooled. Snow that fell in winter stopped melting in summer, and piled up, year after year, until about thirty-four million years ago Antarctica\'s green forests disappeared under thick ice. Greenland froze much later, only about three million years ago. Meanwhile the Atlantic Ocean became wide, and India crashed into Asia and pushed up the Himalayas. The animals in this game are only bones now, dug up from the places on this map.",
     "jurassic": "The Jurassic began about two hundred million years ago, and it lasted for more than fifty million years. The world was warm and damp, with no ice at the poles. Giant long-necked plant-eaters like Brachiosaurus and Diplodocus walked through forests of conifers, ferns and cycads. There was no grass, and not a single flower yet. Allosaurus was the top hunter, pterosaurs flew overhead, and the very first birds were just learning to fly.",
     "cretaceous": "The Cretaceous lasted for almost eighty million years. It was the time of Tyrannosaurus, Triceratops and Velociraptor, and of Spinosaurus, fishing in the rivers of Africa. The first flowers bloomed, and bees began to visit them. The seas were high and warm, full of mosasaurs, long-necked plesiosaurs and giant turtles. Dinosaurs lived on every continent, even near the South Pole.",
     "asteroid": "Sixty-six million years ago, a giant rock from space, about ten kilometres wide, came racing towards the Earth. It crashed into the sea near Mexico, where the town of Chicxulub is today. The blast was stronger than every bomb ever made, all put together. A wall of air rushed out across the land, and the ground shook harder than any earthquake we have ever felt. The rock it hit melted, and the crater glowed like lava, until the sea came rushing back in and boiled into clouds of steam. A giant wave, as tall as a mountain, raced out across the oceans. Stones thrown up into space fell back down burning hot, so the whole sky glowed like an oven, and forests caught fire. Then dust and black smoke filled the sky and hid the sun, the world grew cold and dark, and plants stopped growing. The big dinosaurs, the pterosaurs and the great sea reptiles all died out. But some small animals survived: mammals, crocodiles, turtles, and a few small feathered dinosaurs. Those little dinosaurs never died out. They are the birds you see outside today.",
@@ -3352,20 +3355,50 @@
       var at = project(IMPACT), reach = 760, res = mv.W < 500 ? 224 : 384, scale = res / (reach * 2);
       var mask = document.createElement("canvas"), cv = document.createElement("canvas");
       mask.width = mask.height = cv.width = cv.height = res;
-      var mg = mask.getContext("2d"), md = mg.createImageData(res, res);
+      var mg = mask.getContext("2d"), md = mg.createImageData(res, res), c = res / 2;
+      var isSea = new Uint8Array(res * res);
       for(var y = 0; y < res; y++) for(var x = 0; x < res; x++){
         var wx = at.x - reach + x / scale, wy = at.y - reach + y / scale;
-        var sea = wx >= 0 && wx < WORLD_W && wy >= 0 && wy < WORLD_H && !land(wx, wy);
-        md.data[(y * res + x) * 4 + 3] = sea ? 255 : 0;
+        /* 1 sea, 0 land, 2 off the edge of the world (neither) */
+        isSea[y * res + x] = !(wx >= 0 && wx < WORLD_W && wy >= 0 && wy < WORLD_H) ? 2 : land(wx, wy) ? 0 : 1;
+      }
+      /* Land breaks a wave. Along every direction out from the crater, count
+         the land the wave has had to cross to get this far: past a coast it
+         goes on much weaker, a faint wave bending round behind the land.
+         (The crater's own surroundings - the edge of Yucatan it sits on - don't count.) */
+      var bins = 720, far = Math.ceil(c * 1.42) + 1, crossed = new Float32Array(bins * far), near = 16 * res / 384;
+      for(var b = 0; b < bins; b++){
+        var ang = b / bins * Math.PI * 2, ca = Math.cos(ang), sa = Math.sin(ang), seen = 0;
+        for(var rr = 0; rr < far; rr++){
+          var px = Math.round(c + ca * rr), py = Math.round(c + sa * rr);
+          if(rr > near && px >= 0 && px < res && py >= 0 && py < res && isSea[py * res + px] === 0) seen++;
+          crossed[rr * bins + b] = seen;   /* by distance first: the directions side by side */
+        }
+      }
+      var strength = new Float32Array(res * res), coast = [];
+      for(var y2 = 0; y2 < res; y2++) for(var x2 = 0; x2 < res; x2++){
+        var i = y2 * res + x2;
+        if(isSea[i] !== 1) continue;
+        var dx = x2 - c, dy = y2 - c, rad0 = Math.min(far - 1, Math.round(Math.sqrt(dx * dx + dy * dy)));
+        var bin = Math.round((Math.atan2(dy, dx) / (Math.PI * 2) + 1) * bins) % bins, sum = 0;
+        for(var nb = -3; nb <= 3; nb++) sum += crossed[rad0 * bins + (bin + nb + bins) % bins];   /* soft-edged shadows */
+        /* land crossed, in map distance: an island like Cuba takes some of the wave, a continent nearly all of it */
+        var st = Math.max(0.08, Math.exp(-(sum / 7 / scale) / 45));
+        strength[i] = st;
+        md.data[i * 4 + 3] = Math.round(255 * st);
+        /* sea next to land: where the wave will break */
+        if(x2 > 0 && x2 < res - 1 && y2 > 0 && y2 < res - 1 && (isSea[i - 1] === 0 || isSea[i + 1] === 0 || isSea[i - res] === 0 || isSea[i + res] === 0) && st > 0.1)
+          coast.push({x: x2, y: y2, r: Math.sqrt(dx * dx + dy * dy), st: st});
       }
       mg.putImageData(md, 0, 0);
+      coast.sort(function(a, b){ return a.r - b.r; });
       cv.className = "tsunami";
       cv.style.width = cv.style.height = reach * 2 + "px";
       cv.style.left = (at.x - reach) + "px"; cv.style.top = (at.y - reach) + "px";
       mapFallout.appendChild(cv);
       /* Slow, as a real one was (it took a day or two to cross the oceans): it
          is still rolling out across the sea as the story of the asteroid ends. */
-      var g = cv.getContext("2d"), t0 = performance.now(), dur = 63000, c = res / 2, frame = 0;
+      var g = cv.getContext("2d"), t0 = performance.now(), dur = 63000, frame = 0, nextCoast = 0, surf = [];
       (function roll(now){
         if(gen !== mv.gen || !cv.isConnected){ cv.remove(); return; }
         var k = Math.min(1, (now - t0) / dur);
@@ -3385,6 +3418,18 @@
         g.beginPath(); g.arc(c, c, rad + band * 0.5, 0, Math.PI * 2); g.fill();
         g.globalCompositeOperation = "destination-in";
         g.drawImage(mask, 0, 0);
+        /* where the front reaches a coast, it breaks: white surf flares along
+           the shore and dies away, strongest where the wave still was */
+        while(nextCoast < coast.length && coast[nextCoast].r <= rad){ var hit = coast[nextCoast++]; hit.t = now; surf.push(hit); }
+        g.globalCompositeOperation = "source-over";
+        surf = surf.filter(function(p){
+          var age = (now - p.t) / 1800;
+          if(age >= 1) return false;
+          g.fillStyle = "rgba(250,253,255," + (p.st * (1 - age) * (0.35 + 0.65 * fade)).toFixed(3) + ")";
+          var sz = 1 + p.st * 1.6 * (1 - age * 0.5);
+          g.fillRect(p.x - sz / 2, p.y - sz / 2, sz, sz);
+          return true;
+        });
         requestAnimationFrame(roll);
       })(t0);
     }
@@ -3642,6 +3687,16 @@
     {id: "bird", name: "Birds", site: ["Vega Island, Antarctica", -63.8, -57.3, "an"],
      text: "Some small birds lived on, like the relatives of Vegavis, a duck-like bird found in Antarctica, where forests grew then. Birds are dinosaurs, so the dinosaurs never quite died out."}
   ];
+  /* On Today, where the asteroid hit: what is there now. */
+  var CRATER_TODAY = {id: "crater-today", today: true, name: "The crater today", head: "The crater today", site: IMPACT,
+    text: "The crater is still there, but you cannot see it: it lies buried under the Yucatan, beneath about a kilometre of rock laid down since. " +
+          "Only a ring of round, water-filled sinkholes called cenotes traces its edge, and instruments that feel the pull of gravity show the whole crater, about 180 kilometres wide."};
+  var MARKERS = SURVIVORS.concat([CRATER_TODAY]);
+  /* a survivor once the story has named it after the asteroid; the crater on Today */
+  function markerSeen(sv){
+    if(!survivorTip || mv.anim !== null) return false;
+    return sv.today ? mv.stage === "today" && mv.told : survivorsShown() && !!mv.revealed[sv.id];
+  }
   var survivorTip = null, survivorOpen = null;
   function makeSurvivors(){
     survivorTip = document.createElement("div");
@@ -3649,15 +3704,15 @@
     survivorTip.hidden = true;
     survivorTip.id = "survivor-tip";
     mapPinsEl.appendChild(survivorTip);
-    SURVIVORS.forEach(function(sv){
+    MARKERS.forEach(function(sv){
       var b = document.createElement("button");
       b.type = "button";
       b.className = "survivor";
       b.dataset.on = "false";
-      b.setAttribute("aria-label", sv.name + " survived. " + sv.text);
+      b.setAttribute("aria-label", (sv.head || sv.name + " survived") + ". " + sv.text);
       b.setAttribute("aria-expanded", "false");
       b.setAttribute("aria-controls", "survivor-tip");
-      b.title = sv.name + " survived";
+      b.title = sv.head || sv.name + " survived";
       b.innerHTML = '<span><img alt="" src="img/survivors/' + sv.id + '-pin.webp"></span>';
       b.addEventListener("click", function(){ openSurvivor(survivorOpen === sv.id ? null : sv.id); });
       mapPinsEl.appendChild(b);
@@ -3673,7 +3728,7 @@
   }
   function openSurvivor(id){
     survivorOpen = id;
-    SURVIVORS.forEach(function(sv){ sv.el.setAttribute("aria-expanded", String(sv.id === id)); });
+    MARKERS.forEach(function(sv){ sv.el.setAttribute("aria-expanded", String(sv.id === id)); });
     drawMap();
   }
   /* The asteroid's story names them - "mammals, crocodiles, turtles, and a few
@@ -3697,12 +3752,10 @@
      the asteroid, once it has landed */
   function placeSurvivors(){
     if(!survivorTip) return;
-    var on = survivorsShown();
-    if(!on && survivorOpen) survivorOpen = null;
-    if(!on && document.activeElement && document.activeElement.classList.contains("survivor")) mapClose.focus();
     var open = null;
-    SURVIVORS.forEach(function(sv){
-      var was = sv.el.dataset.on === "true", seen = on && !!mv.revealed[sv.id];
+    MARKERS.forEach(function(sv){
+      var was = sv.el.dataset.on === "true", seen = markerSeen(sv);
+      if(!seen && document.activeElement === sv.el) mapClose.focus();   /* a hidden marker does not keep the keyboard */
       sv.el.dataset.on = String(seen);
       sv.el.tabIndex = seen ? 0 : -1;
       if(!seen){ if(survivorOpen === sv.id) survivorOpen = null; return; }
@@ -3725,7 +3778,7 @@
       pic.onload = pic.onerror = function(){ drawMap(); };   /* its size has changed: place it again */
       survivorTip.appendChild(pic);
       var head = document.createElement("b");
-      head.textContent = open.sv.name + " survived";
+      head.textContent = open.sv.head || open.sv.name + " survived";
       survivorTip.appendChild(head);
       survivorTip.appendChild(document.createTextNode(open.sv.text));
     }
@@ -3801,9 +3854,11 @@
       list.push({dino: dino, pin: pin, ax: a.x, ay: a.y, x: a.x + Math.cos(ang) * 0.5, y: a.y + Math.sin(ang) * 0.5});
     });
     /* the survivors are eased apart from the pins the same way */
-    if(survivorsShown()) SURVIVORS.forEach(function(sv, k){
-      if(!mv.revealed[sv.id]) return;
+    MARKERS.forEach(function(sv, k){
+      if(!markerSeen(sv)) return;
       var a = toScreen(project(sv.site)), ang = (k + 60) * 2.39996;
+      /* the crater's own marker stands just below its circle, so the circle still shows */
+      if(sv.today) a = {x: a.x, y: a.y + Math.max(10, 7 * mv.s) + 30};
       list.push({surv: sv, pin: sv.el, ax: a.x, ay: a.y, x: a.x + Math.cos(ang) * 0.5, y: a.y + Math.sin(ang) * 0.5});
     });
     var gap = mv.pin + 4;
@@ -3836,9 +3891,13 @@
       });
     }
     list.forEach(function(p){
-      if(Math.abs(p.x - p.ax) + Math.abs(p.y - p.ay) > 3)
-        mapUnder.appendChild(svgEl("line", {x1: p.ax, y1: p.ay, x2: p.x, y2: p.y}));
-      mapUnder.appendChild(svgEl("circle", {"class": "spot", cx: p.ax, cy: p.ay, r: 3.5}));
+      if(p.surv && p.surv.today)   /* tied by a thread to the bottom of the crater's circle */
+        mapUnder.appendChild(svgEl("line", {x1: craterX, y1: craterY + Math.max(10, 7 * mv.s), x2: p.x, y2: p.y}));
+      else {
+        if(Math.abs(p.x - p.ax) + Math.abs(p.y - p.ay) > 3)
+          mapUnder.appendChild(svgEl("line", {x1: p.ax, y1: p.ay, x2: p.x, y2: p.y}));
+        mapUnder.appendChild(svgEl("circle", {"class": "spot", cx: p.ax, cy: p.ay, r: 3.5}));
+      }
       p.pin.style.transform = "translate(" + p.x.toFixed(1) + "px," + p.y.toFixed(1) + "px)";
       if(p.surv){ p.surv.at = {x: p.x, y: p.y}; return; }
       if(picked) p.pin.dataset.dim = String(p.dino.id !== picked.id); else delete p.pin.dataset.dim;
@@ -4034,7 +4093,7 @@
 
   /* the stories said out loud, one after the other; done is called only if
      the last one is heard to the end */
-  var MAP_CLIP_VERSION = {asteroid: 2, now: 3};
+  var MAP_CLIP_VERSION = {asteroid: 2, now: 4};
   function tellStory(keys, done){
     keys = keys.slice();
     storyGoesOn = true;
@@ -4263,7 +4322,7 @@
     if(event.defaultPrevented || mapEl.hidden || !viewer.hidden) return;
     if(event.key === "Escape"){
       event.preventDefault();
-      if(survivorOpen){ var was = survivorOpen; openSurvivor(null); SURVIVORS.forEach(function(sv){ if(sv.id === was) sv.el.focus(); }); }
+      if(survivorOpen){ var was = survivorOpen; openSurvivor(null); MARKERS.forEach(function(sv){ if(sv.id === was) sv.el.focus(); }); }
       else closeMap();
       return;
     }
