@@ -75,6 +75,12 @@ works for a child who cannot read yet.
   So is everything said between turns: who starts, *pair*, whose turn it
   is now, *go again* when a pair lets the finder keep the turn, and who has won. If a clip
   is ever missing the page falls back to the browser's own speech.
+- **In Finnish too.** The start screen has a *Language* row, Suomi or English,
+  and the choice is remembered; a browser set to Finnish starts in Finnish.
+  Everything changes with it: the cards, the More lines, the map and its
+  stories, and every word on the buttons. The Finnish narration is its own
+  recording, made with Piper's `fi_FI-harri-medium` voice, and the survivors
+  of the asteroid still come up on the map as the Finnish story names them.
 - **Jungle ambience.** A looping bed of birds and insects behind the game, with
   its own on/off switch in the top bar that is remembered between visits. It
   ducks out of the way while a card is being read aloud.
@@ -132,10 +138,13 @@ img/            48 card plates plus the background and the two foreground animal
 img/full/       the same 48 animals at full size, fetched only when one is opened
 img/map/        the Earth today, small and large, the worlds of 220, 150, 70 and 66
                 million years ago, and drift/, the land every five million years between
-tools/          paleomap.py, which draws those worlds (needs numpy and Pillow)
+tools/          paleomap.py, which draws those worlds (needs numpy and Pillow),
+                and tts.py, which records the Finnish narration
 audio/          a narration clip per animal, plus the jungle loop
 audio/map/      the stories told on the map, one or two for each stage
 audio/more/     the More lines read aloud, four for each animal
+audio/fi/       the same clips again, in Finnish, laid out the same way
+lang/fi.js      the Finnish: every line of the game, keyed by the English
 ```
 
 Open `index.html` in a browser, or serve the folder with anything:
@@ -143,6 +152,26 @@ Open `index.html` in a browser, or serve the folder with anything:
 ```sh
 python3 -m http.server 8000
 ```
+
+## The Finnish narration
+
+The game is written in English, and `lang/fi.js` puts it into Finnish: the
+card texts, the More lines and the map by animal and story, and every other
+line under `ui`, keyed by the English it replaces. Change a line there, then
+record it again:
+
+```sh
+python3 tools/tts.py                       # every clip, about four minutes
+python3 tools/tts.py more/archelon map/now # only clips whose path starts so
+python3 tools/tts.py --list                # what would be said, recording nothing
+```
+
+It needs [Piper](https://github.com/rhasspy/piper) and the
+[`fi_FI-harri-medium`](https://huggingface.co/rhasspy/piper-voices/tree/main/fi/fi_FI/harri/medium)
+voice in `~/.local/share/piper/voices/` (or `PIPER` and `PIPER_VOICE` set to
+where they are), and LAME's library or ffmpeg for the MP3s. The asteroid story
+is recorded in pieces that break where each survivor is named, so the moment
+every name is said is known; `tts.py` writes those into `lang/fi.js` itself.
 
 ## Notes
 
