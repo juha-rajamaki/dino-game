@@ -3,7 +3,7 @@
    The body is plain JSON, so tools/tts.py can read it too. survivorCues are
    written by tools/tts.py when it records audio/fi/map/asteroid.mp3. */
 window.DINO_FI = {
- "version": 2,
+ "version": 4,
  "species": {
   "tyrannosaurus": {
    "means": "”Hirmuliskokuningas”",
@@ -388,6 +388,38 @@ window.DINO_FI = {
    "weight": "1 tonni — kuin pieni auto",
    "place": "Saksa ja Sveitsi",
    "fact": "Se oli yksi ensimmäisistä isoista dinosauruksista ja Brontosauruksen kaltaisten jättimäisten pitkäkaulaisten kasvinsyöjien varhainen serkku. Se käveli kahdella takajalallaan eikä nelinkontin, niin kuin tutkijat ennen luulivat. Siitä on löydetty yli sata luurankoa, ja tutkijat arvelevat, että monet niistä juuttuivat syvään mutaan ja upposivat."
+  },
+  "glacialisaurus": {
+   "means": "”Jäätynyt lisko”",
+   "ago": "190 miljoonaa vuotta sitten",
+   "size": "6 m pitkä — pidempi kuin kirahvi on korkea",
+   "weight": "4 tonnia — kuin norsu",
+   "place": "Etelämanner",
+   "fact": "Se oli pitkäkaulainen kasvinsyöjä ja Brachiosauruksen kaltaisten jättiläisten varhainen serkku. Sen luut löytyivät samalta Etelämantereen vuorelta kuin Cryolophosauruksen luut, joten metsästäjä on ehkä jahdannut sitä. Siihen aikaan Etelämanner oli vihreä ja metsien peittämä, eikä etelänavalla ollut jäätä."
+  },
+  "pachyrhinosaurus": {
+   "means": "”Paksunenäinen lisko”",
+   "ago": "73–69 miljoonaa vuotta sitten",
+   "size": "8 m pitkä — yhtä pitkä kuin pieni bussi",
+   "weight": "4 tonnia — kuin norsu",
+   "place": "Kanada ja Alaska",
+   "fact": "Sen nenässä ei ollut sarvea vaan iso, paksu ja kuhmurainen luinen pahka, jolla se ehkä tuuppi kilpailijoitaan. Sen kauluksen yläreunassa oli pieniä sarvia. Sen laumat elivät pohjoisessa aina Alaskassa asti, lähellä Pohjoista jäämerta, missä talvella oli viikkokausia pimeää ja luultavasti lunta."
+  },
+  "ugrunaaluk": {
+   "means": "”Muinainen laiduntaja”",
+   "ago": "69 miljoonaa vuotta sitten",
+   "size": "9 m pitkä — yhtä pitkä kuin kaksi autoa",
+   "weight": "3 tonnia — yhtä painava kuin kaksi autoa",
+   "place": "Alaska",
+   "fact": "Sen nimi tarkoittaa ”muinaista laiduntajaa” iñupiaqin kielellä. Sitä puhuvat Pohjois-Alaskan alkuperäiset asukkaat. Se oli sorsanokkadinosaurus, jolla oli satoja hampaita kasvien jauhamiseen. Useimmat sen luut ovat nuorilta eläimiltä, jotka elivät pimeiden ja kylmien talvien läpi lähellä Pohjoista jäämerta."
+  },
+  "nanuqsaurus": {
+   "means": "”Jääkarhulisko”",
+   "ago": "69 miljoonaa vuotta sitten",
+   "size": "6 m pitkä tai enemmän — puolitoista autoa pitkä",
+   "weight": "Noin 1 tonni — kuin pieni auto",
+   "place": "Alaska",
+   "fact": "Se oli Tyrannosauruksen serkku, joka metsästi kaukana Alaskan pohjoisosissa, ja sen nimi tarkoittaa ”jääkarhuliskoa”. Se saalisti luultavasti Pachyrhinosauruksia ja nuoria Ugrunaalukeja, ja se eli pitkien ja pimeiden talvien läpi. Sillä oli ehkä pörröisten höyhenten turkki, joka piti sen lämpimänä."
   }
  },
  "more": {
@@ -774,6 +806,38 @@ window.DINO_FI = {
     "Vanhin tutkijoiden löytämä Albertosaurus oli kuollessaan noin 28-vuotias. Se on hyvin vanha isolle lihansyöjädinosaurukselle.",
     "Sen hampaat olivat banaanin muotoisia ja sahalaitaisia, ja niillä se leikkasi lihaa. Kun hammas katkesi tai putosi, tilalle kasvoi uusi."
    ]
+  },
+  "glacialisaurus": {
+   "found": "William Hammerin ryhmä löysi sen luut korkealta Kirkpatrick-vuorelta Etelämantereelta kesällä 1990–1991, läheltä Cryolophosauruksen luita. Nathan Smith ja Diego Pol nimesivät sen vuonna 2007.",
+   "facts": [
+    "Siitä on löydetty vain muutama luu: osa reisiluuta, nilkka ja jalkaterä. Tutkijat päättelivät, millainen se oli, vertaamalla niitä sen serkkuihin, kuten Plateosaurukseen.",
+    "Sen toinen nimi, hammeri, on William Hammerin mukaan. Hän on tutkija, joka kaivoi esiin sekä sen että Cryolophosauruksen.",
+    "Se eli samaan aikaan kuin ensimmäiset oikeat jättimäiset pitkäkaulat. Sen kaltaiset varhaiset serkut eivät siis kadonneet, kun jättiläiset tulivat, vaan elivät niiden rinnalla pitkään."
+   ]
+  },
+  "pachyrhinosaurus": {
+   "found": "Charles Sternberg nimesi sen vuonna 1950 kalloista, jotka oli löydetty eteläisestä Albertasta Kanadasta. Sen kallossa ei ollut sarvea nenässä, vain paksu ja karhea luinen kyhmy.",
+   "facts": [
+    "Albertan Pipestone Creekissä oli yhdessä tuhansia nuorten ja vanhojen eläinten luita. Koko lauma on ehkä hukkunut ylittäessään tulvivaa jokea.",
+    "Yksi sen lajeista eli Alaskan pohjoisrinteellä, lähellä Pohjoista jäämerta. Siellä sen piti selvitä kuukausien talvipimeästä.",
+    "Sen kauluksen pienet sarvet olivat jokaisella eläimellä vähän erilaiset, joten ne ehkä tunnistivat toisensa kauluksista."
+   ]
+  },
+  "ugrunaaluk": {
+   "found": "Sen luut ovat Liscombin luukerroksesta Colville-joen varrelta Pohjois-Alaskasta. Siellä geologi Robert Liscomb löysi Alaskan ensimmäiset dinosaurusten luut vuonna 1961. Hirotsugu Mori ja hänen ryhmänsä nimesivät sen vuonna 2015.",
+   "facts": [
+    "Robert Liscomb luuli löytämiensä luiden kuuluneen jääkauden eläimille. Vasta noin kaksikymmentä vuotta myöhemmin huomattiin, että ne olivat dinosaurusten luita.",
+    "Jotkut tutkijat ajattelevat, että se oli oikeastaan Edmontosauruksen laji. Edmontosaurus oli kanadalainen sorsanokkadinosaurus, joten sen nimestä kiistellään yhä.",
+    "Useimmat luut kuuluivat noin kolmen metrin mittaisille nuorille eläimille. Kokonainen ryhmä on ehkä kuollut yhdessä, ehkä tulvassa."
+   ]
+  },
+  "nanuqsaurus": {
+   "found": "Sen kallon paloja löydettiin vuonna 2006 Kikak-Tegoseakin louhokselta Pohjois-Alaskasta, kun tutkijat kaivoivat esiin Pachyrhinosauruksia. Anthony Fiorillo ja Ronald Tykoski nimesivät sen vuonna 2014.",
+   "facts": [
+    "Aluksi tutkijat luulivat sitä pieneksi tyrannosauriksi, koska niin kaukana pohjoisessa oli vähän ruokaa. Myöhemmin löydetyt hampaat ja leuat näyttävät, että se oli ehkä luultua isompi.",
+    "Sen toinen nimi, hoglundi, on Forrest Hoglundin mukaan. Hän auttoi maksamaan museon, jossa sen luita säilytetään.",
+    "Sen kallossa oli lyhyt kuono ja päällä luinen harjanne. Ne ovat pohjoisimpia koskaan löydettyjä tyrannosaurusten luita."
+   ]
   }
  },
  "then": {
@@ -824,7 +888,11 @@ window.DINO_FI = {
   "carcharodontosaurus": "leveiden jokien ja soiden maa, täynnä jättiläiskaloja ja krokotiileja",
   "coelophysis": "kuuma jokien maa, jolla oli pitkiä kuivia kausia, keskellä Pangeaa",
   "megalosaurus": "lämpimiä rannikoita ja saaria matalassa trooppisessa meressä",
-  "plateosaurus": "lämmin, kuiva jokien ja mutaisten tulvatasankojen maa Pangean laidalla"
+  "plateosaurus": "lämmin, kuiva jokien ja mutaisten tulvatasankojen maa Pangean laidalla",
+  "glacialisaurus": "viileä havupuiden ja saniaisten metsä lähellä etelänapaa — jäätä ei vielä ollut",
+  "pachyrhinosaurus": "viileiden metsien ja laajojen jokitasankojen maa, joka ulottui pohjoisessa aina arktiselle alueelle asti",
+  "ugrunaaluk": "viileiden metsien maa kaukaisen pohjoisen jokien varsilla, joka talvi viikkokausia pimeä",
+  "nanuqsaurus": "viileiden metsien ja jokien maa lähellä Pohjoista jäämerta, joka talvi viikkokausia pimeä"
  },
  "ageText": {
   "66": "<b>66 miljoonaa vuotta sitten</b> — kymmenen kilometrin levyinen avaruuskivi iskeytyy mereen Meksikon lähellä, ja jättiläisdinosaurusten aika päättyy.",
@@ -871,6 +939,14 @@ window.DINO_FI = {
   "croc": "krokotiilit,",
   "turtle": "kilpikonnat",
   "bird": "höyhenpeitteiset dinosaurukset"
+ },
+ "nowWords": {
+  "current": "Kylmä merivirta",
+  "cool": "Samaan aikaan",
+  "snow": "Talvella satanut",
+  "ice": "kolmekymmentäneljä",
+  "greenland": "Grönlanti jäätyi",
+  "atlantic": "Sillä välin"
  },
  "survivorCues": {
   "mammal": 74.48,
@@ -936,7 +1012,10 @@ window.DINO_FI = {
   "Frick, Switzerland": "Frick, Sveitsi",
   "New Jersey": "New Jersey",
   "Vega Island, Antarctica": "Vegansaari, Etelämanner",
-  "Chicxulub, Mexico": "Chicxulub, Meksiko"
+  "Chicxulub, Mexico": "Chicxulub, Meksiko",
+  "Kikak-Tegoseak, Alaska": "Kikak-Tegoseak, Alaska",
+  "Pipestone Creek, Alberta": "Pipestone Creek, Alberta",
+  "Colville River, Alaska": "Colville-joki, Alaska"
  },
  "ui": {
   "Close, and look around first": "Sulje ja katsele ensin ympärillesi",

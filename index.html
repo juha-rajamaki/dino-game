@@ -1330,7 +1330,7 @@
 
 </div>
 
-<script src="lang/fi.js?v=2"></script>
+<script src="lang/fi.js?v=4"></script>
 <script>
 (function(){
   "use strict";
@@ -1381,6 +1381,16 @@
   }
   translatePage(document.body);
 
+  /* A picture painted again gets a new number here, so a browser that kept
+     the old one fetches it afresh. 2: recoloured to tell them apart, after
+     what fossils show of their colours or their relatives' (see README). */
+  var PIC_VERSION = {compsognathus: 2, ankylosaurus: 2, mosasaurus: 2, ichthyosaurus: 2, giganotosaurus: 2,
+                     carcharodontosaurus: 2, megalosaurus: 2, coelophysis: 2, brachiosaurus: 2, diplodocus: 2,
+                     argentinosaurus: 2, edmontosaurus: 2, plateosaurus: 2, rhamphorhynchus: 2, quetzalcoatlus: 2,
+                     ornithocheirus: 2, glacialisaurus: 2, australovenator: 2, ugrunaaluk: 2, kronosaurus: 2};
+  function picSrc(id, full){
+    return "img/" + (full ? "full/" : "") + id + ".webp" + (PIC_VERSION[id] ? "?v=" + PIC_VERSION[id] : "");
+  }
   var SPECIES = [
     {id:"tyrannosaurus", speed:25, tonnes:8, name:"Tyrannosaurus rex", means:"\u201CTyrant lizard king\u201D",
      period:"Cretaceous", ago:"68\u201366 million years ago", size:"12 m long \u2014 as long as a bus",
@@ -1573,7 +1583,23 @@
     {id:"plateosaurus", speed:20, tonnes:1, name:"Plateosaurus", means:"\u201CBroad lizard\u201D",
      period:"Triassic", ago:"214\u2013204 million years ago", size:"8 m long \u2014 as long as a small bus",
      weight:"1 tonne \u2014 like a small car", food:"Plants", place:"Germany and Switzerland",
-     fact:"It was one of the first big dinosaurs, and an early cousin of the giant long-necks like Brontosaurus. It walked on its two back legs, not on all fours as scientists once thought. More than a hundred skeletons have been found, and scientists think many of them got stuck in deep mud and sank."}
+     fact:"It was one of the first big dinosaurs, and an early cousin of the giant long-necks like Brontosaurus. It walked on its two back legs, not on all fours as scientists once thought. More than a hundred skeletons have been found, and scientists think many of them got stuck in deep mud and sank."},
+    {id:"glacialisaurus", speed:20, tonnes:4, name:"Glacialisaurus", means:"\u201CFrozen lizard\u201D",
+     period:"Jurassic", ago:"190 million years ago", size:"6 m long \u2014 longer than a giraffe is tall",
+     weight:"4 tonnes \u2014 like an elephant", food:"Plants", place:"Antarctica",
+     fact:"It was a long-necked plant-eater, an early cousin of the giants like Brachiosaurus. Its bones were found on the same Antarctic mountain as Cryolophosaurus, so the hunter may have chased it. Back then Antarctica was green with forests, and the South Pole had no ice."},
+    {id:"pachyrhinosaurus", speed:25, tonnes:4, name:"Pachyrhinosaurus", means:"\u201CThick-nosed lizard\u201D",
+     period:"Cretaceous", ago:"73\u201369 million years ago", size:"8 m long \u2014 as long as a small bus",
+     weight:"4 tonnes \u2014 like an elephant", food:"Plants", place:"Canada and Alaska",
+     fact:"Instead of a horn on its nose it had a big, thick, bumpy pad of bone, which it may have used to shove its rivals. Its frill had little horns along the top. Herds of it lived as far north as Alaska, near the Arctic Ocean, where winters were dark for weeks and probably snowy."},
+    {id:"ugrunaaluk", speed:35, tonnes:3, name:"Ugrunaaluk", means:"\u201CAncient grazer\u201D",
+     period:"Cretaceous", ago:"69 million years ago", size:"9 m long \u2014 as long as two cars",
+     weight:"3 tonnes \u2014 as heavy as two cars", food:"Plants", place:"Alaska",
+     fact:"Its name means \u201Cancient grazer\u201D in I\u00F1upiaq, the language of the people of northern Alaska. It was a duck-billed dinosaur with hundreds of teeth for grinding up plants. Most of its bones come from young ones, who lived through dark, cold winters near the Arctic Ocean."},
+    {id:"nanuqsaurus", speed:35, tonnes:1, name:"Nanuqsaurus", means:"\u201CPolar bear lizard\u201D",
+     period:"Cretaceous", ago:"69 million years ago", size:"6 m long or more \u2014 as long as a car and a half",
+     weight:"About 1 tonne \u2014 like a small car", food:"Meat", place:"Alaska",
+     fact:"It was a cousin of Tyrannosaurus that hunted in the far north of Alaska, and its name means \u201Cpolar bear lizard\u201D. It probably hunted Pachyrhinosaurus and young Ugrunaaluk, and it lived through long, dark winters. It may have had a coat of fluffy feathers to keep warm."}
   ];
 
   /* More about each animal, behind the card's "More about" button: how it was
@@ -1748,6 +1774,22 @@
       facts: ["It could not turn its hands palms-down like you can. Its palms always faced inwards, as if it were about to clap.",
               "Growth rings in its bones show that grown-ups could be very different sizes. Some stopped growing at about five metres, others reached ten.",
               "So many have been dug out of a clay pit at Frick in Switzerland that the little town opened its own dinosaur museum."]},
+    glacialisaurus: {found: "William Hammer's team found its bones high on Mount Kirkpatrick in Antarctica in the summer of 1990 to 1991, close to Cryolophosaurus. Nathan Smith and Diego Pol named it in 2007.",
+      facts: ["Only a few of its bones have been found: part of a thigh bone, an ankle and a foot. Scientists worked out what it was like by comparing them with its cousins, such as Plateosaurus.",
+              "Its second name, hammeri, is for William Hammer, the scientist who dug up both it and Cryolophosaurus.",
+              "It lived at the same time as the first real giant long-necks. So early cousins like it did not vanish when the giants came, but lived beside them for a long time."]},
+    pachyrhinosaurus: {found: "Charles Sternberg named it in 1950 from skulls found in southern Alberta, Canada. Its skull had no horn on the nose, only a thick, rough lump of bone.",
+      facts: ["At Pipestone Creek in Alberta, thousands of bones of young and old animals lay together. A whole herd may have drowned crossing a flooded river.",
+              "One kind of it lived on the North Slope of Alaska, near the Arctic Ocean. It had to get through months of winter darkness there.",
+              "The little horns on its frill were a bit different on every animal, so they may have told each other apart by their frills."]},
+    ugrunaaluk: {found: "Its bones come from the Liscomb Bonebed, by the Colville River in northern Alaska, where the geologist Robert Liscomb found the first dinosaur bones in Alaska in 1961. Hirotsugu Mori and his team named it in 2015.",
+      facts: ["Robert Liscomb thought the bones he found belonged to Ice Age animals. Only about twenty years later did people realise they were dinosaur bones.",
+              "Some scientists think it was really a kind of Edmontosaurus, the duck-billed dinosaur from Canada, so its name is still argued about.",
+              "Most of the bones belonged to young ones about three metres long. A whole group of them may have died together, perhaps in a flood."]},
+    nanuqsaurus: {found: "Pieces of its skull were found in 2006 in the Kikak-Tegoseak quarry in northern Alaska, while scientists were digging up Pachyrhinosaurus. Anthony Fiorillo and Ronald Tykoski named it in 2014.",
+      facts: ["At first scientists thought it was a small tyrannosaur, because there was little food so far north. Teeth and jaws found later show it may have been bigger than they thought.",
+              "Its second name, hoglundi, is for Forrest Hoglund, who helped pay for the museum where its bones are kept.",
+              "Its skull had a short snout and a ridge of bone on top. These are some of the farthest-north tyrannosaur bones ever found."]},
     megalosaurus: {found: "Bones from a quarry at Stonesfield near Oxford were studied by William Buckland, who named Megalosaurus in 1824.",
       facts: ["A piece of bone drawn in a book in 1677 probably came from a Megalosaurus. The scientist who drew it thought it came from a giant human.",
               "In 1842 Richard Owen invented the word dinosaur, meaning terrible lizard. Megalosaurus was one of the first three animals he used it for.",
@@ -2660,10 +2702,10 @@
     var dino = byId(id);
     if(!dino) return;
     viewerId = id; viewerFrom = from || null;
-    viewerImg.src = "img/" + id + ".webp";
+    viewerImg.src = picSrc(id);
     var big = new Image();
     big.onload = function(){ if(viewerId === id) viewerImg.src = big.src; };
-    big.src = "img/full/" + id + ".webp";
+    big.src = picSrc(id, true);
     viewerImg.alt = dino.name;
     viewerName.textContent = dino.name;
     viewer.hidden = false;
@@ -2747,7 +2789,11 @@
     carcharodontosaurus: [["Kem Kem, Morocco", 31.15, -4.35, "af"], ["Bahariya Oasis, Egypt", 28.3, 28.95, "af"]],
     coelophysis:       [["Ghost Ranch, New Mexico", 36.33, -106.47, "na"]],
     megalosaurus:      [["Stonesfield, Oxfordshire", 51.85, -1.43, "eu"]],
-    plateosaurus:      [["Trossingen, Germany", 48.07, 8.63, "eu"], ["Frick, Switzerland", 47.51, 8.02, "eu"]]
+    plateosaurus:      [["Trossingen, Germany", 48.07, 8.63, "eu"], ["Frick, Switzerland", 47.51, 8.02, "eu"]],
+    glacialisaurus:    [["Mount Kirkpatrick, Antarctica", -84.33, 166.42, "an"]],
+    pachyrhinosaurus:  [["Kikak-Tegoseak, Alaska", 69.75, -151.6, "na"], ["Pipestone Creek, Alberta", 55.05, -119.17, "na"]],
+    ugrunaaluk:        [["Colville River, Alaska", 70.05, -151.4, "na"]],
+    nanuqsaurus:       [["Kikak-Tegoseak, Alaska", 69.75, -151.6, "na"]]
   };
   /* what those places were like while the animal lived there */
   var THEN = {
@@ -2798,7 +2844,11 @@
     carcharodontosaurus: "a land of wide rivers and swamps, full of giant fish and crocodiles",
     coelophysis: "a hot land of rivers and long dry seasons, in the middle of Pangaea",
     megalosaurus: "warm coasts and islands in a shallow tropical sea",
-    plateosaurus: "a warm, dry land of rivers and muddy floodplains, near the edge of Pangaea"
+    plateosaurus: "a warm, dry land of rivers and muddy floodplains, near the edge of Pangaea",
+    glacialisaurus: "a cool forest of conifers and ferns near the South Pole \u2014 no ice yet",
+    pachyrhinosaurus: "a land of cool forests and wide river plains, reaching all the way north to the Arctic",
+    ugrunaaluk: "a land of cool forests by the rivers of the far north, dark for weeks every winter",
+    nanuqsaurus: "a land of cool forests and rivers near the Arctic Ocean, dark for weeks every winter"
   };
   /* How each plate has turned since then (row by row), from tools/paleomap.py,
      which draws img/map/then-*.webp with the very same numbers. */
@@ -3015,6 +3065,12 @@
       y0 = Math.min(y0, p.y); y1 = Math.max(y1, p.y);
     });
     if(x0 > x1) return {s: s, cx: WORLD_W * 0.5, cy: WORLD_H * 0.42};
+    /* but never so close that an animal is left off the edge - Cryolophosaurus
+       at the far end of Antarctica, say - unless that would leave a phone a sliver */
+    if(!narrowMap.matches){
+      var pad = mv.pin;
+      s = Math.max(minScale(), Math.min(s, (mv.W - 2 * pad) / Math.max(1, x1 - x0), (mv.H - 44 - 2 * pad) / Math.max(1, y1 - y0)));
+    }
     return {s: s, cx: (x0 + x1) / 2, cy: (y0 + y1) / 2};
   }
   /* the view that frames some places, inside the free part of the map */
@@ -3106,7 +3162,7 @@
   /* the land at t million years ago: the two nearest frames, one over the other */
   function paintDrift(t){
     var lo = Math.max(0, Math.min(220, Math.floor(t / 5) * 5)), hi = Math.min(220, lo + 5);
-    if(!frameReady(lo)) return;
+    if(!frameReady(lo)) return false;
     driftCtx.globalAlpha = 1;
     driftCtx.drawImage(driftFrames[lo], 0, 0, driftCanvas.width, driftCanvas.height);
     if(hi !== lo && frameReady(hi)){
@@ -3114,6 +3170,7 @@
       driftCtx.drawImage(driftFrames[hi], 0, 0, driftCanvas.width, driftCanvas.height);
       driftCtx.globalAlpha = 1;
     }
+    return true;
   }
   /* the caption counts the years as they go by */
   var yearSpan = document.createElement("span"), yearB = document.createElement("b");
@@ -3127,6 +3184,11 @@
     }
     mapCaption.hidden = false;
   }
+  function showDrift(){
+    driftCanvas.dataset.on = "true";
+    mapImgs.now.dataset.on = mapImgs[220].dataset.on = mapImgs[150].dataset.on = mapImgs[70].dataset.on = mapImgs[66].dataset.on = "false";
+    mapUnder.style.opacity = "0";
+  }
   function stopDrift(){
     if(mv.drift){ cancelAnimationFrame(mv.drift); mv.drift = null; }
     mv.anim = null;
@@ -3134,11 +3196,175 @@
     mapUnder.style.opacity = "";
   }
 
+  /* ---------- the poles freeze ---------- */
+  /* Today's story, shown as it is told: the land drifts on from the warm world,
+     a cold current starts to circle Antarctica, the whole world cools, snow
+     falls and the ice spreads out from the South Pole over the forests, years
+     go by, and Greenland freezes too. All of it is painted on the drift canvas,
+     so it zooms with the map and goes when the land stops moving. The frames
+     themselves bring the ice back (tools/paleomap.py, ICE_SINCE): Antarctica's
+     at 30 million years and Greenland's at 0, so the ice spreads by showing
+     more and more of those frames over the ones before. */
+  function nowCues(){
+    var text = STORY.now, c = {}, fallback = {current: .35, cool: .44, snow: .55, ice: .65, greenland: .74, atlantic: .81}, prev = 0;
+    Object.keys(fallback).forEach(function(k){
+      var at = NOW_WORDS[k] ? text.indexOf(NOW_WORDS[k]) : -1;
+      /* each part after the one before, and the last well before the end */
+      prev = c[k] = Math.min(0.9, Math.max(prev + 0.02, at > 0 ? at / text.length : fallback[k]));
+    });
+    return c;
+  }
+  /* the flakes and the streaks of the current, the same every time */
+  var frost = (function(){
+    var seed = 34;
+    function rnd(){ seed = (seed * 16807) % 2147483647; return seed / 2147483647; }
+    var o = {south: [], north: [], current: [], fog: []}, k;
+    for(k = 0; k < 160; k++) o.south.push({x: rnd() * 1024, y: rnd(), v: 10 + rnd() * 14, r: 0.7 + rnd() * 1.1, w: rnd() * 6.3});
+    for(k = 0; k < 90; k++) o.north.push({x: 250 + rnd() * 330, y: rnd(), v: 8 + rnd() * 12, r: 0.7 + rnd() * 1.0, w: rnd() * 6.3});
+    for(k = 0; k < 68; k++) o.current.push({x: rnd() * 1024, y: 410 + rnd() * 18, v: 35 + rnd() * 30, len: 22 + rnd() * 40, w: rnd() * 6.3});
+    for(k = 0; k < 90; k++) o.fog.push({x: rnd() * 1024, y: 438 + rnd() * 70, v: 10 + rnd() * 14, len: 40 + rnd() * 60, w: rnd() * 6.3});
+    for(k = 0; k < 40; k++) o.current.push({x: rnd() * 1024, y: 430 + rnd() * 26, v: 35 + rnd() * 30, len: 22 + rnd() * 40, w: rnd() * 6.3});   /* and further south, close round the coast */
+    return o;
+  })();
+  /* one soft puff of mist, painted once and stretched into every bank of it */
+  function mistPuff(){
+    if(mistPuff.cv) return mistPuff.cv;
+    var cv = mistPuff.cv = document.createElement("canvas");
+    cv.width = cv.height = 64;
+    var m = cv.getContext("2d"), grad = m.createRadialGradient(32, 32, 0, 32, 32, 32);
+    grad.addColorStop(0, "rgba(215,240,255,1)");
+    grad.addColorStop(0.45, "rgba(190,225,250,.55)");
+    grad.addColorStop(1, "rgba(170,215,245,0)");
+    m.fillStyle = grad;
+    m.fillRect(0, 0, 64, 64);
+    return cv;
+  }
+  function seg(p, a, b){ return Math.max(0, Math.min(1, (p - a) / (b - a))); }
+  function smooth(k){ return k * k * (3 - 2 * k); }
+  function latY(lat){ return (90 - lat) / 180 * 512; }   /* on the drift canvas */
+  function paintFreeze(p, c, from, sec, drift){
+    var g = driftCtx, end = c.atlantic + 0.04;
+    var iceA = smooth(seg(p, c.snow, c.ice + 0.05)), iceG = smooth(seg(p, c.greenland + 0.02, c.atlantic - 0.01));
+    /* the age on the caption, and the land shown under the ice */
+    var age, land;
+    /* the land first moves on to 36 million years as fast as between any two stages */
+    if(p < c.current) age = land = from + (36 - from) * (drift < 0.5 ? 2 * drift * drift : 1 - Math.pow(-2 * drift + 2, 2) / 2);
+    else if(p < c.snow) age = land = 36 - seg(p, c.current, c.snow);
+    else if(p < c.ice + 0.05){ age = 35 - seg(p, c.snow, c.ice + 0.05); land = 35; }   /* the ice grows over a land with none */
+    else if(p < c.greenland + 0.02) age = land = 34 - 29 * smooth(seg(p, c.ice + 0.05, c.greenland + 0.02));
+    else if(p < c.atlantic){ age = 5 - 2 * seg(p, c.greenland + 0.02, c.greenland + 0.06); land = 5; }
+    else age = land = 3 - 3 * smooth(seg(p, c.atlantic, end));
+    mv.anim = age;
+    if(!paintDrift(land)) return false;   /* not come yet: today's map stays up meanwhile */
+    showDrift();
+    countYears(age);
+    /* the whole of Antarctica slowly turns white: the frame with ice shows through more and more */
+    if(iceA > 0 && frameReady(30) && land > 30){
+      g.save();
+      g.beginPath(); g.rect(0, latY(-56), 1024, 512 - latY(-56)); g.clip();
+      g.globalAlpha = iceA;
+      g.drawImage(driftFrames[30], 0, 0, 1024, 512);
+      g.restore();
+    }
+    /* then Greenland and the islands of the far north, spreading out from Greenland */
+    if(iceG > 0 && frameReady(0) && land > 0){
+      g.save();
+      g.beginPath(); g.rect(0, 0, 1024, latY(57)); g.clip();
+      g.beginPath(); g.ellipse(398, latY(72), 10 + iceG * 660, 4 + iceG * 220, 0, 0, Math.PI * 2); g.clip();
+      g.drawImage(driftFrames[0], 0, 0, 1024, 512);
+      g.restore();
+    }
+    /* the world cools: everything turns a colder blue */
+    var cool = seg(p, c.cool, c.snow) * (1 - seg(p, c.atlantic, end));
+    if(cool > 0){
+      g.save();
+      g.globalCompositeOperation = "multiply";
+      g.globalAlpha = cool * 0.55;
+      g.fillStyle = "rgb(170,200,255)";
+      g.fillRect(0, 0, 1024, 512);
+      g.restore();
+    }
+    /* the cold current swirls east round Antarctica, keeping the warm water
+       away: soft banks of cold mist drifting along, thinning and thickening */
+    var flow = seg(p, c.current, c.current + 0.03) * (1 - seg(p, c.atlantic, end));
+    if(flow > 0){
+      var puff = mistPuff();
+      g.save();
+      frost.current.forEach(function(s){
+        var w = s.len * 1.8, h = 9 + s.len * 0.12;
+        var hx = ((s.x + sec * s.v * 0.6) % 1024 + 1024) % 1024, y = s.y + Math.sin(hx * 0.02 + s.w) * 3;
+        g.globalAlpha = flow * (0.22 + 0.1 * Math.sin(sec * 0.8 + s.w));
+        g.drawImage(puff, hx - w / 2, y - h / 2, w, h);
+        if(hx + w / 2 > 1024) g.drawImage(puff, hx - 1024 - w / 2, y - h / 2, w, h);   /* round the back of the world */
+        if(hx - w / 2 < 0) g.drawImage(puff, hx + 1024 - w / 2, y - h / 2, w, h);
+      });
+      g.restore();
+    }
+    /* and thick cold fog rolls over Antarctica while it freezes */
+    var fog = seg(p, c.snow - 0.03, c.snow + 0.02) * (1 - seg(p, c.ice + 0.05, c.greenland + 0.02));
+    if(fog > 0){
+      var mist = mistPuff();
+      g.save();
+      frost.fog.forEach(function(s){
+        var w = s.len * 2, h = 12 + s.len * 0.15;
+        var hx = ((s.x + sec * s.v) % 1024 + 1024) % 1024, y = s.y + Math.sin(sec * 0.5 + s.w) * 4;
+        g.globalAlpha = fog * (0.3 + 0.12 * Math.sin(sec * 0.7 + s.w));
+        g.drawImage(mist, hx - w / 2, y - h / 2, w, h);
+        if(hx + w / 2 > 1024) g.drawImage(mist, hx - 1024 - w / 2, y - h / 2, w, h);
+        if(hx - w / 2 < 0) g.drawImage(mist, hx + 1024 - w / 2, y - h / 2, w, h);
+      });
+      g.restore();
+    }
+    /* snow, while the ice grows */
+    function snow(flakes, top, bottom, amount){
+      if(amount <= 0) return;
+      g.save();
+      g.fillStyle = "#fff";
+      flakes.forEach(function(f){
+        var k = (f.y + sec * f.v / (bottom - top)) % 1, y = top + k * (bottom - top);
+        g.globalAlpha = amount * 0.9 * Math.min(1, k * 5, (1 - k) * 5);
+        g.beginPath(); g.arc(f.x + Math.sin(sec * 1.3 + f.w) * 3, y, f.r, 0, Math.PI * 2); g.fill();
+      });
+      g.restore();
+    }
+    snow(frost.south, latY(-48), 512, seg(p, c.snow, c.snow + 0.015) * (1 - seg(p, c.ice + 0.05, c.ice + 0.08)));
+    snow(frost.north, 0, latY(58), seg(p, c.greenland + 0.02, c.greenland + 0.035) * (1 - seg(p, c.atlantic - 0.01, c.atlantic + 0.02)));
+    return p >= end;
+  }
+  /* The story sets the pace: as far on as it has been told. With nothing to
+     hear it goes at a reading pace, and a story cut short hurries to the end. */
+  function freezeTo(from, arrive){
+    var c = nowCues(), p = 0, told = false, t0 = performance.now(), last = t0, place = 0, painted = false, moved = null;
+    var dur = 900 + Math.abs(from - 36) * 16;   /* as long as worldTo takes */
+    flyTo(wholeWorld());
+    /* the camera goes south to the ice, then north to Greenland */
+    function look(cy, cx, zoom){ flyTo({s: wholeWorld().s * zoom, cx: cx, cy: cy}); }
+    function step(now){
+      var dt = Math.min(0.1, (now - last) / 1000), at = storyAt("now");
+      last = now;
+      if(at !== null) told = true;
+      if(at === WAIT){ if(now - t0 > 4000) p += dt / 24; }   /* its clip is on the way, or a voice not yet saying where it is */
+      else if(at !== null) p = Math.max(p, at);
+      else p += dt / (told ? 4 : 24);
+      if(moved === null && painted) moved = now;   /* the clock starts once the old world is up */
+      var done = paintFreeze(p, c, from, (now - t0) / 1000, moved === null ? 0 : Math.min(1, (now - moved) / dur));
+      if(!painted && mv.anim !== null && driftCanvas.dataset.on === "true") painted = true;
+      /* the camera follows once the old world is on screen */
+      if(painted && place === 0 && p >= c.current){ place = 1; look(WORLD_H, WORLD_W / 2, 1.5); }
+      if(painted && place === 1 && p >= c.greenland){ place = 2; look(WORLD_H * 0.12, WORLD_W * 140 / 360, 2.2); }
+      drawMap();
+      /* the pictures of the moving land never came: just be today */
+      if(done || (!painted && now - t0 > 8000)){ mv.drift = null; arrive(); return; }
+      mv.drift = requestAnimationFrame(step);
+    }
+    mv.drift = requestAnimationFrame(step);
+  }
+
   /* Every stage button takes the world to its age: the land drifts there, the
      pins riding with it, and the story of that stage is told. At the asteroid,
      once the land is still, the rock comes down. */
-  function worldTo(id, keys, done){
-    var from = mv.anim !== null ? mv.anim : mv.age;
+  function worldTo(id, keys, done, startAt){
+    var from = startAt !== undefined ? startAt : mv.anim !== null ? mv.anim : mv.age;
     if(mv.drift){ cancelAnimationFrame(mv.drift); mv.drift = null; }
     clearImpact();
     setStage(id);
@@ -3157,11 +3383,12 @@
       else if(mv.picked) pickOnMap(mv.picked, true);
       else flyTo(wholeWorld());   /* and look at who lives here now */
     }
+    /* told back to today from before the ice, the land drifts with the story and the
+       poles freeze; it has long enough to wait for the pictures of the moving land */
+    if(!reduceMotion.matches && id === "today" && keys && keys[0] === "now" && from > 36){ freezeTo(from, arrive); return; }
     if(reduceMotion.matches || Math.abs(from - age) < 0.5 || !frameReady(Math.max(0, Math.min(220, Math.floor(from / 5) * 5)))){ arrive(); return; }
     paintDrift(from);
-    driftCanvas.dataset.on = "true";
-    mapImgs.now.dataset.on = mapImgs[220].dataset.on = mapImgs[150].dataset.on = mapImgs[70].dataset.on = mapImgs[66].dataset.on = "false";
-    mapUnder.style.opacity = "0";
+    showDrift();
     var t0 = performance.now(), dur = 900 + Math.abs(age - from) * 16;
     function step(now){
       var k = Math.min(1, (now - t0) / dur);
@@ -3842,6 +4069,12 @@
      timing these again. */
   var SURVIVOR_CUES = {mammal: 53.3, croc: 53.8, turtle: 54.45, bird: 56.0};
   var SURVIVOR_WORDS = {mammal: "mammals,", croc: "crocodiles,", turtle: "turtles,", bird: "feathered dinosaurs"};   /* the same, for the browser's own voice */
+  /* Today's story tells how the poles froze, and the map shows each part as it
+     is said: where each part begins in the story's words. How far through its
+     words the story is (as far through its clip, or word by word in the
+     browser's voice) says how far on the freezing is. */
+  var NOW_WORDS = {current: "A cold ocean current", cool: "At the same time", snow: "Snow that fell",
+                   ice: "thirty-four", greenland: "Greenland froze", atlantic: "Meanwhile"};
   /* The map in Finnish: what is said and shown changes, where things are does
      not. The Finnish asteroid story names the survivors at its own moments,
      measured when its clip is made (tools/tts.py). */
@@ -3863,6 +4096,7 @@
     ["name", "head", "text"].forEach(function(k){ if(FI.craterToday[k]) CRATER_TODAY[k] = FI.craterToday[k]; });
     SURVIVOR_WORDS = FI.survivorWords;
     if(FI.survivorCues) SURVIVOR_CUES = FI.survivorCues;
+    if(FI.nowWords) NOW_WORDS = FI.nowWords;
   }
   function revealSurvivor(id, quiet){
     if(mv.revealed[id]) return;
@@ -3941,7 +4175,7 @@
       pin.setAttribute("aria-label", dino.name + (dino.group ? " (" + T(dino.group).toLowerCase() + ")" : "") + ", " + T("fossils found in {place}", {place: dino.place}));
       pin.title = dino.name;
       var img = document.createElement("img");
-      img.alt = ""; img.loading = "lazy"; img.src = "img/" + dino.id + ".webp";
+      img.alt = ""; img.loading = "lazy"; img.src = picSrc(dino.id);
       pin.appendChild(img);
       if(dino.group){
         var kind = document.createElement("span");
@@ -4142,7 +4376,7 @@
     shot.type = "button"; shot.className = "mc-shot";
     shot.setAttribute("aria-label", T("Show {name} on the whole screen", {name: dino.name}));
     var img = document.createElement("img");
-    img.src = "img/" + dino.id + ".webp"; img.alt = dino.name;
+    img.src = picSrc(dino.id); img.alt = dino.name;
     shot.appendChild(img);
     shot.addEventListener("click", function(){ openViewer(dino.id, shot); });
 
@@ -4261,7 +4495,7 @@
       /* nothing to hear, so a whole story reads the caption at its own pace */
       if(keys[0] === "asteroid") revealSlowly();
       clearTimeout(tellStory.quiet);
-      if(done) tellStory.quiet = setTimeout(done, keys[0] === "asteroid" ? 16000 : keys[0] === "now" ? 18000 : 7000);
+      if(done) tellStory.quiet = setTimeout(done, keys[0] === "asteroid" ? 16000 : keys[0] === "now" ? 24000 : 7000);
       return;
     }
     function next(){
@@ -4270,6 +4504,7 @@
       var version = FI ? FI.version : MAP_CLIP_VERSION[key];   /* the Finnish clips are all recorded again together */
       var clip = new Audio(AUDIO + "map/" + key + ".mp3" + (version ? "?v=" + version : ""));
       speech = clip;
+      tellStory.heard = {key: key, clip: clip, token: token, at: null};
       speakingSide = 4; speakingId = "story";
       function finished(){
         if(keys.length){ speech = null; voiceNow = null; next(); }
@@ -4294,6 +4529,9 @@
               if(at >= 0 && ev.charIndex >= at && tellStory.token === token) revealSurvivor(sv.id);
             });
           };
+          else u.onboundary = function(ev){
+            if(tellStory.heard && tellStory.heard.token === token) tellStory.heard.at = ev.charIndex / STORY[key].length;
+          };
           u.lang = VOICE_LANG; u.rate = 0.95;
           u.onend = u.onerror = function(){ if(voiceNow === u) finished(); };
           voiceNow = u;
@@ -4317,10 +4555,23 @@
     }
     next();
   }
+  /* How far through its words the story of key is: through its clip, or the
+     browser's voice word by word. WAIT while its clip is still coming, null
+     when it is not being told (no sound, stopped, or another story). */
+  var WAIT = -1;
+  function storyAt(key){
+    var h = tellStory.heard;
+    if(!h || h.key !== key || h.token !== tellStory.token) return null;
+    if(speech === h.clip) return h.clip.duration && h.clip.currentTime > 0 ? h.clip.currentTime / h.clip.duration : WAIT;
+    if(voiceNow && voiceNow.storyToken === h.token) return h.at === null ? WAIT : h.at;
+    return null;
+  }
   storyBtn.addEventListener("click", function(event){
     event.stopPropagation();
     if(storyBtn.dataset.playing === "true" || mv.run){ stopSpeech(); stopRun(); return; }
-    tellStory(stageById(mv.stage).say);
+    /* today's story shows the poles freezing again, from a world without ice */
+    if(mv.stage === "today") worldTo("today", stageById("today").say, null, 66);
+    else tellStory(stageById(mv.stage).say);
   });
 
   /* A stage button goes to its stage. Pressed again, the asteroid falls again. */
@@ -4329,7 +4580,8 @@
     if(!chip) return;
     stopRun();
     var id = chip.dataset.stage;
-    if(id !== mv.stage || mv.anim !== null || id === "asteroid") worldTo(id, stageById(id).say);
+    if(id === "today" && mv.stage === "today") worldTo(id, stageById(id).say, null, 66);   /* and the poles freeze again */
+    else if(id !== mv.stage || mv.anim !== null || id === "asteroid") worldTo(id, stageById(id).say);
     else tellStory(stageById(id).say);
   });
 
@@ -4637,7 +4889,7 @@
       var art = document.createElement("div");
       art.className = "art";
       var img = document.createElement("img");
-      img.src = "img/" + dino.id + ".webp";
+      img.src = picSrc(dino.id);
       img.alt = dino.name;
       art.appendChild(img);
       var plate = document.createElement("div");
@@ -4810,7 +5062,7 @@
     if(dino){
       var shot = document.createElement("img");
       shot.className = "portrait";
-      shot.src = "img/" + dino.id + ".webp";
+      shot.src = picSrc(dino.id);
       shot.alt = dino.name;
 
       var name = document.createElement("p");
@@ -5073,7 +5325,7 @@
       var seat = state.sides[sideFor(id)];
       if(seat.open && seat.last === id) b.dataset.open = "true";
       var im = document.createElement("img");
-      im.src = "img/" + dino.id + ".webp";
+      im.src = picSrc(dino.id);
       im.alt = "";
       b.appendChild(im);
       b.addEventListener("click", function(){
