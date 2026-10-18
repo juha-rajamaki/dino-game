@@ -3,7 +3,7 @@
    The body is plain JSON, so tools/tts.py can read it too. survivorCues are
    written by tools/tts.py when it records audio/fi/map/asteroid.mp3. */
 window.DINO_FI = {
- "version": 4,
+ "version": 6,
  "species": {
   "tyrannosaurus": {
    "means": "”Hirmuliskokuningas”",
@@ -420,6 +420,22 @@ window.DINO_FI = {
    "weight": "Noin 1 tonni — kuin pieni auto",
    "place": "Alaska",
    "fact": "Se oli Tyrannosauruksen serkku, joka metsästi kaukana Alaskan pohjoisosissa, ja sen nimi tarkoittaa ”jääkarhuliskoa”. Se saalisti luultavasti Pachyrhinosauruksia ja nuoria Ugrunaalukeja, ja se eli pitkien ja pimeiden talvien läpi. Sillä oli ehkä pörröisten höyhenten turkki, joka piti sen lämpimänä."
+  },
+  "utahraptor": {
+   "means": "”Utahin varas”",
+   "ago": "139–135 miljoonaa vuotta sitten",
+   "size": "6 m pitkä — puolitoista autoa pitkä",
+   "weight": "Noin 300 kg — yhtä painava kuin flyygeli",
+   "place": "Pohjois-Amerikka",
+   "fact": "Se on suurin koskaan löydetty raptori, noin kaksikymmentä kertaa painavampi kuin serkkunsa Velociraptor. Kummassakin jalassa oli kaareva tappokynsi, suunnilleen banaanin mittainen. Se nimettiin vuonna 1993, samana vuonna kun Jurassic Park -elokuva tuli ulos, ja se oli vielä isompi kuin elokuvan raptorit."
+  },
+  "gastonia": {
+   "means": "”Robert Gastonin kunniaksi”",
+   "ago": "139–135 miljoonaa vuotta sitten",
+   "size": "5 m pitkä — yhtä pitkä kuin auto",
+   "weight": "Noin 2 tonnia — yhtä painava kuin virtahepo",
+   "place": "Pohjois-Amerikka",
+   "fact": "Sitä peitti luinen panssari, ja sen hartioista ja kyljistä työntyi isoja litteitä piikkejä kuin teriä. Sen hännässä ei ollut nuijaa, mutta hännän reunoilla oli piikkejä, joilla se pystyi huitomaan hyökkääjää. Se eli Utahraptorin naapurina, ja niiden luut löytyivät samasta louhoksesta."
   }
  },
  "more": {
@@ -838,6 +854,22 @@ window.DINO_FI = {
     "Sen toinen nimi, hoglundi, on Forrest Hoglundin mukaan. Hän auttoi maksamaan museon, jossa sen luita säilytetään.",
     "Sen kallossa oli lyhyt kuono ja päällä luinen harjanne. Ne ovat pohjoisimpia koskaan löydettyjä tyrannosaurusten luita."
    ]
+  },
+  "utahraptor": {
+   "found": "Carl Limoni löysi valtavan jalan kynnen Itä-Utahista lokakuussa 1991, ja ryhmä kaivoi lisää sen luita Gastonin louhokselta. James Kirkland, Robert Gaston ja Donald Burge nimesivät sen vuonna 1993.",
+   "facts": [
+    "Vuonna 2001 eräs geologian opiskelija huomasi luun, joka pisti esiin rinteestä Utahissa. Kalliosta paljastui yhdeksän tonnin kivilohkare, jossa oli ainakin kuusi Utahraptoria aikuisista pikkuruiseen poikaseen. Ne ovat ehkä jääneet yhdessä juoksuhiekkaan.",
+    "Sen toinen nimi, ostrommaysi, on John Ostromin ja Chris Maysin mukaan. Ostrom osoitti, että sen serkut olivat nopeita ja vilkkaita eläimiä ja sukua linnuille. Maysin yritys rakensi liikkuvia robottidinosauruksia ja auttoi maksamaan kaivaukset.",
+    "Vuonna 2018 siitä tuli Utahin osavaltion virallinen dinosaurus. Idea tuli kymmenvuotiaalta pojalta, joka pyysi osavaltion päättäjiä valitsemaan sen."
+   ]
+  },
+  "gastonia": {
+   "found": "Sen luita kaivettiin vuodesta 1989 alkaen Gastonin louhokselta Itä-Utahista, josta löytyi myös Utahraptor. James Kirkland nimesi sen vuonna 1998 Robert Gastonin mukaan. Gaston oli taiteilija, jonka mukaan louhoskin on nimetty.",
+   "facts": [
+    "Sen pää osoitti alaspäin, ja kallon takaosa oli erityisen vahva. James Kirkland arveli, että urokset ehkä puskivat toisiaan päillään kuin pässit näyttääkseen, kuka oli vahvin.",
+    "Se on yksi Itä-Utahin kivien yleisimmistä dinosauruksista, ja sen kalloja on löydetty ainakin kymmenen. Tutkijat tuntevat sen paremmin kuin melkein minkään muun varhaisen panssaridinosauruksen.",
+    "Vuonna 1999 Lorrie McWhinney löysi kerroksen, joka oli täynnä kokonaisen ryhmän luita. Ne ovat ehkä kuolleet yhdessä kuivuuteen tai tulvaan. Vuonna 2016 toinen Gastonia-laji nimettiin hänen mukaansa."
+   ]
   }
  },
  "then": {
@@ -892,7 +924,9 @@ window.DINO_FI = {
   "glacialisaurus": "viileä havupuiden ja saniaisten metsä lähellä etelänapaa — jäätä ei vielä ollut",
   "pachyrhinosaurus": "viileiden metsien ja laajojen jokitasankojen maa, joka ulottui pohjoisessa aina arktiselle alueelle asti",
   "ugrunaaluk": "viileiden metsien maa kaukaisen pohjoisen jokien varsilla, joka talvi viikkokausia pimeä",
-  "nanuqsaurus": "viileiden metsien ja jokien maa lähellä Pohjoista jäämerta, joka talvi viikkokausia pimeä"
+  "nanuqsaurus": "viileiden metsien ja jokien maa lähellä Pohjoista jäämerta, joka talvi viikkokausia pimeä",
+  "utahraptor": "kuiva tasanko, jolla oli jokia, havumetsiä ja saniaisniittyjä",
+  "gastonia": "kuiva maa, jossa jokivarsien metsien välissä oli avointa maastoa"
  },
  "ageText": {
   "66": "<b>66 miljoonaa vuotta sitten</b> — kymmenen kilometrin levyinen avaruuskivi iskeytyy mereen Meksikon lähellä, ja jättiläisdinosaurusten aika päättyy.",
@@ -970,6 +1004,7 @@ window.DINO_FI = {
   "Dinosaur Provincial Park, Alberta": "Dinosaur Provincial Park, Alberta",
   "Bisti Badlands, New Mexico": "Bisti Badlands, New Mexico",
   "Cleveland-Lloyd Quarry, Utah": "Cleveland-Lloyd Quarry, Utah",
+  "Gaston Quarry, Utah": "Gaston Quarry, Utah",
   "Nemegt Basin, Mongolia": "Nemegtin allas, Mongolia",
   "Dinosaur National Monument, Utah": "Dinosaur National Monument, Utah",
   "Chubut, Argentina": "Chubut, Argentiina",

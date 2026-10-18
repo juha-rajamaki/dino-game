@@ -9,7 +9,7 @@ works for a child who cannot read yet.
 
 ## What is in it
 
-- **52 animals** — 41 dinosaurs, 5 pterosaurs and 6 sea reptiles, from every
+- **54 animals** — 43 dinosaurs, 5 pterosaurs and 6 sea reptiles, from every
   continent and three ages: Coelophysis and Plateosaurus, among the very first
   dinosaurs;
   Megalosaurus, the first ever named; Brontosaurus, Giganotosaurus and
@@ -17,7 +17,7 @@ works for a child who cannot read yet.
   wide as a small plane; Albertosaurus and Edmontosaurus from Canada, Australovenator, Muttaburrasaurus and Leaellynasaura from
   Australia, Cryolophosaurus and its neighbour Glacialisaurus from Antarctica,
   and Pachyrhinosaurus, Ugrunaaluk and the tyrannosaur Nanuqsaurus from the
-  far north of Alaska. The seas have Mosasaurus,
+  far north of Alaska, and from Utah the biggest raptor of all, Utahraptor, and its spiky neighbour Gastonia. The seas have Mosasaurus,
   the long-necked Elasmosaurus, the short-necked pliosaurs Liopleurodon and
   Kronosaurus, the dolphin-shaped Ichthyosaurus that Mary Anning dug out of the
   cliffs at Lyme Regis, and Archelon, the biggest turtle that ever lived. There
@@ -136,8 +136,8 @@ It is a single static page with no build step and no dependencies:
 
 ```
 index.html      the whole game - markup, styles and logic
-img/            52 card plates plus the background and the two foreground animals
-img/full/       the same 52 animals at full size, fetched only when one is opened
+img/            54 card plates plus the background and the two foreground animals
+img/full/       the same 54 animals at full size, fetched only when one is opened
 img/map/        the Earth today, small and large, the worlds of 220, 150, 70 and 66
                 million years ago, and drift/, the land every five million years between
 tools/          paleomap.py, which draws those worlds (needs numpy and Pillow),

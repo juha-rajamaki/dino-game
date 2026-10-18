@@ -1330,7 +1330,7 @@
 
 </div>
 
-<script src="lang/fi.js?v=4"></script>
+<script src="lang/fi.js?v=6"></script>
 <script>
 (function(){
   "use strict";
@@ -1599,7 +1599,15 @@
     {id:"nanuqsaurus", speed:35, tonnes:1, name:"Nanuqsaurus", means:"\u201CPolar bear lizard\u201D",
      period:"Cretaceous", ago:"69 million years ago", size:"6 m long or more \u2014 as long as a car and a half",
      weight:"About 1 tonne \u2014 like a small car", food:"Meat", place:"Alaska",
-     fact:"It was a cousin of Tyrannosaurus that hunted in the far north of Alaska, and its name means \u201Cpolar bear lizard\u201D. It probably hunted Pachyrhinosaurus and young Ugrunaaluk, and it lived through long, dark winters. It may have had a coat of fluffy feathers to keep warm."}
+     fact:"It was a cousin of Tyrannosaurus that hunted in the far north of Alaska, and its name means \u201Cpolar bear lizard\u201D. It probably hunted Pachyrhinosaurus and young Ugrunaaluk, and it lived through long, dark winters. It may have had a coat of fluffy feathers to keep warm."},
+    {id:"utahraptor", speed:40, tonnes:0.3, name:"Utahraptor", means:"\u201CUtah's thief\u201D",
+     period:"Cretaceous", ago:"139\u2013135 million years ago", size:"6 m long \u2014 as long as a car and a half",
+     weight:"About 300 kg \u2014 as heavy as a grand piano", food:"Meat", place:"North America",
+     fact:"It is the biggest raptor ever found, about twenty times heavier than its cousin Velociraptor. Each foot had a curved killing claw about as long as a banana. It was named in 1993, the year the film Jurassic Park came out, and it was even bigger than the film's raptors."},
+    {id:"gastonia", speed:10, tonnes:2, name:"Gastonia", means:"\u201CFor Robert Gaston\u201D",
+     period:"Cretaceous", ago:"139\u2013135 million years ago", size:"5 m long \u2014 as long as a car",
+     weight:"About 2 tonnes \u2014 as heavy as a hippo", food:"Plants", place:"North America",
+     fact:"It was covered in bony armour, with big flat spikes sticking out from its shoulders and sides like blades. It had no club on its tail, but the tail had spikes along its edges that it could swing at an attacker. It lived beside Utahraptor, and their bones were found in the very same quarry."}
   ];
 
   /* More about each animal, behind the card's "More about" button: how it was
@@ -1790,6 +1798,14 @@
       facts: ["At first scientists thought it was a small tyrannosaur, because there was little food so far north. Teeth and jaws found later show it may have been bigger than they thought.",
               "Its second name, hoglundi, is for Forrest Hoglund, who helped pay for the museum where its bones are kept.",
               "Its skull had a short snout and a ridge of bone on top. These are some of the farthest-north tyrannosaur bones ever found."]},
+    utahraptor: {found: "Carl Limoni found a huge foot claw in eastern Utah in October 1991, and the team dug up more of its bones at the Gaston Quarry. James Kirkland, Robert Gaston and Donald Burge named it in 1993.",
+      facts: ["In 2001 a geology student spotted a bone sticking out of a hillside in Utah. Inside the rock was a nine-tonne block holding at least six Utahraptors, from grown-ups to a tiny baby. They may have been trapped together in quicksand.",
+              "Its second name, ostrommaysi, is for John Ostrom, who showed that its cousins were quick, lively animals related to birds, and for Chris Mays, whose company built moving robot dinosaurs and helped pay for the digging.",
+              "In 2018 it became Utah's state dinosaur. The idea came from a ten-year-old boy, who asked the state's lawmakers to choose it."]},
+    gastonia: {found: "Its bones were dug up from 1989 onwards at the Gaston Quarry in eastern Utah, where Utahraptor was found too. James Kirkland named it in 1998 after Robert Gaston, the artist the quarry is named after.",
+      facts: ["Its head pointed down and the back of its skull was extra strong. James Kirkland thought males may have butted heads like rams to show who was strongest.",
+              "It is one of the most common dinosaurs in the rocks of eastern Utah, and at least ten of its skulls have been found. Scientists know it better than almost any other early armoured dinosaur.",
+              "In 1999 Lorrie McWhinney found a bed full of bones from a whole group of them, which may have died together in a drought or a flood. In 2016 a second kind of Gastonia was named after her."]},
     megalosaurus: {found: "Bones from a quarry at Stonesfield near Oxford were studied by William Buckland, who named Megalosaurus in 1824.",
       facts: ["A piece of bone drawn in a book in 1677 probably came from a Megalosaurus. The scientist who drew it thought it came from a giant human.",
               "In 1842 Richard Owen invented the word dinosaur, meaning terrible lizard. Megalosaurus was one of the first three animals he used it for.",
@@ -2793,7 +2809,9 @@
     glacialisaurus:    [["Mount Kirkpatrick, Antarctica", -84.33, 166.42, "an"]],
     pachyrhinosaurus:  [["Kikak-Tegoseak, Alaska", 69.75, -151.6, "na"], ["Pipestone Creek, Alberta", 55.05, -119.17, "na"]],
     ugrunaaluk:        [["Colville River, Alaska", 70.05, -151.4, "na"]],
-    nanuqsaurus:       [["Kikak-Tegoseak, Alaska", 69.75, -151.6, "na"]]
+    nanuqsaurus:       [["Kikak-Tegoseak, Alaska", 69.75, -151.6, "na"]],
+    utahraptor:        [["Gaston Quarry, Utah", 38.88, -109.5, "na"]],
+    gastonia:          [["Gaston Quarry, Utah", 38.88, -109.5, "na"]]
   };
   /* what those places were like while the animal lived there */
   var THEN = {
@@ -2848,7 +2866,9 @@
     glacialisaurus: "a cool forest of conifers and ferns near the South Pole \u2014 no ice yet",
     pachyrhinosaurus: "a land of cool forests and wide river plains, reaching all the way north to the Arctic",
     ugrunaaluk: "a land of cool forests by the rivers of the far north, dark for weeks every winter",
-    nanuqsaurus: "a land of cool forests and rivers near the Arctic Ocean, dark for weeks every winter"
+    nanuqsaurus: "a land of cool forests and rivers near the Arctic Ocean, dark for weeks every winter",
+    utahraptor: "a dry plain with rivers, conifer woods and fern meadows",
+    gastonia: "a dry land of riverside forests with open ground between them"
   };
   /* How each plate has turned since then (row by row), from tools/paleomap.py,
      which draws img/map/then-*.webp with the very same numbers. */
