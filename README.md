@@ -9,19 +9,26 @@ works for a child who cannot read yet.
 
 ## What is in it
 
-- **54 animals** — 43 dinosaurs, 5 pterosaurs and 6 sea reptiles, from every
-  continent and three ages: Coelophysis and Plateosaurus, among the very first
-  dinosaurs;
-  Megalosaurus, the first ever named; Brontosaurus, Giganotosaurus and
+- **68 animals** — 55 dinosaurs, 5 pterosaurs, 6 sea reptiles and 2 snakes, from every
+  continent and three ages: Herrerasaurus, Coelophysis and Plateosaurus, among the very first
+  dinosaurs; Deinonychus, the real model for the film raptors; Patagotitan,
+  one of the heaviest animals ever to walk on land;
+  Mamenchisaurus from China, with one of the longest necks ever, and
+  Sinosauropteryx, the first feathered dinosaur found;
+  the spiky Kentrosaurus from Tanzania;
+  Megalosaurus, the first ever named, and the fish-eating Baryonyx, both from England;
+  Maiasaura, the good mother whose nests were found in Montana; Brontosaurus, Giganotosaurus and
   Carcharodontosaurus; Archaeopteryx, one of the first birds; Quetzalcoatlus, as
-  wide as a small plane; Albertosaurus and Edmontosaurus from Canada, Australovenator, Muttaburrasaurus and Leaellynasaura from
+  wide as a small plane; Albertosaurus, Edmontosaurus, the helmet-crested Corythosaurus and the statue-like armoured Borealopelta from Canada, Australovenator, Muttaburrasaurus and Leaellynasaura from
   Australia, Cryolophosaurus and its neighbour Glacialisaurus from Antarctica,
   and Pachyrhinosaurus, Ugrunaaluk and the tyrannosaur Nanuqsaurus from the
-  far north of Alaska, and from Utah the biggest raptor of all, Utahraptor, and its spiky neighbour Gastonia. The seas have Mosasaurus,
+  far north of Alaska, and from Utah the biggest raptor of all, Utahraptor, its spiky neighbour Gastonia and the flat-hipped plant-eater Planicoxa. The seas have Mosasaurus,
   the long-necked Elasmosaurus, the short-necked pliosaurs Liopleurodon and
   Kronosaurus, the dolphin-shaped Ichthyosaurus that Mary Anning dug out of the
-  cliffs at Lyme Regis, and Archelon, the biggest turtle that ever lived. There
-  were no sea dinosaurs, so the eleven that are not dinosaurs say so on their card,
+  cliffs at Lyme Regis, and Archelon, the biggest turtle that ever lived. From India comes the horned
+  Rajasaurus, and two early snakes slither in too: Sanajeh, its neighbour, found coiled in a dinosaur nest, and
+  Najash from Argentina, which still had little back legs. There
+  were no sea dinosaurs, so the thirteen that are not dinosaurs say so on their card,
   because Pteranodon, Mosasaurus and Elasmosaurus are mistaken for dinosaurs
   more often than almost anything else in this set.
 - **More about each one.** Under every card's fact sits a **More about…**
@@ -136,12 +143,13 @@ It is a single static page with no build step and no dependencies:
 
 ```
 index.html      the whole game - markup, styles and logic
-img/            54 card plates plus the background and the two foreground animals
-img/full/       the same 54 animals at full size, fetched only when one is opened
+img/            68 card plates plus the background and the two foreground animals
+img/full/       the same 68 animals at full size, fetched only when one is opened
 img/map/        the Earth today, small and large, the worlds of 220, 150, 70 and 66
                 million years ago, and drift/, the land every five million years between
 tools/          paleomap.py, which draws those worlds (needs numpy and Pillow),
-                and tts.py, which records the Finnish narration
+                tts.py and tts_en.py, which record the Finnish and English
+                narration, and picture.py, which makes an animal's two pictures
 audio/          a narration clip per animal, plus the jungle loop
 audio/map/      the stories told on the map, one or two for each stage
 audio/more/     the More lines read aloud, four for each animal
@@ -154,6 +162,21 @@ Open `index.html` in a browser, or serve the folder with anything:
 ```sh
 python3 -m http.server 8000
 ```
+
+## Adding an animal
+
+`.claude/skills/add-dinosaur/SKILL.md` walks through it: researching the
+animal, the four tables in `index.html`, the Finnish, the narration, the
+pictures and the counts here. In Claude Code just ask to add one, or type
+`/add-dinosaur`. The tools it uses:
+
+```sh
+python3 tools/picture.py ~/Desktop/dino/gastonia.png gastonia   # the card and full-size pictures
+python3 tools/tts_en.py gastonia                                # the English clips
+python3 tools/tts.py gastonia name/gastonia more/gastonia       # the Finnish clips
+```
+
+The painting is a PNG with the animal cut out on a transparent background.
 
 ## The Finnish narration
 

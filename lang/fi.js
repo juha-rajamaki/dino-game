@@ -3,7 +3,7 @@
    The body is plain JSON, so tools/tts.py can read it too. survivorCues are
    written by tools/tts.py when it records audio/fi/map/asteroid.mp3. */
 window.DINO_FI = {
- "version": 6,
+ "version": 17,
  "species": {
   "tyrannosaurus": {
    "means": "”Hirmuliskokuningas”",
@@ -436,6 +436,118 @@ window.DINO_FI = {
    "weight": "Noin 2 tonnia — yhtä painava kuin virtahepo",
    "place": "Pohjois-Amerikka",
    "fact": "Sitä peitti luinen panssari, ja sen hartioista ja kyljistä työntyi isoja litteitä piikkejä kuin teriä. Sen hännässä ei ollut nuijaa, mutta hännän reunoilla oli piikkejä, joilla se pystyi huitomaan hyökkääjää. Se eli Utahraptorin naapurina, ja niiden luut löytyivät samasta louhoksesta."
+  },
+  "planicoxa": {
+   "means": "”Litteä lantio”",
+   "ago": "129–125 miljoonaa vuotta sitten",
+   "size": "4,5 m pitkä — suunnilleen yhtä pitkä kuin auto",
+   "weight": "Noin 450 kg — yhtä painava kuin hevonen",
+   "place": "Pohjois-Amerikka",
+   "fact": "Sen nimi tarkoittaa ”litteää lantiota”, koska sen lantioluu oli tavallista litteämpi. Siitä tutkijat erottavat sen serkuistaan. Se oli nokallinen kasvinsyöjä, Iguanodonin serkku, ja se käveli luultavasti joko kahdella tai neljällä jalalla. Museon vapaaehtoisten ryhmä löysi sen luut Utahista vuonna 1998."
+  },
+  "sanajeh": {
+   "means": "”Muinainen kita”",
+   "ago": "68–67 miljoonaa vuotta sitten",
+   "size": "3,5 m pitkä — yhtä pitkä kuin kaksi aikuista peräkkäin makuulla",
+   "weight": "Ehkä 25 kg — yhtä painava kuin iso koira",
+   "place": "Intia",
+   "fact": "Sen fossiili löytyi kiertyneenä murskautuneen dinosauruksenmunan ympärille pesässä, aivan juuri kuoriutuneen pitkäkaulaisen dinosauruksen poikasen vieressä. Luultavasti mutavyöry hautasi ne kaikki kerralla. Tutkijat arvelevat, että tämä käärme väijyi dinosaurusten pesillä ja nappasi poikasia sitä mukaa kuin ne kuoriutuivat."
+  },
+  "najash": {
+   "means": "”Käärme”",
+   "ago": "100–95 miljoonaa vuotta sitten",
+   "size": "Jopa 2 m pitkä — pidempi kuin aikuinen on pitkä",
+   "weight": "Ehkä 5 kg — yhtä painava kuin kissa",
+   "place": "Argentiina",
+   "fact": "Se oli käärme, jolla oli kaksi pientä takajalkaa ja selkärankaan kiinnittynyt lantio. Sellaista ei ole yhdelläkään nykyään elävällä käärmeellä. Sen luut ovat samoista kivikerroksista kuin Giganotosauruksen. Se eli maalla ja saalisti luultavasti pieniä eläimiä, kuten liskoja, pikkunisäkkäitä ja ehkä dinosaurusten poikasia."
+  },
+  "baryonyx": {
+   "means": "”Raskas kynsi”",
+   "ago": "130–125 miljoonaa vuotta sitten",
+   "size": "Noin 9 m pitkä — melkein yhtä pitkä kuin bussi",
+   "weight": "Noin 1,7 tonnia — autoa painavampi",
+   "place": "Englanti",
+   "fact": "Sillä oli pitkä, kapea kuono kuin krokotiililla ja kummassakin peukalossa valtava kaareva kynsi, suunnilleen viivoittimen mittainen. Sen luurangon sisältä tutkijat löysivät kalansuomuja ja nuoren Iguanodonin luita, sen viimeisiä aterioita. Se oli ensimmäinen todiste siitä, että jotkin dinosaurukset söivät kalaa."
+  },
+  "maiasaura": {
+   "means": "”Hyvä äitilisko”",
+   "ago": "77–76 miljoonaa vuotta sitten",
+   "size": "Jopa 9 m pitkä — melkein yhtä pitkä kuin bussi",
+   "weight": "Jopa 4 tonnia — sarvikuonoa painavampi",
+   "place": "Pohjois-Amerikka",
+   "fact": "Tutkijat löysivät sen kokonaisia pesimäalueita, joiden pesät olivat täynnä munankuoria ja poikasia. Poikaset näyttävät pysyneen pesässä kasvaessaan, joten vanhemmat luultavasti hoitivat niitä, ja siksi sen nimi tarkoittaa hyvää äitiliskoa. Se oli ensimmäinen kunnon merkki siitä, että dinosaurukset huolehtivat poikasistaan."
+  },
+  "mamenchisaurus": {
+   "means": "”Mamenxin lisko”",
+   "ago": "160–150 miljoonaa vuotta sitten",
+   "size": "Noin 22 m pitkä — melkein yhtä pitkä kuin kaksi bussia",
+   "weight": "Noin 15 tonnia — yhtä painava kuin kolme norsua",
+   "place": "Kiina",
+   "fact": "Sen kaula oli melkein puolet koko sen ruumiista, yksi pisimmistä kauloista, joita millään eläimellä on koskaan ollut. Yhdellä lajilla, joka löytyi Länsi-Kiinasta, saattoi olla noin 15 metrin kaula, yli kuusi kertaa niin pitkä kuin kirahvin. Sen kaulanikamat olivat enimmäkseen täynnä ilmaa, mikä piti ne kevyinä."
+  },
+  "deinonychus": {
+   "means": "”Kauhea kynsi”",
+   "ago": "115–108 miljoonaa vuotta sitten",
+   "size": "Jopa 3,4 m pitkä — suunnilleen yhtä pitkä kuin pieni auto",
+   "weight": "Noin 70 kg — yhtä painava kuin aikuinen",
+   "place": "Pohjois-Amerikka",
+   "fact": "Kummankin jalan toisessa varpaassa oli iso kaareva kynsi, noin 12 senttiä pitkä, jota se piti koholla irti maasta. Jurassic Park -elokuvan raptoreita kutsuttiin Velociraptoreiksi, mutta oikeasti ne tehtiin Deinonychuksen mallin mukaan. Sillä oli luultavasti höyhenet, niin kuin sen serkuilla Velociraptorilla ja Microraptorilla."
+  },
+  "patagotitan": {
+   "means": "”Patagonian jättiläinen”",
+   "ago": "Noin 102 miljoonaa vuotta sitten",
+   "size": "Noin 31 m pitkä — yhtä pitkä kuin kaksi ja puoli bussia",
+   "weight": "Noin 57 tonnia — yhtä painava kuin yhdeksän norsua",
+   "place": "Argentiina",
+   "fact": "Se on yksi suurimmista eläimistä, jotka ovat koskaan kävelleet maalla, ja se saattoi painaa suunnilleen yhtä paljon kuin Argentinosaurus. Pelkkä sen reisiluu oli noin 2,4 metriä pitkä, pidempi kuin aikuinen. Tutkijat löysivät ainakin kuuden yksilön luut yhdeltä maatilalta."
+  },
+  "herrerasaurus": {
+   "means": "”Herreran lisko”",
+   "ago": "Noin 231 miljoonaa vuotta sitten",
+   "size": "Jopa 6 m pitkä — autoa pidempi",
+   "weight": "Noin 350 kg — flyygeliä painavampi",
+   "place": "Argentiina",
+   "fact": "Se on yksi vanhimmista koskaan löydetyistä dinosauruksista, ajalta, jolloin dinosauruksia oli vielä vähän. Sen alaleuassa oli liukuva nivel, joka auttoi sitä pitämään kiinni rimpuilevasta saaliista. Yhdessä sen kallossa on puremanjälkiä, ehkä tappelusta toisen Herrerasauruksen kanssa."
+  },
+  "kentrosaurus": {
+   "means": "”Piikkilisko”",
+   "ago": "155–150 miljoonaa vuotta sitten",
+   "size": "Noin 4,5 m pitkä — suunnilleen yhtä pitkä kuin auto",
+   "weight": "Noin 1 tonni — kuin pieni auto",
+   "place": "Tansania",
+   "fact": "Se oli Stegosauruksen pienempi afrikkalainen serkku. Sen kaulaa ja selkää pitkin kulki levyjä, jotka muuttuivat hännässä pitkiksi, teräviksi piikeiksi, ja kummastakin olkapäästä työntyi vielä yksi pitkä piikki. Tutkijat arvelevat, että se pystyi huitomaan piikkihäntäänsä hyvin nopeasti, ehkä yhtä lujaa kuin auto ajaa kaupungissa."
+  },
+  "rajasaurus": {
+   "means": "”Kuningaslisko”",
+   "ago": "69–66 miljoonaa vuotta sitten",
+   "size": "Noin 7 m pitkä — yhtä pitkä kuin puolitoista autoa",
+   "weight": "Ehkä 2 tonnia — yhtä painava kuin virtahepo",
+   "place": "Intia",
+   "fact": "Sen otsassa oli yksi lyhyt sarvi, luultavasti näyttämistä tai kilpailijoiden puskemista varten. Se oli Carnotauruksen serkku, ja se luultavasti piileskeli ja odotti isoja eläimiä, puri niitä ja piti kiinni. Se eli samalla seudulla Intiassa kuin Sanajeh, käärme, joka löytyi dinosauruksen pesästä."
+  },
+  "borealopelta": {
+   "means": "”Pohjoinen kilpi”",
+   "ago": "112–110 miljoonaa vuotta sitten",
+   "size": "Noin 5,5 m pitkä — autoa pidempi",
+   "weight": "Noin 1,3 tonnia — yhtä painava kuin auto",
+   "place": "Pohjois-Amerikka",
+   "fact": "Se on yksi parhaiten säilyneistä koskaan löydetyistä dinosauruksista: sen panssari, iho ja jopa piikkien sarvikuoret ovat yhä paikoillaan, joten se näyttää melkein patsaalta. Tutkijat pystyivät selvittämään jopa sen värin: punaruskea, päältä tummempi ja alta vaaleampi. Sen mahassa oli yhä sen viimeinen ateria, enimmäkseen saniaisia."
+  },
+  "sinosauropteryx": {
+   "means": "”Kiinalainen matelijasiipi”",
+   "ago": "125–124 miljoonaa vuotta sitten",
+   "size": "Noin 1 m pitkä, enimmäkseen häntää — yhtä pitkä kuin kitara",
+   "weight": "Noin 1 kg — yhtä painava kuin sokeripussi",
+   "place": "Kiina",
+   "fact": "Se oli ensimmäinen dinosaurus lintujen lisäksi, jolta löytyi höyhenpeite: pörröisiä, karvamaisia höyheniä, ei lentämistä varten. Fossiileihin säilyneistä pikkuruisista väritäplistä tutkijat päättelivät, että sillä oli tumma rosvonaamio kuin pesukarhulla, raidallinen häntä ja vaalea vatsa. Tällaiset värit auttoivat sitä piiloutumaan."
+  },
+  "corythosaurus": {
+   "means": "”Kypärälisko”",
+   "ago": "77–76 miljoonaa vuotta sitten",
+   "size": "Noin 8 m pitkä — yhtä pitkä kuin kaksi autoa",
+   "weight": "Noin 3,8 tonnia — sarvikuonoa painavampi",
+   "place": "Pohjois-Amerikka",
+   "fact": "Sen korkea, pyöreä harja näytti muinaisen kreikkalaisen sotilaan kypärältä. Harja oli sisältä ontto, ja siinä kulki pitkiä hengitysputkia, jotka luultavasti tekivät sen huudoista kovempia ja matalampia, niin kuin trumpetti. Ensimmäisen luurangon vierestä löytyi kiveen painuneita paloja sen ihosta."
   }
  },
  "more": {
@@ -870,6 +982,118 @@ window.DINO_FI = {
     "Se on yksi Itä-Utahin kivien yleisimmistä dinosauruksista, ja sen kalloja on löydetty ainakin kymmenen. Tutkijat tuntevat sen paremmin kuin melkein minkään muun varhaisen panssaridinosauruksen.",
     "Vuonna 1999 Lorrie McWhinney löysi kerroksen, joka oli täynnä kokonaisen ryhmän luita. Ne ovat ehkä kuolleet yhdessä kuivuuteen tai tulvaan. Vuonna 2016 toinen Gastonia-laji nimettiin hänen mukaansa."
    ]
+  },
+  "planicoxa": {
+   "found": "Denverin museon vapaaehtoiset löysivät sen luut Itä-Utahista keväällä 1998. Paikkaa he kutsuivat Tonyn luukerrokseksi yhden ryhmäläisen, Tony DiCrocen, mukaan. DiCroce ja Kenneth Carpenter nimesivät sen vuonna 2001.",
+   "facts": [
+    "Sen toinen nimi, venenica, tarkoittaa myrkkyä. Se ei johdu siitä, että se olisi ollut myrkyllinen, vaan sen luut ovat Poison Strip -nimisestä kivikerroksesta. Nimi tarkoittaa myrkkykaistaletta.",
+    "Samasta luukerroksesta löytyi myös pitkäkaulainen dinosaurus, aikuinen ja nuori yhdessä. Se sai nimen Venenosaurus, ja sen toinen nimi, dicrocei, on myös Tony DiCrocen mukaan.",
+    "Etelä-Dakotasta sata vuotta sitten löydettyjä luita kutsuttiin ensin Camptosaurukseksi ja vuonna 2008 toiseksi Planicoxa-lajiksi. Vuonna 2011 ne saivat oman nimen, Osmakasaurus. Dinosauruksen nimeäminen vain muutaman luun perusteella on vaikeaa."
+   ]
+  },
+  "sanajeh": {
+   "found": "Dhananjay Mohabey Intian geologisesta tutkimuslaitoksesta löysi fossiilin Dholi Dungrin kylän läheltä Gujaratista vuonna 1984. Kesti vuosia huomata, että kivessä oli myös käärme. Jeffrey Wilson huomasi sen selkärangan vuonna 2001, ja hän, Mohabey ja heidän ryhmänsä nimesivät sen vuonna 2010.",
+   "facts": [
+    "Sen nimi tulee vanhan sanskritin kielen sanoista, jotka tarkoittavat muinaista kitaa. Sen suu ei auennut yhtä leveäksi kuin pytonin, joten pyöreät, noin 16 senttiä leveät munat olivat liian isoja nieltäviksi kokonaisina.",
+    "Poikanen oli titanosaurus, noin puoli metriä pitkä. Aikuiset titanosaurukset olivat suurimpia eläimiä, jotka ovat koskaan kävelleet maan päällä, mutta juuri munasta kuoriutuneina ne olivat käärmeelle helppo saalis.",
+    "Pian sen jälkeen jättimäiset tulivuoret, Dekkanin trapit, peittivät tämän osan Intiasta laavalla. Nykyään vanhan laavan kerrokset ovat aivan sen kiven päällä, josta käärme löytyi."
+   ]
+  },
+  "najash": {
+   "found": "Sen ensimmäiset luut löytyivät Río Negrosta Argentiinasta vuonna 2003, ja Sebastián Apesteguía ja Hussam Zaher nimesivät sen vuonna 2006. Vuonna 2013 Fernando Garberoglio löysi La Buitrerasta hienosti säilyneen kallon, ja vuonna 2019 hänen ryhmänsä kuvasi sen ja useita muita.",
+   "facts": [
+    "Sen nimi tulee sanasta nahash, joka on hepreaa ja tarkoittaa käärmettä. Se on myös Raamatun Aatamin ja Eevan tarinan käärmeen nimi. Tarinassa käärme joutuu ryömimään vatsallaan, joten sillä on täytynyt olla jalat ennen sitä. Sen toinen nimi, rionegrina, tulee Río Negrosta.",
+    "Sen takajalat olivat pienet mutta vahvat, ja sen lantio oli kiinni selkärangassa, niin kuin liskolla. Monilla käärmeillä oli tällaiset pienet takajalat miljoonien vuosien ajan, ja pytoneilla ja boilla on yhä pienet kynnet siinä, missä niiden jalat ennen olivat.",
+    "Sillä oli vielä poskiluu, joka nykyisiltä käärmeiltä puuttuu, ja iso suu täynnä teräviä hampaita. Tutkijat luulivat ennen, että ensimmäiset käärmeet olivat pieniä kaivajia, mutta Najashin perusteella ne olivat pikemminkin isosuisia saalistajia."
+   ]
+  },
+  "baryonyx": {
+   "found": "William Walker, joka etsi fossiileja vapaa-ajallaan, löysi jättimäisen kynnen savikuopasta Ockleyn läheltä Surreysta Englannista tammikuussa 1983. Luonnontieteellisen museon tutkijat kaivoivat loput luurangosta esiin samana kesänä, ja Alan Charig ja Angela Milner nimesivät sen vuonna 1986.",
+   "facts": [
+    "Sen toinen nimi, walkeri, on William Walkerin, sen löytäjän, mukaan. Sanomalehdet antoivat sille lempinimen Claws eli Kynnet, haielokuva Tappajahain englanninkielisen nimen Jaws mukaan.",
+    "Sen luuranko on täydellisin koskaan löydetty spinosauruksen sukulaisen luuranko, noin kaksi kolmasosaa koko eläimestä, eikä se ehkä ollut edes täysikasvuinen. Sen kopio on esillä Luonnontieteellisessä museossa Lontoossa.",
+    "Se oli Spinosauruksen serkku. Se luultavasti kahlasi mataliin jokiin tai kyyristeli rannalla pyydystämässä kaloja ja ehkä koukkasi niitä vedestä isoilla kynsillään."
+   ]
+  },
+  "maiasaura": {
+   "found": "Vuonna 1978 fossiilinetsijät pienestä Bynumin kaupungista Montanasta näyttivät Jack Hornerille ja Bob Makelalle pikkuruisia dinosauruksenpoikasen luita, jotka he olivat löytäneet Choteaun läheltä. Horner ja Makela kaivoivat sieltä esiin pesiä mäeltä, jota kutsutaan nykyään Munavuoreksi, ja nimesivät sen vuonna 1979.",
+   "facts": [
+    "Jokaisessa pesässä oli noin kolmekymmentä–neljäkymmentä munaa, ja jokainen oli suunnilleen strutsinmunan kokoinen. Poikaset kasvoivat nopeasti, noin 40 sentistä noin puolentoista metrin mittaisiksi ensimmäisen vuotensa aikana.",
+    "Yhdessä valtavassa luukerroksessa Montanassa on tuhansien yksilöiden luita, joten tutkijat arvelevat, että ne elivät jättimäisissä laumoissa, ehkä jopa kymmenentuhannen eläimen laumoissa.",
+    "Vuonna 1985 astronautti Loren Acton vei palan sen luuta ja munankuorta avaruuteen, joten se oli ensimmäinen dinosaurus avaruudessa. Seuraava, vuonna 1998, oli Coelophysiksen kallo."
+   ]
+  },
+  "mamenchisaurus": {
+   "found": "Tienrakentajat löysivät ensimmäisen luurangon vuonna 1952, kun he rakensivat maantietä Sichuanissa Kiinassa. Fossiilitutkija Yang Zhongjian, joka tunnetaan myös nimellä C. C. Young, nimesi sen vuonna 1954.",
+   "facts": [
+    "Se piti nimetä löytöpaikkansa mukaan. Paikan nimi oli Mamingxi, joka tarkoittaa hirnuvan hevosen puroa. Mutta Yang Zhongjianin murre muutti sen muotoon Mamenxi, hevosportin puro, ja virhe jäi pysyväksi.",
+    "Sen kaulan kummallakin puolella kulki ohuita luusauvoja, joista jotkin olivat noin neljän metrin mittaisia, yhtä pitkiä kuin auto. Ne ovat ehkä auttaneet pitämään raskaan kaulan jäykkänä.",
+    "Yhden Mamenchisauruksen tai sen läheisen serkun luurangon hännän päässä on pieni nuija, joka on tehty yhteen kasvaneista luista. Tutkijat arvelevat, että se oli liian heikko ollakseen kunnon ase."
+   ]
+  },
+  "deinonychus": {
+   "found": "Barnum Brown löysi sen ensimmäiset luut Montanasta vuonna 1931, mutta ei koskaan nimennyt sitä. Elokuussa 1964 John Ostrom ja Grant Meyer Yalen Peabody-museosta löysivät lisää Bridgerin läheltä Montanasta, ja Ostrom nimesi sen vuonna 1969.",
+   "facts": [
+    "Tutkiessaan sitä John Ostrom huomasi, miten paljon se muistutti lintua, ja hän herätti uudelleen ajatuksen, että linnut polveutuvat dinosauruksista. Se sai tutkijat myös ajattelemaan dinosauruksia nopeina ja vilkkaina eikä hitaina ja liskomaisina.",
+    "Sen hampaita ja luita löytyy usein yhdessä Tenontosaurus-nimisen ison kasvinsyöjän kanssa, joten se luultavasti saalisti niitä tai söi niiden raatoja. Jotkut tutkijat arvelevat, että useat Deinonychukset metsästivät yhdessä, mutta siitä kiistellään yhä.",
+    "Yhden sen luurangon vierestä löytyi munankuoren paloja, luultavasti sen omista munista. Ne olivat ensimmäiset raptorin munat, jotka on koskaan löydetty. Vuonna 2018 tehdyn tutkimuksen mukaan sen munat ovat ehkä olleet sinisiä."
+   ]
+  },
+  "patagotitan": {
+   "found": "Vuonna 2010 maatilan työntekijä löysi jättimäisen reisiluun pään Mayon perheen La Flecha -tilalta Chubutista Argentiinasta. Egidio Feruglio -museon tutkijat kaivoivat siellä vuosina 2012–2015, ja José Luis Carballido ja hänen ryhmänsä nimesivät sen vuonna 2017.",
+   "facts": [
+    "Sen toinen nimi, mayorum, kiittää Mayon perhettä, joka omisti tilan ja antoi tutkijoiden kaivaa siellä.",
+    "Sen luurangon kopioita on museoissa New Yorkissa ja Chicagossa. Chicagossa sitä kutsutaan nimellä Máximo. Siellä se on 37 metriä pitkä, ja sen pää on noin 8,5 metrin korkeudessa, melkein kolmen kerroksen korkeudella.",
+    "Tutkijat arvelivat ensin, että se painoi noin 70 tonnia, mutta uudempien tutkimusten mukaan pikemminkin 50–60. Dinosauruksen punnitseminen luiden perusteella on vaikeaa, ja tutkijat kiistelevät yhä siitä, mikä titanosaurus oli kaikkein suurin."
+   ]
+  },
+  "herrerasaurus": {
+   "found": "Vuohipaimen Victorino Herrera huomasi sen luut kivissä San Juanin lähellä Argentiinassa noin vuonna 1959, ja Osvaldo Reig nimesi sen hänen mukaansa vuonna 1963. Vuonna 1988 Paul Serenon ryhmä löysi melkein kokonaisen kallon ja luurangon.",
+   "facts": [
+    "Tutkijat eivät vuosiin päässeet yksimielisyyteen, oliko se dinosaurus vai vain läheinen serkku, koska siitä tunnettiin vain osia. Vuonna 1988 löydetty kallo vakuutti useimmat heistä siitä, että se oli yksi aivan ensimmäisistä dinosauruksista.",
+    "Se eli Eoraptorin, paljon pienemmän varhaisen dinosauruksen, naapurina ja saalisti luultavasti eläimiä kuten rynkosauruksia, nokallisia, suunnilleen sian kokoisia matelijoita.",
+    "Se ei ollut ylin saalistaja: siellä eli myös jättimäisiä krokotiilien serkkuja, rauisukideja, ja yhden Herrerasauruksen kallon hampaanjäljistä päätellen joku niistä on ehkä purrut sitä."
+   ]
+  },
+  "kentrosaurus": {
+   "found": "Saksalainen tutkimusretkikunta löysi sen ensimmäiset luut Tendagurusta Tansaniasta vuonna 1909, yhdessä jättimäisten pitkäkaulaisten dinosaurusten luiden kanssa. Edwin Hennig nimesi sen vuonna 1915.",
+   "facts": [
+    "Retkikunnat kaivoivat esiin yli 1 200 sen luuta noin viidestäkymmenestä eläimestä, mutta yhtään kokonaista luurankoa ei koskaan löytynyt.",
+    "Monet sen luista katosivat toisessa maailmansodassa. Vuosia myöhemmin osa luista, joiden tutkijat luulivat kadonneen lopullisesti, löytyi uudelleen kaapista Berliinin museon kellarista.",
+    "Sen nimi aiheutti sekaannusta, koska sarvidinosauruksella nimeltä Centrosaurus oli jo melkein samalta kuulostava nimi. Sille ehdotettiin kahta uutta nimeä, mutta sääntöjen mukaan ensimmäinen nimi jää voimaan, joten se on yhä Kentrosaurus."
+   ]
+  },
+  "rajasaurus": {
+   "found": "Geologit Dhananjay Mohabey, joka löysi myös Sanajehin, ja G. N. Dwivedi löysivät dinosauruskiviä Rahiolin läheltä Gujaratista vuonna 1981. Suresh Srivastava kaivoi sen luut sieltä esiin vuosina 1982–1984, ja Jeffrey Wilson, Paul Sereno, Srivastava ja heidän ryhmänsä nimesivät sen vuonna 2003.",
+   "facts": [
+    "Sen nimi tarkoittaa kuningasliskoa sanskritiksi, joka on Intian vanha kieli. Sen toinen nimi, narmadensis, tulee läheisestä Narmada-joesta.",
+    "Se oli ensimmäinen iso lihaa syövä dinosaurus Intiasta, josta löytyi näin paljon luurankoa, aivokopasta häntään asti.",
+    "Sen lähin serkku, Majungasaurus, eli Madagaskarilla. Intia ja Madagaskar olivat joskus olleet kiinni toisissaan, mikä auttaa ymmärtämään, miksi niiden dinosaurukset olivat niin samanlaisia."
+   ]
+  },
+  "borealopelta": {
+   "found": "Shawn Funk, kaivinkoneen kuljettaja öljyhiekkakaivoksella Fort McMurrayn lähellä Albertassa Kanadassa, osui siihen kaivinkoneellaan 21. maaliskuuta 2011. Mark Mitchell Royal Tyrrell -museosta irrotti sitä kivestä noin kuusi vuotta, ja Caleb Brown ja hänen ryhmänsä nimesivät sen vuonna 2017.",
+   "facts": [
+    "Sen toinen nimi, markmitchelli, kiittää Mark Mitchelliä kaikista niistä vuosista huolellista työtä, yli 7 000 tunnista. Hän kuuli kunnianosoituksesta vasta, kun työ oli valmis.",
+    "Se löytyi kivestä, joka oli muodostunut meren pohjalle. Tutkijat arvelevat, että tulva huuhtoi sen merelle, jossa se upposi ja laskeutui selälleen, ja muta peitti sen nopeasti. Siksi se säilyi niin hyvin.",
+    "Sen viimeisessä ateriassa oli hiilenpaloja, joten se söi luultavasti paikassa, joka kasvoi uudelleen metsäpalon jälkeen. Saniaiset olivat vasta puolikasvuisia, mikä viittaa siihen, että se kuoli alku- tai keskikesällä."
+   ]
+  },
+  "sinosauropteryx": {
+   "found": "Li Yumin, maanviljelijä, joka etsi fossiileja vapaa-ajallaan, löysi sen Liaoningista Koillis-Kiinasta elokuussa 1996. Hän halkaisi kiven kahtia ja myi puolikkaat kahdelle eri museolle, ja Ji Qiang ja Ji Shu'an nimesivät sen samana vuonna.",
+   "facts": [
+    "Sen toinen nimi, prima, tarkoittaa ensimmäistä, koska se oli ensimmäinen dinosaurus lintujen lisäksi, jolta löytyi höyheniä. Se auttoi osoittamaan, että linnut ovat eläviä dinosauruksia.",
+    "Yhden sen fossiilin mahassa on yhä lisko, sen viimeinen ateria. Toisen ruumiin sisällä on munia, joten se oli emo, joka oli juuri munimassa.",
+    "Sen raidat ja tummempi selkä ovat sellaista suojaväritystä, jota saaliseläimet käyttävät. Joten tämänkin pienen saalistajan piti luultavasti piiloutua isommilta saalistajilta."
+   ]
+  },
+  "corythosaurus": {
+   "found": "Barnum Brown löysi ensimmäisen luurangon Red Deer -joen rannalta Albertasta Kanadasta vuonna 1911 ja nimesi sen vuonna 1914.",
+   "facts": [
+    "Sen toinen nimi, casuarius, tulee kasuaarista. Se on nykyään elävä iso lintu, jonka päässä on myös harja.",
+    "Vuonna 1916, ensimmäisen maailmansodan aikana, kaksi parasta Corythosaurus-luurankoa oli Mount Temple -nimisellä laivalla matkalla Lontoossa olevaan museoon. Saksalainen sotalaiva upotti sen, ja fossiilit ovat yhä Atlantin valtameren pohjassa, yli neljän kilometrin syvyydessä.",
+    "Yhdestä fossiilista näkee sen viimeisen aterian: havunneulasia, siemeniä, oksia ja hedelmiä. Nuorilla oli paljon pienemmät harjat, joten tutkijat luulivat niitä ennen eri dinosauruslajeiksi."
+   ]
   }
  },
  "then": {
@@ -926,7 +1150,21 @@ window.DINO_FI = {
   "ugrunaaluk": "viileiden metsien maa kaukaisen pohjoisen jokien varsilla, joka talvi viikkokausia pimeä",
   "nanuqsaurus": "viileiden metsien ja jokien maa lähellä Pohjoista jäämerta, joka talvi viikkokausia pimeä",
   "utahraptor": "kuiva tasanko, jolla oli jokia, havumetsiä ja saniaisniittyjä",
-  "gastonia": "kuiva maa, jossa jokivarsien metsien välissä oli avointa maastoa"
+  "gastonia": "kuiva maa, jossa jokivarsien metsien välissä oli avointa maastoa",
+  "planicoxa": "mutkittelevien jokien, tulvatasankojen ja pienten lampien maa",
+  "sanajeh": "lämmin saari, jossa oli sade- ja kuivakausi ja jonka hiekkaiseen maahan jättiläisdinosaurukset munivat",
+  "najash": "kuiva maa hiekka-aavikon laidalla, jonka halki virtasi sadekaudella puroja",
+  "baryonyx": "laaja, märkä jokien ja laguunien tasanko, täynnä kalaa",
+  "maiasaura": "lämmin ylänkötasanko, jolla oli pitkät kuivat kaudet ja jonne laumat tulivat joka vuosi pesimään",
+  "mamenchisaurus": "lämmin, märkä allas täynnä järviä, jokia ja metsiä",
+  "deinonychus": "lämmin tulvatasankojen, metsien, soiden ja laguunien maa",
+  "patagotitan": "metsäinen tulvatasanko, jolla kasvoi havupuita ja saniaisia",
+  "herrerasaurus": "lämmin jokien ja tulvatasankojen laakso, jossa oli sade- ja kuivakausi ja tulivuoria lähellä",
+  "kentrosaurus": "lämpimiä rannikon laguuneja ja vuorovesitasankoja, ja kauempana sisämaassa havumetsiä",
+  "rajasaurus": "kuiva, lämmin saari, jossa oli leveä jokilaakso ja jonne jättimäiset pitkäkaulaiset dinosaurukset tulivat pesimään",
+  "borealopelta": "rannikon maa, jossa oli saniaisten peittämiä metsiä matalan meren rannalla",
+  "sinosauropteryx": "avointa maata järvien ympärillä, ja lähellä tulivuoria, jotka joskus hautasivat kaiken tuhkaan",
+  "corythosaurus": "lämpimiä metsiä ja soita jokien varsilla, jotka virtasivat sisämereen"
  },
  "ageText": {
   "66": "<b>66 miljoonaa vuotta sitten</b> — kymmenen kilometrin levyinen avaruuskivi iskeytyy mereen Meksikon lähellä, ja jättiläisdinosaurusten aika päättyy.",
@@ -1005,6 +1243,20 @@ window.DINO_FI = {
   "Bisti Badlands, New Mexico": "Bisti Badlands, New Mexico",
   "Cleveland-Lloyd Quarry, Utah": "Cleveland-Lloyd Quarry, Utah",
   "Gaston Quarry, Utah": "Gaston Quarry, Utah",
+  "Poison Strip, Utah": "Poison Strip, Utah",
+  "Dholi Dungri, Gujarat": "Dholi Dungri, Gujarat",
+  "La Buitrera, Argentina": "La Buitrera, Argentiina",
+  "Ockley, Surrey": "Ockley, Surrey",
+  "Egg Mountain, Montana": "Egg Mountain, Montana",
+  "Sichuan, China": "Sichuan, Kiina",
+  "Hechuan, Chongqing": "Hechuan, Chongqing",
+  "Junggar Basin, Xinjiang": "Dzungarian allas, Xinjiang",
+  "Bridger, Montana": "Bridger, Montana",
+  "La Flecha, Chubut": "La Flecha, Chubut",
+  "Ischigualasto, San Juan": "Ischigualasto, San Juan",
+  "Tendaguru, Tanzania": "Tendaguru, Tansania",
+  "Rahioli, Gujarat": "Rahioli, Gujarat",
+  "Fort McMurray, Alberta": "Fort McMurray, Alberta",
   "Nemegt Basin, Mongolia": "Nemegtin allas, Mongolia",
   "Dinosaur National Monument, Utah": "Dinosaur National Monument, Utah",
   "Chubut, Argentina": "Chubut, Argentiina",
@@ -1153,6 +1405,7 @@ window.DINO_FI = {
   "Ichthyosaur": "Kalalisko",
   "Sea turtle": "Merikilpikonna",
   "Early bird": "Varhainen lintu",
+  "Snake": "Käärme",
   "Pterosaur — a flying reptile, not a dinosaur": "Lentolisko — lentävä matelija, ei dinosaurus",
   "Marine reptile — a giant sea lizard, not a dinosaur": "Merimatelija — jättiläismäinen merilisko, ei dinosaurus",
   "Plesiosaur — a long-necked sea reptile, not a dinosaur": "Joutsenlisko — pitkäkaulainen merimatelija, ei dinosaurus",
@@ -1160,6 +1413,7 @@ window.DINO_FI = {
   "Ichthyosaur — a dolphin-shaped sea reptile, not a dinosaur": "Kalalisko — delfiinin muotoinen merimatelija, ei dinosaurus",
   "Sea turtle — a giant turtle, not a dinosaur": "Merikilpikonna — jättiläiskilpikonna, ei dinosaurus",
   "Early bird — one of the first birds, and a dinosaur too": "Varhainen lintu — yksi ensimmäisistä linnuista, ja dinosaurus sekin",
+  "Snake — an early snake, not a dinosaur": "Käärme — varhainen käärme, ei dinosaurus",
   "Speed": "Nopeus",
   "Weight": "Paino",
   "Ate": "Söi",
