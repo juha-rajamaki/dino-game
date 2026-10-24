@@ -637,7 +637,7 @@
      crossfading over most of the map, with the map still showing round it. A frame the shape of the screen
      fills it; a very wide one is shown whole, as big as fits, on a soft
      blurred copy of itself. */
-  .tik-scene{position:absolute; inset:clamp(56px,9vh,96px) clamp(16px,6vw,90px) clamp(60px,10vh,100px); z-index:6; background:#05080A;
+  .tik-scene{position:absolute; left:0; top:0; z-index:6; background:#05080A;   /* placed and sized by tikPlace */
     overflow:hidden; pointer-events:auto; border-radius:16px; border:1.5px solid var(--devonian); box-shadow:0 18px 50px -12px #000}   /* the map still shows round it */
   .tik-scene[hidden]{display:none}
   .tik-film{position:absolute; inset:0}
@@ -3178,7 +3178,7 @@
      today, where every one of them is a fossil. The stage sets the age of the
      land (millions of years ago) and which animals stand on it. */
   var STAGES = [
-    {id: "devonian", age: 375, period: "Devonian", say: ["375", "devonian"], quiet: true},   /* told only with its film, from the play button */
+    {id: "devonian", age: 375, period: "Devonian", say: ["375", "devonian"], quiet: true},   /* arrives quiet; the play button tells Tiktaalik's part with its film */
     {id: "triassic", age: 220, period: "Triassic", say: ["220", "triassic"]},
     {id: "jurassic", age: 150, period: "Jurassic", say: ["150", "jurassic"]},
     {id: "cretaceous", age: 70, period: "Cretaceous", say: ["70", "cretaceous"]},
@@ -3620,9 +3620,8 @@
       drawMap();
       if(mv.stage === "asteroid") impact();
       else if(mv.stage === "devonian"){
-        tikClip();
         /* the film waits for the play button, or for the whole story to reach Tiktaalik */
-        if(keys && !soundOn && keys.indexOf("devonian") >= 0) tiktaalikScene();
+        if(keys && !soundOn && keys.indexOf("devonian") >= 0) tiktaalikScene();   /* the whole story, told quietly */
         flyTo(wholeWorld());
       }
       else if(mv.picked) pickOnMap(mv.picked, true);
@@ -3676,19 +3675,24 @@
   /* The film with Tiktaalik's story told over it: started together when the
      clip starts (tellStory), or straight away with the sound off. */
   function playTiktaalik(){
-    if(soundOn) tellStory(stageById("devonian").say);
+    if(soundOn) tellStory(["devonian"]);   /* only Tiktaalik's story: the one about the land belongs to the map */
     else{ stopSpeech(); tiktaalikScene(); }
   }
-  /* how long the Tiktaalik clip is, read from the file once (for the film's length, from the start of the world's story) */
-  var tikClipLength = null;
-  function tikClip(){
-    if(tikClipLength !== null) return;
-    tikClipLength = 0;
-    var probe = new Audio();
-    probe.preload = "metadata";
-    probe.addEventListener("loadedmetadata", function(){ if(isFinite(probe.duration)) tikClipLength = probe.duration; });
-    probe.src = AUDIO + "map/devonian.mp3" + (FI ? "?v=" + FI.version : MAP_CLIP_VERSION.devonian ? "?v=" + MAP_CLIP_VERSION.devonian : "");
+  /* The window takes the pictures' own shape, as big as fits between the story's box at the
+     top (its stop button stays in reach) and the bottom of the map, so all of each picture shows. */
+  var TIK_SHAPE = 1914 / 822;
+  function tikPlace(){
+    if(tikScene.hidden) return;
+    var cap = mapCaption.hidden ? 0 : mapCaption.getBoundingClientRect().bottom - mapStage.getBoundingClientRect().top;
+    var side = Math.min(90, Math.max(16, window.innerWidth * 0.06)), top = Math.max(16, Math.round(cap + 12));
+    var bottom = Math.min(100, Math.max(60, window.innerHeight * 0.1));
+    /* the stage's own size, read now: on a resize this may run before the map has measured it */
+    var W = mapStage.clientWidth, H = mapStage.clientHeight;
+    var w = Math.max(160, Math.min(W - 2 * side, (H - top - bottom) * TIK_SHAPE)), hgt = w / TIK_SHAPE;
+    tikScene.style.width = Math.round(w) + "px"; tikScene.style.height = Math.round(hgt) + "px";
+    tikScene.style.left = Math.round(Math.max(0, (W - w) / 2)) + "px"; tikScene.style.top = top + "px";
   }
+  window.addEventListener("resize", tikPlace);
   function tikBuild(){
     var film = "";
     for(var i = 1; i <= TIK_FRAMES; i++){
@@ -3717,9 +3721,7 @@
     hideTiktaalik();
     if(!tikScene.firstChild) tikBuild();
     tikScene.hidden = false;
-    /* below the story's own box at the top, so its stop button stays in reach */
-    var cap = mapCaption.hidden ? 0 : mapCaption.getBoundingClientRect().bottom - mapStage.getBoundingClientRect().top;
-    tikScene.style.top = Math.max(16, Math.round(cap + 12)) + "px";
+    tikPlace();
     tikScene.querySelector(".tik-shut").focus({preventScroll: true});
     var frames = tikScene.querySelectorAll(".tik-frame"), say = tikScene.querySelector(".tik-say");
     var still = reduceMotion.matches || !tikScene.animate;
@@ -4949,7 +4951,7 @@
           voiceNow = u;
           speechSynthesis.speak(u);
           /* the browser's own voice: about fifteen letters a second */
-          if(key === "375" && keys[0] === "devonian" && !mapEl.hidden && mv.stage === "devonian") tiktaalikScene((STORY["375"].length + STORY.devonian.length) / 15 * 1000);
+          if(key === "devonian" && !mapEl.hidden && mv.stage === "devonian") tiktaalikScene(STORY.devonian.length / 15 * 1000);
           speakingSide = 4; playing();
         }catch(e){ finished(); }
       }
@@ -4965,10 +4967,10 @@
         if(speech === clip && clip.ended){ revealSurvivors(); return; }
         requestAnimationFrame(watch);
       })();
-      /* the Devonian's film starts with its story and runs to the end of the telling of Tiktaalik */
-      if(key === "375" && keys[0] === "devonian") clip.addEventListener("playing", function(){
+      /* the Devonian's film runs with the telling of Tiktaalik, from its first word to its last */
+      if(key === "devonian") clip.addEventListener("playing", function(){
         if(speech === clip && !mapEl.hidden && mv.stage === "devonian" && clip.currentTime < 1)
-          tiktaalikScene(isFinite(clip.duration) && tikClipLength ? (clip.duration + tikClipLength) * 1000 : 0);
+          tiktaalikScene(isFinite(clip.duration) ? clip.duration * 1000 : 0);
       });
       clip.play().then(function(){ if(speech === clip){ speakingSide = 4; playing(); } }).catch(fallback);
     }
