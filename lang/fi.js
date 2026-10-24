@@ -3,7 +3,7 @@
    The body is plain JSON, so tools/tts.py can read it too. survivorCues are
    written by tools/tts.py when it records audio/fi/map/asteroid.mp3. */
 window.DINO_FI = {
- "version": 17,
+ "version": 19,
  "species": {
   "tyrannosaurus": {
    "means": "”Hirmuliskokuningas”",
@@ -548,6 +548,22 @@ window.DINO_FI = {
    "weight": "Noin 3,8 tonnia — sarvikuonoa painavampi",
    "place": "Pohjois-Amerikka",
    "fact": "Sen korkea, pyöreä harja näytti muinaisen kreikkalaisen sotilaan kypärältä. Harja oli sisältä ontto, ja siinä kulki pitkiä hengitysputkia, jotka luultavasti tekivät sen huudoista kovempia ja matalampia, niin kuin trumpetti. Ensimmäisen luurangon vierestä löytyi kiveen painuneita paloja sen ihosta."
+  },
+  "psittacosaurus": {
+   "means": "”Papukaijalisko”",
+   "ago": "125–105 miljoonaa vuotta sitten",
+   "size": "Noin 2 m pitkä — yhtä pitkä kuin sänky",
+   "weight": "Noin 20 kg — yhtä painava kuin kuusivuotias",
+   "place": "Aasia",
+   "fact": "Sillä oli lyhyt, korkea nokka kuin papukaijalla, ja aikuiset kävelivät kahdella jalalla. Kiinasta löytyneessä fossiilissa mäyrän kokoinen nisäkäs, Repenomamus, puree sitä, ja tulivuoren mutavyöry hautasi ne kesken tappelun. Eivät siis vain dinosaurukset syöneet nisäkkäitä: joskus nisäkkäät söivät dinosauruksia."
+  },
+  "zuul": {
+   "means": "”Zuul, säärten murskaaja”",
+   "ago": "76–75 miljoonaa vuotta sitten",
+   "size": "Noin 6 m pitkä — yhtä pitkä kuin puolitoista autoa",
+   "weight": "Ehkä 2,5 tonnia — virtahepoa painavampi",
+   "place": "Pohjois-Amerikka",
+   "fact": "Se on nimetty Zuulin mukaan. Zuul on hirviö Haamujengi-elokuvassa, ja tämän dinosauruksen pää näyttää paljon samalta. Sen toinen nimi tarkoittaa säärten murskaajaa, koska se pystyi heilauttamaan raskaan häntänuijansa saalistajan jalkoihin. Sen luuranko löytyi melkein kokonaisena, ja iho ja panssarin sarvikuoret olivat yhä paikoillaan."
   }
  },
  "more": {
@@ -1094,6 +1110,22 @@ window.DINO_FI = {
     "Vuonna 1916, ensimmäisen maailmansodan aikana, kaksi parasta Corythosaurus-luurankoa oli Mount Temple -nimisellä laivalla matkalla Lontoossa olevaan museoon. Saksalainen sotalaiva upotti sen, ja fossiilit ovat yhä Atlantin valtameren pohjassa, yli neljän kilometrin syvyydessä.",
     "Yhdestä fossiilista näkee sen viimeisen aterian: havunneulasia, siemeniä, oksia ja hedelmiä. Nuorilla oli paljon pienemmät harjat, joten tutkijat luulivat niitä ennen eri dinosauruslajeiksi."
    ]
+  },
+  "psittacosaurus": {
+   "found": "Wong-niminen kuljettaja löysi ensimmäisen luurangon amerikkalaisen luonnontieteellisen museon retkikunnalla Mongoliassa vuonna 1922. Henry Fairfield Osborn nimesi sen vuonna 1923.",
+   "facts": [
+    "Psittacosauruksia on useampaa lajia kuin mitään muuta dinosaurusta, noin kymmenen, ja niiden luurankoja on löydetty satoja eri puolilta Aasiaa.",
+    "Yhdessä fossiilissa iho säilyi niin hyvin, että tutkijat pystyivät selvittämään sen värit: päältä tummempi ja alta vaaleampi. Sen hännästä törrötti myös pitkiä harjaksia.",
+    "Yhdessä fossiilissa on aikuinen ja 34 poikasta. Jotkut tutkijat arvelevat, että aikuinen oli vanhempi, joka huolehti poikasista, mutta toiset huomasivat, että aikuisen kallo oli liimattu paikalleen, ja asiasta kiistellään yhä."
+   ]
+  },
+  "zuul": {
+   "found": "Vuonna 2014 kaivinkone raivasi kiveä Havren lähellä Montanassa Gorgosauruksen luurangon kaivauksia varten ja osui yllättäen sen häntänuijaan. Royal Ontario -museo osti sen, ja Victoria Arbour ja David Evans nimesivät sen vuonna 2017.",
+   "facts": [
+    "Kaivajat antoivat sille lempinimen Sherman. Sen ympärillä oleva kivi oli niin raskasta, että suurin nostettu kivilohkare painoi noin 15 tonnia.",
+    "Sen häntänuija ja jäykkä hännänvarsi sen takana ovat yhteensä noin 2,1 metriä pitkiä, pisimmät minkään Pohjois-Amerikan panssaridinosauruksen.",
+    "Jotkin sen kylkien piikeistä olivat katkenneet ja parantuneet sen eläessä. Tutkijat arvelevat, että toinen Zuul löi sitä häntänuijallaan, joten ne luultavasti tappelivat myös keskenään, ehkä elinpaikoista tai puolisoista."
+   ]
   }
  },
  "then": {
@@ -1164,7 +1196,9 @@ window.DINO_FI = {
   "rajasaurus": "kuiva, lämmin saari, jossa oli leveä jokilaakso ja jonne jättimäiset pitkäkaulaiset dinosaurukset tulivat pesimään",
   "borealopelta": "rannikon maa, jossa oli saniaisten peittämiä metsiä matalan meren rannalla",
   "sinosauropteryx": "avointa maata järvien ympärillä, ja lähellä tulivuoria, jotka joskus hautasivat kaiken tuhkaan",
-  "corythosaurus": "lämpimiä metsiä ja soita jokien varsilla, jotka virtasivat sisämereen"
+  "corythosaurus": "lämpimiä metsiä ja soita jokien varsilla, jotka virtasivat sisämereen",
+  "psittacosaurus": "järvien ja metsien maa, ja lähellä tulivuoria",
+  "zuul": "lämmin rannikkotasanko, jolla oli jokia ja metsiä sisämeren rannalla"
  },
  "ageText": {
   "66": "<b>66 miljoonaa vuotta sitten</b> — kymmenen kilometrin levyinen avaruuskivi iskeytyy mereen Meksikon lähellä, ja jättiläisdinosaurusten aika päättyy.",
@@ -1256,6 +1290,8 @@ window.DINO_FI = {
   "Ischigualasto, San Juan": "Ischigualasto, San Juan",
   "Tendaguru, Tanzania": "Tendaguru, Tansania",
   "Rahioli, Gujarat": "Rahioli, Gujarat",
+  "Oshih, Mongolia": "Oshih, Mongolia",
+  "Havre, Montana": "Havre, Montana",
   "Fort McMurray, Alberta": "Fort McMurray, Alberta",
   "Nemegt Basin, Mongolia": "Nemegtin allas, Mongolia",
   "Dinosaur National Monument, Utah": "Dinosaur National Monument, Utah",

@@ -9,12 +9,14 @@ works for a child who cannot read yet.
 
 ## What is in it
 
-- **68 animals** — 55 dinosaurs, 5 pterosaurs, 6 sea reptiles and 2 snakes, from every
+- **70 animals** — 57 dinosaurs, 5 pterosaurs, 6 sea reptiles and 2 snakes, from every
   continent and three ages: Herrerasaurus, Coelophysis and Plateosaurus, among the very first
   dinosaurs; Deinonychus, the real model for the film raptors; Patagotitan,
   one of the heaviest animals ever to walk on land;
   Mamenchisaurus from China, with one of the longest necks ever, and
-  Sinosauropteryx, the first feathered dinosaur found;
+  Sinosauropteryx, the first feathered dinosaur found, and the
+  parrot-beaked Psittacosaurus, once caught in a fight with a mammal;
+  Zuul, named after the Ghostbusters monster;
   the spiky Kentrosaurus from Tanzania;
   Megalosaurus, the first ever named, and the fish-eating Baryonyx, both from England;
   Maiasaura, the good mother whose nests were found in Montana; Brontosaurus, Giganotosaurus and
@@ -143,8 +145,8 @@ It is a single static page with no build step and no dependencies:
 
 ```
 index.html      the whole game - markup, styles and logic
-img/            68 card plates plus the background and the two foreground animals
-img/full/       the same 68 animals at full size, fetched only when one is opened
+img/            70 card plates plus the background and the two foreground animals
+img/full/       the same 70 animals at full size, fetched only when one is opened
 img/map/        the Earth today, small and large, the worlds of 220, 150, 70 and 66
                 million years ago, and drift/, the land every five million years between
 tools/          paleomap.py, which draws those worlds (needs numpy and Pillow),

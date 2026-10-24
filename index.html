@@ -200,6 +200,10 @@
     grid-template-columns:var(--rail-w) minmax(0,1fr) var(--rail-w);
   }
   .board-area{position:relative; min-width:0; min-height:0}
+  /* the album has nobody across the table, so its cards spread into that side too */
+  @media (min-width:981px) and (orientation:landscape){
+    .layout:has(.board[data-album="true"]) .board-area{grid-column:2 / -1}
+  }
   .board{
     display:grid; gap:var(--gap,12px); height:100%; width:100%;
     position:relative; z-index:1;   /* in the scene, behind the animals, until play begins */
@@ -1330,7 +1334,7 @@
 
 </div>
 
-<script src="lang/fi.js?v=17"></script>
+<script src="lang/fi.js?v=19"></script>
 <script>
 (function(){
   "use strict";
@@ -1663,7 +1667,15 @@
     {id:"corythosaurus", speed:25, tonnes:3.8, name:"Corythosaurus", means:"\u201CHelmet lizard\u201D",
      period:"Cretaceous", ago:"77\u201376 million years ago", size:"About 8 m long \u2014 as long as two cars",
      weight:"About 3.8 tonnes \u2014 heavier than a rhinoceros", food:"Plants", place:"North America",
-     fact:"Its tall, rounded crest looked like the helmet of an ancient Greek soldier. Inside, the crest was hollow, with long breathing tubes that probably made its calls louder and deeper, like a trumpet. The first skeleton was found with patches of its skin still printed in the rock."}
+     fact:"Its tall, rounded crest looked like the helmet of an ancient Greek soldier. Inside, the crest was hollow, with long breathing tubes that probably made its calls louder and deeper, like a trumpet. The first skeleton was found with patches of its skin still printed in the rock."},
+    {id:"psittacosaurus", speed:25, tonnes:0.02, name:"Psittacosaurus", means:"\u201CParrot lizard\u201D",
+     period:"Cretaceous", ago:"125\u2013105 million years ago", size:"About 2 m long \u2014 as long as a bed",
+     weight:"About 20 kg \u2014 as heavy as a six-year-old", food:"Plants", place:"Asia",
+     fact:"It had a short, deep beak like a parrot's, and the grown-ups walked on two legs. A fossil from China shows a badger-sized mammal called Repenomamus biting one, the two of them buried mid-fight by a mudflow from a volcano. So it was not only dinosaurs that ate mammals: sometimes mammals ate dinosaurs."},
+    {id:"zuul", speed:10, tonnes:2.5, name:"Zuul", means:"\u201CZuul, destroyer of shins\u201D",
+     period:"Cretaceous", ago:"76\u201375 million years ago", size:"About 6 m long \u2014 as long as a car and a half",
+     weight:"Perhaps 2.5 tonnes \u2014 heavier than a hippo", food:"Plants", place:"North America",
+     fact:"It is named after Zuul, a monster in the film Ghostbusters, because its head looks a lot like the monster's. Its second name means destroyer of shins, because it could swing its heavy tail club at a hunter's legs. Its skeleton was found almost whole, with skin and the horn covers of its armour still in place."}
   ];
 
   /* More about each animal, behind the card's "More about" button: how it was
@@ -1918,6 +1930,14 @@
       facts: ["Its second name, casuarius, is for the cassowary, a big bird alive today that also has a crest on its head.",
               "In 1916, during the First World War, two of the best Corythosaurus skeletons were on a ship called the Mount Temple, on their way to a museum in London. A German warship sank it, and the fossils still lie at the bottom of the Atlantic Ocean, more than four kilometres down.",
               "One fossil shows its last meal: conifer needles, seeds, twigs and fruit. Young ones had much smaller crests, so scientists once mistook them for different kinds of dinosaur."]},
+    psittacosaurus: {found: "A driver called Wong, on an American Museum of Natural History expedition to Mongolia, found the first skeleton in 1922. Henry Fairfield Osborn named it in 1923.",
+      facts: ["There are more kinds of Psittacosaurus than of any other dinosaur, about ten, and hundreds of its skeletons have been found across Asia.",
+              "One fossil kept its skin so well that scientists could work out its colours: darker on top and paler underneath. It also had long bristles sticking up from its tail.",
+              "One fossil shows a grown-up with 34 babies. Some scientists think it was a parent looking after them, but others found that the grown-up's skull had been glued on, and they still argue."]},
+    zuul: {found: "In 2014 a digger clearing rock near Havre, Montana, for a dig after a Gorgosaurus skeleton, hit its tail club by surprise. The Royal Ontario Museum bought it, and Victoria Arbour and David Evans named it in 2017.",
+      facts: ["The diggers nicknamed it Sherman. The rock around it was so heavy that the biggest block they lifted out weighed about 15 tonnes.",
+              "Its tail club and the stiff tail handle behind it measure about 2.1 metres, the longest of any armoured dinosaur from North America.",
+              "Some spikes on its sides had been broken and then healed while it was alive. Scientists think another Zuul hit it with its tail club, so they probably fought each other too, perhaps over places to live or over mates."]},
     megalosaurus: {found: "Bones from a quarry at Stonesfield near Oxford were studied by William Buckland, who named Megalosaurus in 1824.",
       facts: ["A piece of bone drawn in a book in 1677 probably came from a Megalosaurus. The scientist who drew it thought it came from a giant human.",
               "In 1842 Richard Owen invented the word dinosaur, meaning terrible lizard. Megalosaurus was one of the first three animals he used it for.",
@@ -2937,7 +2957,9 @@
     rajasaurus:        [["Rahioli, Gujarat", 23.2, 73.45, "in"]],
     borealopelta:      [["Fort McMurray, Alberta", 56.98, -111.45, "na"]],
     sinosauropteryx:   [["Liaoning, China", 41.6, 120.8, "eu"]],
-    corythosaurus:     [["Dinosaur Provincial Park, Alberta", 50.77, -111.5, "na"]]
+    corythosaurus:     [["Dinosaur Provincial Park, Alberta", 50.77, -111.5, "na"]],
+    psittacosaurus:    [["Oshih, Mongolia", 45.6, 103.2, "eu"], ["Liaoning, China", 41.6, 120.8, "eu"]],
+    zuul:              [["Havre, Montana", 48.55, -109.68, "na"]]
   };
   /* what those places were like while the animal lived there */
   var THEN = {
@@ -3008,7 +3030,9 @@
     rajasaurus: "a dry, warm island with a wide river valley, where giant long-necked dinosaurs came to nest",
     borealopelta: "a coastal land of fern-covered forests beside a shallow sea",
     sinosauropteryx: "open land around lakes, with volcanoes nearby that sometimes buried everything in ash",
-    corythosaurus: "warm forests and swamps along rivers flowing to an inland sea"
+    corythosaurus: "warm forests and swamps along rivers flowing to an inland sea",
+    psittacosaurus: "a land of lakes and forests, with volcanoes nearby",
+    zuul: "a warm coastal plain of rivers and forests by an inland sea"
   };
   /* How each plate has turned since then (row by row), from tools/paleomap.py,
      which draws img/map/then-*.webp with the very same numbers. */
@@ -4964,22 +4988,15 @@
     if(!W || !H) return;
     var n = state.deck.length, ratio = 4 / 3;
     var gap = Math.max(7, Math.min(16, Math.round(Math.min(W, H) * 0.016)));
-    var best = null;
-
-    /* the album is always six rows deep, except on a narrow screen */
-    if(state.mode === "album" && W > 620){
-      var ac = Math.ceil(n / 6);
-      best = {w: Math.min((W - (ac - 1) * gap) / ac, ((H - 5 * gap) / 6) * ratio), cols: ac};
-    } else {
-      best = {w: 0, cols: 1};
-      for(var cols = 1; cols <= n; cols++){
-        var rows = Math.ceil(n / cols);
-        var cw = (W - (cols - 1) * gap) / cols;
-        var ch = (H - (rows - 1) * gap) / rows;
-        if(cw <= 0 || ch <= 0) continue;
-        var w = Math.min(cw, ch * ratio);
-        if(w > best.w) best = {w: w, cols: cols};
-      }
+    /* as many columns as make the cards biggest, the album too */
+    var best = {w: 0, cols: 1};
+    for(var cols = 1; cols <= n; cols++){
+      var rows = Math.ceil(n / cols);
+      var cw = (W - (cols - 1) * gap) / cols;
+      var ch = (H - (rows - 1) * gap) / rows;
+      if(cw <= 0 || ch <= 0) continue;
+      var w = Math.min(cw, ch * ratio);
+      if(w > best.w) best = {w: w, cols: cols};
     }
     var cardW = Math.max(56, Math.floor(Math.min(best.w, 470)));
     board.style.setProperty("--cols", best.cols);
@@ -5816,7 +5833,9 @@
       keepTurn: state ? state.keepTurn : true, holding: false,
       timed: state ? state.timed : false, speedrun: state ? state.speedrun : false,
       clocks: null, timeout: null,
-      deck: SPECIES.map(function(d){ return {id: d.id, matched: false}; }),
+      /* in name order, so a child can find one */
+      deck: SPECIES.slice().sort(function(a, b){ return a.name.localeCompare(b.name); })
+        .map(function(d){ return {id: d.id, matched: false}; }),
       found: [], scores: seatArray(0), turn: 0, won: false,
       sides: [{last: null, open: false}, {last: null, open: false}],
       seconds: 0, turns: 0, running: false
