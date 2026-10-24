@@ -13,13 +13,20 @@ at the time, not a scientific reconstruction.
 
     python3 tools/paleomap.py
 
-writes img/map/then-220.webp, then-150, then-70 and then-66, and prints the plate
-rotations that index.html uses to carry the fossil sites along with the land.
+writes img/map/then-375.webp, then-220, then-150, then-70 and then-66, and prints
+the plate rotations that index.html uses to carry the fossil sites along with
+the land. Name ages to draw only those: python3 tools/paleomap.py 375
+
+The Devonian, 375 million years ago, is not fitted coast to coast: Pangaea
+had not come together yet, so it is Pangaea pulled apart - the southern
+lands (Gondwana) turned away south over the pole, and the whole world turned
+so the land of North America and Europe (Laurussia) lies on the equator,
+where Tiktaalik's streams were. Roughly right, for children.
 
     python3 tools/paleomap.py --drift
 
-also draws img/map/drift/000.webp to 220.webp, the world every five million
-years, which the map flips through to show the land moving. In between the two
+also draws img/map/drift/000.webp to 375.webp, the world every five million
+years (--drift 225 starts there), which the map flips through to show the land moving. In between the two
 ages each plate turns smoothly along the same axis, exactly as index.html moves
 the pins (turnAt there, rotation_at here).
 """
@@ -30,7 +37,7 @@ from PIL import Image, ImageDraw, ImageFilter
 ROOT = os.path.join(os.path.dirname(__file__), "..")
 SRC = os.path.join(ROOT, "img/map/earth.webp")
 W, H = 4096, 2048
-AGES = (220, 150, 70, 66)     # the Triassic, the Jurassic, the late Cretaceous, the asteroid
+AGES = (375, 220, 150, 70, 66)     # the Devonian, the Triassic, the Jurassic, the late Cretaceous, the asteroid
 
 # Coasts that once touched, as (lat, lon) on the moving plate -> on its anchor.
 FITS = {
@@ -52,6 +59,11 @@ CLOSED = {
 # Eurasia is the one plate placed outright: (lat, lon) its middle moves to
 EURASIA = {220: (32, 52), 150: (40, 60), 70: (45, 60)}
 EURASIA_NOW = (50, 60)
+# The Devonian, from Pangaea: Gondwana turned away south, then the world turned,
+# each as (axis lat, lon), degrees
+DEVONIAN_APART = ((0, 100), 15)
+DEVONIAN_TURN = ((0, 100), 55)
+GONDWANA = {"af", "sa", "an", "in", "au"}
 ORDER = ["eu", "na", "af", "sa", "an", "in", "au"]
 
 # Seas that covered low land at the time, as (lon, lat) outlines on today's map
@@ -105,6 +117,11 @@ def part(R, f):
 
 
 def rotations(age):
+    if age == 375:
+        pangaea = rotations(220)
+        apart = axis_angle(unit(*DEVONIAN_APART[0]), math.radians(DEVONIAN_APART[1]))
+        turn = axis_angle(unit(*DEVONIAN_TURN[0]), math.radians(DEVONIAN_TURN[1]))
+        return {name: turn @ (apart @ r if name in GONDWANA else r) for name, r in pangaea.items()}
     rot = {"eu": carry(EURASIA_NOW, EURASIA[age])}
     for name in ORDER[1:]:
         anchor, pairs = FITS[name]
@@ -114,8 +131,12 @@ def rotations(age):
 
 def rotation_at(name, t):
     """a plate's turn t million years ago: from today to 70 along one axis,
-    then on from 70 to 150 along another, and from 150 to 220 along a third"""
+    then on from 70 to 150 along another, from 150 to 220 along a third, and
+    back to the Devonian along a fourth"""
     r70, r150, r220 = rotations(70)[name], rotations(150)[name], rotations(220)[name]
+    if t > 220:
+        r375 = rotations(375)[name]
+        return r220 @ part(r220.T @ r375, (t - 220) / 155)
     if t <= 70:
         return part(r70, t / 70)
     if t <= 150:
@@ -254,15 +275,17 @@ def main():
         r, g, b = (small[..., i].astype(int) for i in range(3))
         sland = ~((b > r + 18) & (b > g + 6))
         os.makedirs(os.path.join(ROOT, "img/map/drift"), exist_ok=True)
-        for t in range(0, 221, 5):
+        start = int(sys.argv[sys.argv.index("--drift") + 1]) if sys.argv[-1] != "--drift" else 0
+        for t in range(start, 376, 5):
             Image.fromarray(build(t, green_ice(small, SL, SO, sland, t), slabels, sland, 1024, 512)).save(
                 os.path.join(ROOT, "img/map/drift/%03d.webp" % t), quality=72, method=6)
     else:
-        for age in AGES:
+        only = [int(a) for a in sys.argv[1:] if a.isdigit()]
+        for age in (only or AGES):
             Image.fromarray(build(age, green_ice(src, LAT, LON, land, age), labels, land)).save(
                 os.path.join(ROOT, "img/map/then-%d.webp" % age), quality=80, method=6)
     table = {name: {str(age): [round(float(x), 5) for x in rotations(age)[name].flatten()]
-                    for age in (220, 150, 70)} for name in ORDER}
+                    for age in (375, 220, 150, 70)} for name in ORDER}
     print(json.dumps(table, separators=(",", ":")))
 
 

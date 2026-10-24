@@ -111,8 +111,12 @@ works for a child who cannot read yet.
   bones were dug up. Drag it, pinch it or scroll it to look closer. Tap an
   animal and the map flies there: the places it was found glow, the others
   step back, and a card says what each place was like back then.
-  Along the top runs the story of their world in five stages, **Triassic**,
-  **Jurassic**, **Cretaceous**, **Asteroid** and **Today**, each told out loud.
+  Along the top runs the story of their world in six stages, **Devonian**,
+  **Triassic**, **Jurassic**, **Cretaceous**, **Asteroid** and **Today**, each told
+  out loud. The Devonian, 375 million years ago and long before any dinosaur,
+  tells of Tiktaalik, the fish that began to climb out of the water: a little
+  scene shows it swim in, grow legs and walk up the bank, and its marker on the
+  map, on Ellesmere Island, says how it was found.
   Tap one and the continents drift there, the animals of that age riding on
   them: the first dinosaurs on Pangaea, all the land in one piece; the
   Jurassic ones on a world just starting to split, the Cretaceous ones
@@ -148,10 +152,12 @@ index.html      the whole game - markup, styles and logic
 404.html        hands a shared address like map/jurassic/ over to the game
 img/            70 card plates plus the background and the two foreground animals
 img/full/       the same 70 animals at full size, fetched only when one is opened
-img/map/        the Earth today, small and large, the worlds of 220, 150, 70 and 66
+img/map/        the Earth today, small and large, the worlds of 375, 220, 150, 70 and 66
                 million years ago, and drift/, the land every five million years between
 tools/          serve.py, which serves the game locally the way GitHub Pages does,
                 paleomap.py, which draws those worlds (needs numpy and Pillow),
+                ground66.py, which reads the asteroid's world into the small map
+                of sea, forest, desert and ice that the fires use (run it after paleomap.py),
                 tts.py and tts_en.py, which record the Finnish and English
                 narration, and picture.py, which makes an animal's two pictures
 audio/          a narration clip per animal, plus the jungle loop
@@ -178,7 +184,7 @@ Every view has its own address, so it can be shared and opens straight there:
 ```
 /dino-game/                            the game
 /dino-game/map                         the map, today
-/dino-game/map/jurassic                the map at a stage: triassic, jurassic, cretaceous, asteroid
+/dino-game/map/jurassic                the map at a stage: devonian, triassic, jurassic, cretaceous, asteroid
 /dino-game/map/jurassic/allosaurus     ... with an animal picked
 /dino-game/cards                       all the cards
 /dino-game/cards/triceratops           all the cards, with one open
@@ -192,6 +198,10 @@ There is no file behind those paths: GitHub Pages answers them with
 back. `tools/serve.py` does the same on your own computer; a plain
 `python3 -m http.server` has no such fallback, so there only the `?/` form
 opens a view. A game in play keeps the plain address.
+
+Shown in a frame on another site, as on naqugames.com, the game tells that
+page each view it shows with `postMessage({type: "dinomemory:view", path:
+"map/jurassic"})`, so the page can put it in its own address bar.
 
 ## Adding an animal
 

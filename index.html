@@ -45,7 +45,7 @@
     --p4:#FFDA47; --p4-glow:rgba(255,218,71,.5);    /* player four, yellow */
     --card-face:#F7F2E5; --card-ink:#1A2016;
     --back-1:#17402C; --back-2:#07160E;
-    --triassic:#E0915A; --jurassic:#4EC0D6; --cretaceous:#8BD05C;
+    --devonian:#B48CE0; --triassic:#E0915A; --jurassic:#4EC0D6; --cretaceous:#8BD05C;
     --plate-bg:radial-gradient(68% 60% at 50% 40%, #4A3520 0%, #241A0D 44%, #0C0B08 100%);
   }
 
@@ -464,7 +464,7 @@
     background:var(--panel); color:var(--bone-dim); border:1px solid var(--edge-soft);
   }
   .map-chip .dot{width:9px; height:9px; border-radius:50%; background:var(--bone-faint)}
-  .map-chip .dot.Triassic{background:var(--triassic)} .map-chip .dot.Jurassic{background:var(--jurassic)} .map-chip .dot.Cretaceous{background:var(--cretaceous)}
+  .map-chip .dot.Devonian{background:var(--devonian)} .map-chip .dot.Triassic{background:var(--triassic)} .map-chip .dot.Jurassic{background:var(--jurassic)} .map-chip .dot.Cretaceous{background:var(--cretaceous)}
   .map-chip:hover{color:var(--bone)}
   .map-chip[aria-pressed="true"]{color:var(--bone); border-color:var(--amber); background:rgba(242,171,62,.16)}
   .map-chip:disabled{opacity:.35; cursor:default}
@@ -519,6 +519,8 @@
   /* what stays: the rocks where they fell, and black smoke over the crater,
      both held to the map so they pan and zoom with it */
   .map-fallout{position:absolute; left:0; top:0; width:2048px; height:1024px; transform-origin:0 0; z-index:1; pointer-events:none}
+  /* the fires, all drawn on one canvas the size of the screen (see drawBlazes) */
+  .map-fire{position:absolute; left:0; top:0; width:100%; height:100%; z-index:1; pointer-events:none}
   .map-fallout .rock{transition:box-shadow 4s ease, filter 4s ease}
   .map-fallout .rock[data-cold="true"]{box-shadow:inset -1px -1px 1px rgba(0,0,0,.5); filter:brightness(.8)}
   /* grown and rolled from script: a CSS animation would start over each time the map reopens */
@@ -527,48 +529,12 @@
     position:absolute; border-radius:50%;
     background:radial-gradient(circle, rgba(6,5,4,.82), rgba(14,11,9,.55) 42%, rgba(20,16,12,0) 70%);
   }
-  .ember{position:absolute; left:0; top:0; border-radius:50%; background:#FFE2A0; box-shadow:0 0 6px 2px rgba(255,140,40,.9)}
   /* the crater, seen from above: drawn once (see crater() in the script), and
      a glow over its molten middle that breathes */
   .crater-art{position:absolute; left:0; top:0}
   .tsunami{position:absolute; left:0; top:0; pointer-events:none}
   .melt{position:absolute; left:0; top:0; border-radius:50%;
     background:radial-gradient(circle, rgba(255,214,120,.55), rgba(255,110,30,.3) 45%, rgba(200,50,10,0) 72%)}
-  /* The forests on fire, seen from above the way a satellite sees a wildfire:
-     a broken line of flame that spreads out in a ring, black burnt ground
-     behind it with embers still glowing, orange light thrown on the land
-     round it, and smoke streaming away the way the wind blows. */
-  .fire{position:absolute; left:0; top:0}
-  .fire .spread{position:absolute; inset:0}
-  .fire .light{position:absolute; inset:-55%; border-radius:50%;
-    background:radial-gradient(circle, rgba(255,130,40,.62), rgba(255,85,20,.26) 40%, rgba(255,60,10,0) 68%);
-    animation:fire-light 1.7s ease-in-out infinite alternate}
-  .fire .char{position:absolute; inset:0; background:center/100% 100% no-repeat}
-  /* the flame front: a hot band round the edge, broken into lengths (the mask,
-     set per fire), white-yellow at its heart and red at its edges */
-  .fire .front{position:absolute; inset:0; background:center/100% 100% no-repeat;
-    animation:fire-flicker .23s steps(2, jump-none) infinite alternate}
-  .fire .front + .front{inset:-4%; animation-duration:.31s; animation-delay:-.12s}
-  .fire .ember{position:absolute; width:5%; height:5%; border-radius:50%; background:#FFB347;
-    box-shadow:0 0 2px 1px rgba(255,110,30,.85); animation:fire-ember 1.1s ease-in-out infinite alternate}
-  .fire .smoke-puff{position:absolute; left:20%; top:10%; width:60%; height:60%; border-radius:50%; opacity:0;
-    background:radial-gradient(circle, rgba(32,28,25,.75), rgba(48,42,38,.4) 45%, rgba(60,54,50,0) 70%);
-    animation:fire-smoke 6s linear infinite}
-  .fire .smoke-puff:nth-child(2){animation-delay:-2s}
-  .fire .smoke-puff:nth-child(3){animation-delay:-4s}
-  /* nothing flickers until the fire has caught */
-  .fire:not([data-lit]) *{animation-play-state:paused}
-  @keyframes fire-flicker{
-    0%{opacity:1}
-    40%{opacity:.7}
-    100%{opacity:.9}}
-  @keyframes fire-light{from{opacity:.75; transform:scale(.96)} to{opacity:1; transform:scale(1.05)}}
-  @keyframes fire-ember{from{opacity:.25} to{opacity:1}}
-  /* the wind takes the smoke east and a little north, spreading it as it goes */
-  @keyframes fire-smoke{
-    0%{transform:translate(0,0) scale(.6); opacity:0}
-    10%{opacity:.85}
-    100%{transform:translate(320%,-90%) scale(3.4, 2.4); opacity:0}}
   /* a burning piece thrown out by the blast, on its way to where it starts a fire:
      a white-hot head and a tail of glowing air behind it */
   .ejecta{position:absolute; left:0; top:0; border-radius:50%; transform-origin:100% 50%;
@@ -576,8 +542,6 @@
     box-shadow:0 0 6px 2px rgba(255,150,50,.9)}
   .splash{position:absolute; left:0; top:0; border-radius:50%; opacity:0;
     border:1.5px solid rgba(225,242,255,.9); box-shadow:0 0 4px rgba(190,225,255,.6), inset 0 0 4px rgba(190,225,255,.5)}
-  .scorch{position:absolute; left:0; top:0; border-radius:47% 53% 51% 49% / 53% 47% 53% 47%;
-    background:radial-gradient(circle, rgba(16,11,8,.85), rgba(22,15,11,.7) 50%, rgba(22,15,11,0) 72%)}
   /* today they are all fossils: grey stone, a bone-coloured ring, a little bone.
      They are that from the first moment of today, with no fade from colour. */
   /* (period rings and dimming come later in the sheet, so these name the
@@ -625,7 +589,7 @@
     stroke:rgba(5,10,8,.9); stroke-width:4px; stroke-linejoin:round;
   }
 
-  .map-pins{position:absolute; inset:0; pointer-events:none}
+  .map-pins{position:absolute; inset:0; pointer-events:none; z-index:3}   /* over Tiktaalik's scene, under the blast */
   .map-pin{
     --ring:var(--bone-faint);
     position:absolute; left:0; top:0; width:var(--pin); height:var(--pin); margin:calc(var(--pin) / -2) 0 0 calc(var(--pin) / -2);
@@ -665,6 +629,33 @@
   .survivor-tip[data-for="crater-today"] img{object-fit:cover; padding:0}
   .survivor-tip b{display:block; color:#9BE8AC; font:700 14.5px "Fredoka",sans-serif; margin-bottom:2px}
   .survivor-tip[hidden]{display:none}
+  /* Tiktaalik's marker and note, in the Devonian's own colour */
+  .survivor.long-ago > span{border-color:var(--devonian)}
+  .survivor-tip[data-for="tiktaalik"]{border-color:var(--devonian)}
+  .survivor-tip[data-for="tiktaalik"] b{color:#D9C2F2}
+  /* From fins to legs: three painted frames of Tiktaalik leaving the water,
+     crossfading over most of the map, with the map still showing round it. A frame the shape of the screen
+     fills it; a very wide one is shown whole, as big as fits, on a soft
+     blurred copy of itself. */
+  .tik-scene{position:absolute; inset:clamp(56px,9vh,96px) clamp(16px,6vw,90px) clamp(60px,10vh,100px); z-index:6; background:#05080A;
+    overflow:hidden; pointer-events:auto; border-radius:16px; border:1.5px solid var(--devonian); box-shadow:0 18px 50px -12px #000}   /* the map still shows round it */
+  .tik-scene[hidden]{display:none}
+  .tik-film{position:absolute; inset:0}
+  .tik-frame{position:absolute; inset:0; overflow:hidden}
+  .tik-frame .bg{position:absolute; inset:-6%; width:112%; height:112%; object-fit:cover; filter:blur(28px) brightness(.55) saturate(1.2)}
+  .tik-frame .fg{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transform-origin:40% 55%}
+  .tik-frame[data-wide="true"] .fg{object-fit:contain}
+  .tik-frame[data-wide="false"] .bg{display:none}
+  .tik-bar{position:absolute; left:0; right:0; bottom:0; display:flex; align-items:flex-end; gap:16px;
+    padding:60px clamp(16px,4vw,48px) clamp(16px,3vh,32px); background:linear-gradient(transparent, rgba(0,0,0,.78))}
+  .tik-bar .tik-title{position:absolute; left:clamp(16px,4vw,48px); bottom:calc(clamp(16px,3vh,32px) + 1.3em + 26px);
+    font:700 clamp(15px,1.6vw,20px) "Fredoka",sans-serif; color:#D9C2F2; text-shadow:0 1px 4px #000}
+  .tik-bar .tik-say{flex:1 1 auto; min-width:0; font:700 clamp(18px,2.4vw,32px)/1.25 "Nunito",sans-serif; color:#FFF6E6;
+    text-shadow:0 2px 8px rgba(0,0,0,.9)}
+  .tik-keys{position:absolute; top:clamp(12px,2vh,20px); right:clamp(12px,2vw,24px); display:flex; gap:10px}
+  .tik-keys button{width:44px; height:44px; border-radius:50%; border:1px solid rgba(255,255,255,.45);
+    background:rgba(0,0,0,.45); color:#fff; font:700 18px/1 "Nunito",sans-serif; cursor:pointer; padding:0}
+  .tik-keys button:hover, .tik-keys button:focus-visible{background:rgba(0,0,0,.7); border-color:#fff}
   @media (max-height:520px){ .survivor-tip img{display:none} }   /* a phone on its side: the words fit, the picture does not */
   .map-pin[data-period="Triassic"]{--ring:var(--triassic)}
   .map-pin[data-period="Jurassic"]{--ring:var(--jurassic)}
@@ -795,7 +786,6 @@
   @keyframes map-sheet-in{from{transform:translateY(40px); opacity:0} to{transform:none; opacity:1}}
   @media (prefers-reduced-motion: reduce){
     .map,.map-card,.map-lines .ring,.blast,.flash{animation:none}
-    .fire,.fire *{animation:none !important}
     .blast,.meteor,.meteor-tail{display:none}
     .map-dust{transition:none}
     .map-world img,.map-world canvas{transition:none}
@@ -1315,6 +1305,7 @@
     <div class="map-head">
       <h2 id="map-title">Where they lived<small>Tap an animal to see where its bones were found</small></h2>
       <div class="map-stages" id="map-stages" role="group" aria-label="When">
+        <button type="button" class="map-chip" data-stage="devonian" aria-pressed="false"><span class="dot Devonian"></span>Devonian<small>375</small></button>
         <button type="button" class="map-chip" data-stage="triassic" aria-pressed="false"><span class="dot Triassic"></span>Triassic<small>220</small></button>
         <button type="button" class="map-chip" data-stage="jurassic" aria-pressed="false"><span class="dot Jurassic"></span>Jurassic<small>150</small></button>
         <button type="button" class="map-chip" data-stage="cretaceous" aria-pressed="false"><span class="dot Cretaceous"></span>Cretaceous<small>70</small></button>
@@ -1327,6 +1318,7 @@
     <div class="map-stage" id="map-stage">
       <div class="map-world" id="map-world">
         <img id="map-now" alt="" data-on="true">
+        <img id="map-then-375" alt="" data-on="false">
         <img id="map-then-220" alt="" data-on="false">
         <img id="map-then-150" alt="" data-on="false">
         <img id="map-then-70" alt="" data-on="false">
@@ -1346,8 +1338,10 @@
       <div class="map-dust" id="map-dust" aria-hidden="true"></div>
       <div class="map-heat" id="map-heat" aria-hidden="true"></div>
       <div class="map-fallout" id="map-fallout" aria-hidden="true"></div>
+      <canvas class="map-fire" id="map-fire" aria-hidden="true"></canvas>
       <div class="map-pins" id="map-pins"></div>
       <div class="map-impact" id="map-impact" aria-hidden="true"></div>
+      <div class="tik-scene" id="tik-scene" hidden></div>
       <p class="map-caption" id="map-caption" hidden></p>
       <div class="map-zoom">
         <button type="button" id="map-in" aria-label="Zoom in">+</button>
@@ -1362,7 +1356,7 @@
 
 </div>
 
-<script src="lang/fi.js?v=19"></script>
+<script src="lang/fi.js?v=20"></script>
 <script>
 (function(){
   "use strict";
@@ -3073,8 +3067,9 @@
   };
   /* How each plate has turned since then (row by row), from tools/paleomap.py,
      which draws img/map/then-*.webp with the very same numbers. */
-  var PLATES = {"eu":{"220":[0.96994,0.05026,0.23811,-0.10147,0.97286,0.20798,-0.22119,-0.22589,0.94871],"150":[0.9962,-0.00658,0.08682,-0.00658,0.98861,0.15038,-0.08682,-0.15038,0.98481],"70":[0.99905,-0.00165,0.04358,-0.00165,0.99715,0.07548,-0.04358,-0.07548,0.99619]},"na":{"220":[0.718,-0.62882,0.29843,0.62109,0.77235,0.13311,-0.31419,0.08978,0.9451],"150":[0.69572,-0.70171,0.15353,0.69888,0.71064,0.08104,-0.16597,0.05091,0.98482],"70":[0.72864,-0.67666,0.10586,0.67982,0.73334,0.00828,-0.08324,0.06593,0.99435]},"af":{"220":[0.91117,0.32842,0.24881,-0.40992,0.78352,0.46697,-0.04158,-0.52748,0.84855],"150":[0.98392,0.1635,0.07191,-0.17852,0.91263,0.36775,-0.0055,-0.37467,0.92714],"70":[0.97107,-0.23644,0.03333,0.22852,0.96073,0.15742,-0.06924,-0.14525,0.98697]},"sa":{"220":[0.93066,-0.35224,-0.09898,0.34338,0.93426,-0.09614,0.12633,0.05549,0.99044],"150":[0.80965,-0.57044,-0.13809,0.52189,0.80737,-0.27528,0.26852,0.15081,0.9514],"70":[0.82551,-0.56438,-0.00331,0.55356,0.8108,-0.19019,0.11002,0.15518,0.98174]},"in":{"220":[0.81268,0.465,0.35118,-0.42132,0.05257,0.90539,0.40255,-0.88375,0.23864],"150":[0.86195,0.49592,0.10541,-0.28389,0.29984,0.91077,0.42006,-0.81496,0.39923],"70":[0.99133,-0.01432,-0.13064,0.07678,0.8699,0.48722,0.10667,-0.49302,0.86345]},"au":{"220":[0.52979,0.75846,-0.37956,-0.50751,0.64206,0.57463,0.67953,-0.1118,0.72508],"150":[0.59059,0.58651,-0.55427,-0.47613,0.80782,0.34747,0.65154,0.05869,0.75634],"70":[0.91635,0.12524,-0.38029,-0.01696,0.96111,0.27565,0.40002,-0.24615,0.88283]},"an":{"220":[0.778,0.41339,-0.4731,-0.44351,0.89473,0.05247,0.44499,0.16901,0.87944],"150":[0.83093,0.17281,-0.52886,-0.31999,0.92604,-0.20016,0.45515,0.33555,0.82477],"70":[0.98001,-0.17182,-0.10026,0.15484,0.97524,-0.15787,0.1249,0.13919,0.98236]}};
+  var PLATES = {"eu":{"375":[0.39777,-0.22369,0.8898,-0.20236,0.92455,0.32289,-0.89489,-0.30849,0.32249],"220":[0.96994,0.05026,0.23811,-0.10147,0.97286,0.20798,-0.22119,-0.22589,0.94871],"150":[0.9962,-0.00658,0.08682,-0.00658,0.98861,0.15038,-0.08682,-0.15038,0.98481],"70":[0.99905,-0.00165,0.04358,-0.00165,0.99715,0.07548,-0.04358,-0.07548,0.99619]},"na":{"375":[0.12231,-0.35266,0.92772,0.51606,0.82104,0.24407,-0.84778,0.44891,0.28241],"220":[0.718,-0.62882,0.29843,0.62109,0.77235,0.13311,-0.31419,0.08978,0.9451],"150":[0.69572,-0.70171,0.15353,0.69888,0.71064,0.08104,-0.16597,0.05091,0.98482],"70":[0.72864,-0.67666,0.10586,0.67982,0.73334,0.00828,-0.08324,0.06593,0.99435]},"af":{"375":[0.33736,-0.45746,0.82275,-0.5111,0.64495,0.56817,-0.79054,-0.61219,-0.01623],"220":[0.91117,0.32842,0.24881,-0.40992,0.78352,0.46697,-0.04158,-0.52748,0.84855],"150":[0.98392,0.1635,0.07191,-0.17852,0.91263,0.36775,-0.0055,-0.37467,0.92714],"70":[0.97107,-0.23644,0.03333,0.22852,0.96073,0.15742,-0.06924,-0.14525,0.98697]},"sa":{"375":[0.41504,-0.18124,0.89157,0.25246,0.96442,0.07852,-0.87407,0.19249,0.44603],"220":[0.93066,-0.35224,-0.09898,0.34338,0.93426,-0.09614,0.12633,0.05549,0.99044],"150":[0.80965,-0.57044,-0.13809,0.52189,0.80737,-0.27528,0.26852,0.15081,0.9514],"70":[0.82551,-0.56438,-0.00331,0.55356,0.8108,-0.19019,0.11002,0.15518,0.98174]},"an":{"375":[0.74323,0.20532,0.63675,-0.44964,0.85804,0.24816,-0.49541,-0.47075,0.73004],"220":[0.778,0.41339,-0.4731,-0.44351,0.89473,0.05247,0.44499,0.16901,0.87944],"150":[0.83093,0.17281,-0.52886,-0.31999,0.92604,-0.20016,0.45515,0.33555,0.82477],"70":[0.98001,-0.17182,-0.10026,0.15484,0.97524,-0.15787,0.1249,0.13919,0.98236]},"in":{"375":[0.71401,-0.65548,0.24604,-0.43872,-0.145,0.88685,-0.54564,-0.74116,-0.39111],"220":[0.81268,0.465,0.35118,-0.42132,0.05257,0.90539,0.40255,-0.88375,0.23864],"150":[0.86195,0.49592,0.10541,-0.28389,0.29984,0.91077,0.42006,-0.81496,0.39923],"70":[0.99133,-0.01432,-0.13064,0.07678,0.8699,0.48722,0.10667,-0.49302,0.86345]},"au":{"375":[0.87766,0.09875,0.46899,-0.44617,0.52574,0.72425,-0.17505,-0.8449,0.50548],"220":[0.52979,0.75846,-0.37956,-0.50751,0.64206,0.57463,0.67953,-0.1118,0.72508],"150":[0.59059,0.58651,-0.55427,-0.47613,0.80782,0.34747,0.65154,0.05869,0.75634],"70":[0.91635,0.12524,-0.38029,-0.01696,0.96111,0.27565,0.40002,-0.24615,0.88283]}};
   var AGE_TEXT = {
+    375: "<b>375 million years ago</b> \u2014 the Devonian, long before the dinosaurs. Fish ruled the seas and rivers, and one of them was starting to climb out.",
     220: "<b>220 million years ago</b> \u2014 the Triassic. All the land was one supercontinent, Pangaea, and the very first dinosaurs were running across it.",
     150: "<b>150 million years ago</b> — the Jurassic. The land was still almost one piece, and the Atlantic Ocean was only a narrow sea.",
     70: "<b>70 million years ago</b> — the end of the Cretaceous. The Atlantic was growing, India was an island, and a sea cut North America in two.",
@@ -3084,6 +3079,8 @@
   /* told out loud when the world is turned back or forward, in the card voice
      (audio/map/<age>.mp3); the browser reads these if a clip is missing */
   var STORY = {
+    "375": "Three hundred and seventy-five million years ago, in the Devonian, there were no dinosaurs at all, not even the first ones. The land had not yet come together into one piece. North America and Europe were joined, and they lay across the middle of the world, on the equator, where it was warm. Far to the south, Africa, South America, Antarctica, India and Australia were one big land, stretching over the South Pole.",
+    "devonian": "In the Devonian, almost every animal lived in the water. On land grew the very first forests, with millipedes, scorpions and spider-like creatures crawling among them, but no animals with backbones. Then, in warm, shallow streams, a fish called Tiktaalik began to push itself up out of the water. It had gills and scales like a fish, but it also had lungs to breathe air, a neck to turn its head, and strong front fins with bones inside like a wrist, so it could prop itself up in the shallows. Fish like Tiktaalik were the start of every animal with four legs: frogs, lizards, dinosaurs, birds, cats, and you.",
     "150": "One hundred and fifty million years ago, in the Jurassic, the continents were squeezed together into one giant piece. Watch the land move! North America was still joined to Europe and Africa, and the Atlantic Ocean was only a thin sea between them. Africa, South America, Antarctica, India and Australia were all one big land in the south.",
     "70": "Seventy million years ago, near the end of the Cretaceous, the giant land had broken into pieces, and they were slowly drifting apart. The Atlantic Ocean grew a little wider every year. India was an island, sailing north towards Asia. And a warm, shallow sea ran right through the middle of North America, cutting it in two.",
     "now": "Back to today! When the dinosaurs lived, Antarctica was warm enough for forests. But over millions and millions of years the continents kept on drifting, about as fast as your fingernails grow. Australia and South America moved away from Antarctica, until it was left all alone at the bottom of the world, right over the South Pole. A cold ocean current began to swirl all the way round it and kept the warm water away. At the same time the air slowly lost some of the gas that keeps the Earth warm, so the whole world cooled. Snow that fell in winter stopped melting in summer, and piled up, year after year, until about thirty-four million years ago Antarctica\'s green forests disappeared under thick ice. Greenland froze much later, only about three million years ago. Meanwhile the Atlantic Ocean became wide, and India crashed into Asia and pushed up the Himalayas. The animals in this game are only bones now, dug up from the places on this map.",
@@ -3105,7 +3102,7 @@
   var mapClose = document.getElementById("map-close"), mapStages = document.getElementById("map-stages");
   var mapRun = document.getElementById("map-run"), mapLive = document.getElementById("map-live");
   var mapHeat = document.getElementById("map-heat"), mapDust = document.getElementById("map-dust"), mapImpact = document.getElementById("map-impact");
-  var mapImgs = {now: document.getElementById("map-now"), 220: document.getElementById("map-then-220"),
+  var mapImgs = {now: document.getElementById("map-now"), 375: document.getElementById("map-then-375"), 220: document.getElementById("map-then-220"),
                  150: document.getElementById("map-then-150"),
                  70: document.getElementById("map-then-70"), 66: document.getElementById("map-then-66")};
   /* What is on the ground 66 million years ago, read from that map once: the
@@ -3113,6 +3110,21 @@
      nothing stops at the moment the asteroid lands. The asteroid's fires and
      wave wait for it. */
   var ground66 = {src: null, fn: null, busy: null, waiting: []};
+  /* The same, read beforehand into a small map by tools/ground66.py: what is
+     on the ground 66 million years ago, 256 by 128, two bits a spot (0 sea,
+     1 forest, 2 desert, 3 ice), four spots to a byte. A browser that will not
+     let the page read the picture itself - a file opened from disk - still
+     knows where the fires can burn. */
+  var GROUND66 = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABFVVVVFFVVVQAAAAAAAAAAAAAAAFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABABBAVVVVVVVVVVVVAFBVAQAAAAAAAAAABQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABQEABFRVUFVVVVVVFQBAAQAAAAAAAAAAAAAUAAAAAFAFAAAAAAAAAAAAAAAAAAAAAAAAFQAAQFVVAAAAAABUBRQFFRVVBVBVVVVVVRUAAAAAAAAAAAAAAAAAWVUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGkBAFVVVVUVAAAAaVkAAEBUVQBQVVVVVVUVAAAAAAAAAFAAAABQpapaAUAVAFBVBVUAEFUVAAAAAAAAAAAAAABUFQBVVVVVVQUAAACpVkFVQRQAAABVVVVVFQAAAAAAAAAFAAAApaamllZVVVRVVVVVVWWpWgAAAAAAAAAAAAAAAAFQVVVVVVVVAQABlVpBFVRVAQAAVVVVVRUAAAAAAABAAQAFUKpVValVVVVVVVVVVVVVqaoBAAAAAAAAAAAAAAAAUFVVVVVVVQEAVVVVARRUWgUAAFVVVVUFAABUAQAAUABAVVVVVVWpVVVVVVVVVVVVVVVVAQAAAAAAAAAAAAAAAFRVVVVVVVUFAFBVVVFVQFVVAQBUVVVVFQBVVRUAAAAAQFVVValWVVVVVVVVVVVVVVVVVQEAAAAAAAAAAAAAAABUVVVVVVVVVQBAVVVVpVFBVQEAVFVVVQVAVVVVBQBRVVVVVVVVVVVVVVVVVVVVVVVVVRUAAAAAAAAAAAAAAAAAQFVVVVVVVVUBAFSpmmpVQFUFAFRVVRUAUFVVVRVUVVVVVVVVVVVVVVVVVVVVVVVVVVUBAAAAAAAAAAAAAAAAAABQBQBUVVVVAQBQaVpqFQBVVQBUVVUAAFUVVBVQVVVVVVVVVVVVVVVVVVVVVVVVAVQBAAAAAAAAAAAAAAAAAAAAUAQAAFRVVQUAQFVVBVRQlQEAVFUFAFRVRVVVVVVVVVVVVVVVVVVVVVVVVVVVVQAVAAAAAAAAAAAAAAAAAAAAAAAAAABQVVUVAEBVVQAAAFAFAFBVAABVVUBVVVVVVVVVVVVVVVVVVVVVVVVVAQBAFQAAAAAAAAAAAAAAAAAAAAAAAAAAQFVVVQAAVRUAAFQBAABQFQAAVVVQVVVVVVVVVVVVVVVVVVVVVVVVFQAAUBUAAAAAAAAAAAAAAAAAAAAAAAAAAABVVVUBAFQVAACkBgAAQBUVAFVVQVVVVVVVVVVVVVVVVVVVVVVVVQUAAFAFAAAAAAAAAAAAAAAAAAAAAAAAAAAAVFVVAQBQVQAAVBYEAAAAFQAQFQBVVVVVVVVVVVVVVVVVVVVVVVUBAABQAQAAAAAAAAAAAAAAAAAAAAAAAAAAAFBVVQUAUFUFAFBVGQAAUBUAVBVQVVVVVVVVVVVVVVVVVVVVVVVVVQAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAVVUFAFBVVQFUVRUAAFRUAFQBVFVVVVVVVVVVVVVVVVVVVVVVVVUFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQFVVBQBQVVUFVVVVAAAUVUFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABVVQUAUFVVFVVVVQUAAFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVQQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVFUFAFBVVVVVVVUVAABQVVVVVVVVVVVVVVVVWlVVVVVVlVZVVVUEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJRWBQBQVVVVVVVVBQAAVVVVVVVVVVVVVZWqWqlVpWpVVaVWVVUVAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACVVRUAUFVBVVVVABQAAFRVVVVVVVVVpaqqqqqqVaWqlaqqVlVVFQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAApZYVAEBVRVVVVQFVAABQVVVVVVVVVammqqqqqpWqqqqqqlZVVQVUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKWqFQBAVVVVVVUBQAAUVFVVVVUVFFVZlZqqammlqqqqqqpWVVUBFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAClqhUAQFVRVFVVFQAAVVUBVFRVBQBVGaWWqqpqlaqqqqqqVlUFAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAApaoVAEBVVVVVAQAAAKVaAFBBVQUAUBXoq6qqVpWqqqqqqlVVAQAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKmqGgAAVVVVVQAAAACpCgABRVVFFVAV0KuqWpWqqqqqqmpVVQEABQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACkqhoAAFVVVRUAAAAApQYAAAQFVVpVVZCqqlqqqqqqqqpaVUAFQAUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAApKoaAABUVVUFAAAAAFABAEAABaWqVmqQqqqmqqqqqqaqVlVBBVAFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAECqGgAAVFVVAQAAAAAAAAAAAABUWlUVkKqqqqqqqqpWalVVAEUVAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAqhoAAFRVVQEAAAAAAAAAValVAAEAAJSqqqqqqqqqVllVVQBQAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKkaAABQVVUAAAAAAAAAkKqqqgAAAACoqqpWqaqqalVVVVUBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACFWQAAUFUFAAAAAAAAAKSqqm8AAAAAqaqqBpCqqlpVVVVVBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlFUAAFRVAQAAAAAAAACoqqquBQAAAKmqqgYAqapVVVVVVQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABRVVRUQVAEAAAAAAABAqqqqqhpQAACqqqoGAEBpVVVVVVUBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQlFoBAEABAAAAAAAAkKqqqqqqtQZAqqqqBgAAUFVVVVVVAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQJSqAgBAAQAAAAAAALSqqqqq6v9/laqqqgYAAABUVVVVVQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABQagEAAAEAAAAAAADpq6qqqqr/v6qqqqoGAAAAVFVVVRUBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQGoBAAAAAAAAAABAqqqqqqqq//+aqqqlAgAAAFRVVVUFAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBlAQBAAQAAAAAAQKqqqqqq6r/uG6rqgRYAAABUVVVVAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAVQFQQBUAAAAAAEDqqrqqqvqqqiupqgdQAAAAVFVVBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFUFVABQAAAAAABAqv6rqqqqqrpqqKofBQAAAFRVFQUABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABQVRUAAFAAAAAAgKr6qqq6qqq6qqCqvxoAAABQVRUAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQFUVAABQAAAAAJCqqqqq+q+qqqqg6r9qAAAAUFVVAAAFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAVQEAAAAAAABQVamqqv6/qqqqkaqvHgAAAEBUVQEABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFUFAAAAAAAAUFWlqqr6/6qqqoKqqg8AAAAAVFUBAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABABQAAAAAAAEBVVamqqrqqqqpGqr4BAAUAAFRVAQBQAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAUAAAAAAAAAVVVVqmqpqqqqBqoaAEAWAAAUVAEAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFAAAAAAAAAFVVVVVVVZWqWhWpBgBAVgAAFFAAAEAFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVFUVAAAAAABUVVVVVVWValWlFQAAQFUGABAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFRVVQEAAAAAUFVVVVVVVVVVpQAAAJBaWQBQAABQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABVVVVVAQAAAEBVVVVVVVVVVaWqBgCQWpUBQAEAVAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVVVVVRUAAAAAAABUVVVVVVWVqgYApVVVFUUFAFUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFVVVVVVAAAAAAAAQFVVVVVVpaoCAKlVVVVVBUBVAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABVVVVVVQEAAAAAAABVVVVVVaWqAABkalVVUQVUVQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVVVVVVVVAAAAAAAAVVVVVamqagAAlGqlVUAFUFUUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQFVVVVVVVVUBAAAAQFVVVVWlqhoAAFBqZVVAFVAVFAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBVVVVVVVVVGQAAAEBVVVVVpaoFAACAWlVVAFVAFVQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABQVVVVVVVVVRUAAAAAVVVVVZRqAAAAgFpVAABUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAUFVVVVVVVZUWAAAAAFVVVVWUGgAAAICqBQAAQAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFBVVVVVVVWlFgAAAABUVVVVqgYAAABAagEAAABVBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABQVVVVVVVVpQUAAAAAVFVVVaoBAAAAQCoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAUFVVVVVVVWkFAAAAAFRVVVVqAQAAAEAaAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBVVVVVVVWpAQAAAABUVVVVWgEAAABAGQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVVVVVVVVqgUAAAAAVFVVVVUBAAAAAAUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFRVVVVVlVoFAAAAAJRVVVVVAQAAAAARAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABgVVVVVZVaBQAAAABVlVVVVQEAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAkGpVVVVVWgEAAAAAVpVVlVUBAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAECqVlVVVVUBAAAAQKqqVlVVAUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAoGpVVVVVAQAAAECqqmpVVQFQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAECqVVVVFQAAAAAAqqqqalUAaQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAqlVVVQEAAAAAAKmqqmoFQGoAAAAAAAAAAAAAABQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKpVVVUBAAAAAACoqqpqAUAaAAAAAAAAAAAAAAAUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACqVVVVAAAAAAAAqKqqWgFAGgAAAAAAAAAAAAAAUFUBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAqlVVVQAAAAAAAKiqqlYBgBoAAAAAAAAAAAAAAABVVQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKpVVVUAAAAAAACoqqpWAYAGAAAAAAAAAAAAAAAAUFUBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACqVVVVAAAAAAAAqKqqFgBABgAAAAAAAAAAAAAAAFBVBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAqlVVFQAAAAAAAKCqqgYAAAAAAAAAAAAAAAAAAABQVQUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKlWVRUAAAAAAACgqqoFAAAAAAAAAAAAAAAAAAAAAARUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACpalUFAAAAAAAAkKqqAQAAAAAAAAAAAAAAAABABQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAqWpVAAAAAAAAAJCqWgAAAAAAAAAAAAAAAABQkGoABAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKVaVQAAAAAAAABAVQUAAAAAAAAAAAAAAABAqapqABUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAClWlUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAkKqqagBZAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAApVoFAAAAAAAAAAAAAAAAAAAAAAAAAACQqqqqqqoGaQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAKVaAQAAAAAAAAAAAAAAAAAAAAAAAAAAqKqqqqqqqqoBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAClagAAAAAAAAAAAAAAAAAAAAAAAAAAAKiqqqqqqqqqBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlWoAAAAAAAAAAAAAAAAAAAAAAAAAAACpqqqqqqqqqhoAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAJRqAAAAAAAAAAAAAAAAAAAAAAAAAAAAqaqqqqqqqqpqAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACUGgAAAAAAAAAAAAAAAAAAAAAAAAAAAKmqqqqqqqqqqgUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVBoAAAAAAAAAAAAAAAAAAAAAAAAAAAClqqqqqqqqqqoaAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFRqAAAAAAAAAAAAAAAAAAAAAAAAAAAApaqqqqqqqqqqWgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABUKgAAAAAAAAAAAAAAAAAAAAAAAAAAQKWqqqqqqqqqqloAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAUBkAAAAAAAAAAAAAAAAAAAAAAAAAAABVVVWqqqqqqmpVAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBZAAAAAAAAAAAAAAAAAABVBQAAAAAAAAAAAKWqqqpqVQAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVQEAAAAAAAAAAAAAAABQVVUVAEAFFAAAAABQqqqqVhUAAAAAAABQBQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAFAAAAAAAAAAAAAEAVVFVVVUFVVRUAAAAAQFWqqlYFAAAAAAAAUAUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFVVVVVVVVVVVVVVAAAAAABQqapVBQAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVVVVVVVVVVVVVVVVVVUAABQAAFVVVQEAAAAAAABUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVFVVVVVVVVVVVVVVVVUVQFVVFQBVVVUAAAAAAAAAVAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAFVVVVVVVVVVVVVVVVVVVVVVVVUVAAAAAAAAAAAAABUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABQAAAAAAAAAFBVVVVVVVVVVVVVVVVVVVVVVVVVVQEAAAAAAAAAAEAVAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVAEAAAAAAABUVVVVVVVVVVVVVVVVVVVVVVVVVVUVUAUAAAAAAABABQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFQVAAAAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUUBAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABQVQAAAAAAAFRVVVVVVVVVVVVVVVVVVVVVVVVVVVVVAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAVVUVAAAAAABVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVQEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQFVVVQEAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABUVVVVVUEAVVVAVFVVVVVVVVVVVVVVVVVVVVVVVVVVFQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAVVVVVVVRUEFVQFVVVVVVVVVVVVVVVVVVVVVVVRUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEBVVVVVVVVVVVUFQFVVVVVVVVVVVVVVVVVVVVVVVVUQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABQVVVVVVVVVVVVVVVVAQBAVVVVVVVVVVVVVVVVVVVVVVVVVQUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQFVVVVVVVVVVVVVVVVVVVUFVVVVVVVVVVVVVVVUBQFVVVVUVAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVQEAAFBVVVVVVQUAAAAAAAAAAAAAAAAAAAAAAAAAVFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVQUAAAAAAAAAAFRVVVVVRQEAAAAAAFVVVVVVVVVRVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUFAAAAAAAAAAAAAFBVVVVVVVVVVVVVAFRVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVQUAAEBAUVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVUAVFVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVU=";
+  var ground66Known = (function(){
+    var kinds = ["sea", "forest", "desert", "ice"], bytes;
+    try{ bytes = atob(GROUND66); }catch(e){ return null; }
+    if(bytes.length !== 256 * 128 / 4) return null;   /* cut short, it would read as all sea */
+    return function(x, y){
+      var i = Math.min(127, Math.max(0, Math.floor(y / WORLD_H * 128))) * 256 + Math.min(255, Math.max(0, Math.floor(x / WORLD_W * 256)));
+      return kinds[(bytes.charCodeAt(i >> 2) >> ((i & 3) * 2)) & 3];
+    };
+  })();
   function readGround66(){
     var img = mapImgs[66];
     if(!img.complete || !img.naturalWidth || ground66.src === img.currentSrc || ground66.busy === img.currentSrc) return;
@@ -3166,6 +3178,7 @@
      today, where every one of them is a fossil. The stage sets the age of the
      land (millions of years ago) and which animals stand on it. */
   var STAGES = [
+    {id: "devonian", age: 375, period: "Devonian", say: ["375", "devonian"], quiet: true},   /* told only with its film, from the play button */
     {id: "triassic", age: 220, period: "Triassic", say: ["220", "triassic"]},
     {id: "jurassic", age: 150, period: "Jurassic", say: ["150", "jurassic"]},
     {id: "cretaceous", age: 70, period: "Cretaceous", say: ["70", "cretaceous"]},
@@ -3203,7 +3216,7 @@
 
   /* The turn of a plate t million years ago, the way tools/paleomap.py
      draws the land (rotation_at there): from today to 70 about one axis, on
-     to 150 about another and to 220 about a third, so the pins ride exactly
+     to 150 about another, to 220 about a third and to 375 about a fourth, so the pins ride exactly
      with the land. */
   function mul(A, B){
     var C = [];
@@ -3226,7 +3239,9 @@
     var r70 = PLATES[plate]["70"], r150 = PLATES[plate]["150"], r220 = PLATES[plate]["220"];
     if(t <= 70) return partTurn(r70, t / 70);
     if(t <= 150) return mul(r70, partTurn(mul(transpose(r70), r150), (t - 70) / 80));
-    return mul(r150, partTurn(mul(transpose(r150), r220), (t - 150) / 70));
+    if(t <= 220) return mul(r150, partTurn(mul(transpose(r150), r220), (t - 150) / 70));
+    var r375 = PLATES[plate]["375"];   /* and back before Pangaea, to the Devonian */
+    return mul(r220, partTurn(mul(transpose(r220), r375), (t - 220) / 155));
   }
 
   /* a place on the map, carried to where it was in the age on screen */
@@ -3359,7 +3374,7 @@
     var age = mv.age;
     sharpWorld(age);
     mapImgs.now.dataset.on = String(!mv.then);
-    [220, 150, 70, 66].forEach(function(a){ mapImgs[a].dataset.on = String(age === a); });
+    [375, 220, 150, 70, 66].forEach(function(a){ mapImgs[a].dataset.on = String(age === a); });
     /* today gets a caption once the world has been turned back and forth */
     mapCaption.hidden = !(mv.then || mv.told);
     mapCaption.innerHTML = '<span>' + (mv.then ? AGE_TEXT[age] : NOW_TEXT) + '</span>';
@@ -3374,7 +3389,7 @@
   function loadDrift(){
     if(driftFrames) return;
     driftFrames = {};
-    for(var t = 0; t <= 220; t += 5){
+    for(var t = 0; t <= 375; t += 5){
       var im = new Image();
       im.decoding = "async";
       im.src = "img/map/drift/" + ("00" + t).slice(-3) + ".webp?v=" + OLD_MAPS_VERSION;
@@ -3384,7 +3399,7 @@
   function frameReady(t){ var im = driftFrames && driftFrames[t]; return im && im.complete && im.naturalWidth; }
   /* the land at t million years ago: the two nearest frames, one over the other */
   function paintDrift(t){
-    var lo = Math.max(0, Math.min(220, Math.floor(t / 5) * 5)), hi = Math.min(220, lo + 5);
+    var lo = Math.max(0, Math.min(375, Math.floor(t / 5) * 5)), hi = Math.min(375, lo + 5);
     if(!frameReady(lo)) return false;
     driftCtx.globalAlpha = 1;
     driftCtx.drawImage(driftFrames[lo], 0, 0, driftCanvas.width, driftCanvas.height);
@@ -3409,7 +3424,7 @@
   }
   function showDrift(){
     driftCanvas.dataset.on = "true";
-    mapImgs.now.dataset.on = mapImgs[220].dataset.on = mapImgs[150].dataset.on = mapImgs[70].dataset.on = mapImgs[66].dataset.on = "false";
+    mapImgs.now.dataset.on = mapImgs[375].dataset.on = mapImgs[220].dataset.on = mapImgs[150].dataset.on = mapImgs[70].dataset.on = mapImgs[66].dataset.on = "false";
     mapUnder.style.opacity = "0";
   }
   function stopDrift(){
@@ -3590,6 +3605,7 @@
     var from = startAt !== undefined ? startAt : mv.anim !== null ? mv.anim : mv.age;
     if(mv.drift){ cancelAnimationFrame(mv.drift); mv.drift = null; }
     clearImpact();
+    hideTiktaalik();
     setStage(id);
     var age = mv.age;
     mv.told = true;
@@ -3603,13 +3619,19 @@
       showWorld();
       drawMap();
       if(mv.stage === "asteroid") impact();
+      else if(mv.stage === "devonian"){
+        tikClip();
+        /* the film waits for the play button, or for the whole story to reach Tiktaalik */
+        if(keys && !soundOn && keys.indexOf("devonian") >= 0) tiktaalikScene();
+        flyTo(wholeWorld());
+      }
       else if(mv.picked) pickOnMap(mv.picked, true);
       else flyTo(wholeWorld());   /* and look at who lives here now */
     }
     /* told back to today from before the ice, the land drifts with the story and the
        poles freeze; it has long enough to wait for the pictures of the moving land */
     if(!reduceMotion.matches && id === "today" && keys && keys[0] === "now" && from > 36){ freezeTo(from, arrive); return; }
-    if(reduceMotion.matches || Math.abs(from - age) < 0.5 || !frameReady(Math.max(0, Math.min(220, Math.floor(from / 5) * 5)))){ arrive(); return; }
+    if(reduceMotion.matches || Math.abs(from - age) < 0.5 || !frameReady(Math.max(0, Math.min(375, Math.floor(from / 5) * 5)))){ arrive(); return; }
     paintDrift(from);
     showDrift();
     var t0 = performance.now(), dur = 900 + Math.abs(age - from) * 16;
@@ -3626,10 +3648,200 @@
     mv.drift = requestAnimationFrame(step);
   }
 
+  /* ---------- the Devonian: from fins to legs ---------- */
+  /* Three painted frames of the same riverbank at sunset (img/devonian/):
+     Tiktaalik swimming up with its head out to breathe, propping itself up
+     on its fins in the shallows, and up on the mud. Each one fades in over the
+     last while the picture drifts closer, so it reads as one movement; the
+     words below say what is happening, and the last line tells what came
+     millions of years later. With the sound on it starts as the story turns
+     to Tiktaalik and lasts as long as that telling; otherwise twenty seconds. */
+  var tikScene = document.getElementById("tik-scene"), tikRuns = [], tikWaits = [];
+  var TIK_TIME = 20000, TIK_FRAMES = 3;
+  var TIK_SAY = [[0, "Tiktaalik swims in a warm, shallow stream, and lifts its head to breathe air"],
+                 [0.33, "It props itself up on its strong front fins"],
+                 [0.66, "It may even have pulled itself out onto the mud"],
+                 [0.88, "Millions of years later, its family had legs with toes, and walked onto the land"]];
+  /* closed by hand: its story stops too */
+  function shutTiktaalik(){
+    if(tellStory.heard && (tellStory.heard.key === "375" || tellStory.heard.key === "devonian") && speakingSide === 4) stopSpeech();
+    hideTiktaalik();
+  }
+  function hideTiktaalik(){
+    tikRuns.forEach(function(a){ a.cancel(); });
+    tikWaits.forEach(clearTimeout);
+    tikRuns = []; tikWaits = [];
+    tikScene.hidden = true;
+  }
+  /* The film with Tiktaalik's story told over it: started together when the
+     clip starts (tellStory), or straight away with the sound off. */
+  function playTiktaalik(){
+    if(soundOn) tellStory(stageById("devonian").say);
+    else{ stopSpeech(); tiktaalikScene(); }
+  }
+  /* how long the Tiktaalik clip is, read from the file once (for the film's length, from the start of the world's story) */
+  var tikClipLength = null;
+  function tikClip(){
+    if(tikClipLength !== null) return;
+    tikClipLength = 0;
+    var probe = new Audio();
+    probe.preload = "metadata";
+    probe.addEventListener("loadedmetadata", function(){ if(isFinite(probe.duration)) tikClipLength = probe.duration; });
+    probe.src = AUDIO + "map/devonian.mp3" + (FI ? "?v=" + FI.version : MAP_CLIP_VERSION.devonian ? "?v=" + MAP_CLIP_VERSION.devonian : "");
+  }
+  function tikBuild(){
+    var film = "";
+    for(var i = 1; i <= TIK_FRAMES; i++){
+      var src = "img/devonian/tiktaalik-" + i + ".webp";
+      film += '<div class="tik-frame" data-wide="false"><img class="bg" alt="" src="' + src + '"><img class="fg" alt="" src="' + src + '"></div>';
+    }
+    tikScene.innerHTML = '<div class="tik-film">' + film + '</div>' +
+      '<div class="tik-bar"><b class="tik-title"></b><span class="tik-say" aria-live="polite"></span></div>' +
+      '<div class="tik-keys"><button type="button" class="tik-again">&#8635;</button><button type="button" class="tik-shut">&#10005;</button></div>';
+    /* much wider than the screen: show it whole on its blurred copy instead of cutting most of it away */
+    Array.prototype.forEach.call(tikScene.querySelectorAll(".tik-frame"), function(fr){
+      var img = fr.querySelector(".fg");
+      function shape(){ if(img.naturalWidth) fr.dataset.wide = String(img.naturalWidth / img.naturalHeight > 2.6); }
+      if(img.complete) shape(); else img.addEventListener("load", shape);
+    });
+    tikScene.querySelector(".tik-title").textContent = T("From fins to legs");
+    var again = tikScene.querySelector(".tik-again"), shut = tikScene.querySelector(".tik-shut");
+    again.setAttribute("aria-label", T("Watch it again")); again.title = T("Watch it again");
+    shut.setAttribute("aria-label", T("Close")); shut.title = T("Close");
+    again.addEventListener("click", playTiktaalik);
+    shut.addEventListener("click", shutTiktaalik);
+  }
+  function tiktaalikScene(length){
+    tikScene.length = length;
+    var total = length > 8000 ? length : TIK_TIME, step = total * 0.33, fade = Math.min(1600, step * 0.25);
+    hideTiktaalik();
+    if(!tikScene.firstChild) tikBuild();
+    tikScene.hidden = false;
+    /* below the story's own box at the top, so its stop button stays in reach */
+    var cap = mapCaption.hidden ? 0 : mapCaption.getBoundingClientRect().bottom - mapStage.getBoundingClientRect().top;
+    tikScene.style.top = Math.max(16, Math.round(cap + 12)) + "px";
+    tikScene.querySelector(".tik-shut").focus({preventScroll: true});
+    var frames = tikScene.querySelectorAll(".tik-frame"), say = tikScene.querySelector(".tik-say");
+    var still = reduceMotion.matches || !tikScene.animate;
+    Array.prototype.forEach.call(frames, function(img, i){ img.style.opacity = still ? (i === frames.length - 1 ? 1 : 0) : (i ? 0 : 1); });
+    if(still){ say.textContent = T(TIK_SAY[TIK_SAY.length - 1][1]); return; }   /* just the end: up on the mud */
+    say.textContent = T(TIK_SAY[0][1]);
+    TIK_SAY.forEach(function(s){ tikWaits.push(setTimeout(function(){ say.textContent = T(s[1]); }, s[0] * total)); });
+    Array.prototype.forEach.call(frames, function(img, i){
+      var from = i * step;
+      /* each new frame fades in over the one before, which stays underneath */
+      if(i) tikRuns.push(img.animate([{opacity: 0}, {opacity: 1}], {duration: fade, delay: from - fade, easing: "ease-in-out", fill: "both"}));
+      /* and drifts a little closer while it is the one on top */
+      var last = i === frames.length - 1, hold = last ? total - from + fade : step + fade;
+      tikRuns.push(img.querySelector(".fg").animate([{transform: "scale(1)"}, {transform: "scale(" + (last ? 1.08 : 1.04) + ")"}],
+                               {duration: hold, delay: Math.max(0, from - fade), easing: "linear", fill: "both"}));
+    });
+  }
+
   /* ---------- the asteroid ---------- */
+  /* The fires. Hundreds of them burn at once for minutes, so rather than a
+     dozen animated elements each they are drawn together, about thirty
+     times a second, on one canvas over the map: in each the black scar
+     spreading under it, the orange light it throws, the burnt ground with
+     embers glowing, the flickering ring of flame, and smoke blowing east. */
+  var fireCv = document.getElementById("map-fire"), fireCtx = fireCv.getContext("2d");
+  var blazes = [], blazeFrame = 0, blazeLast = 0, blazeDirty = false;
+  function blazeSprite(stops){
+    var c = document.createElement("canvas"), g = c.getContext("2d"), gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+    c.width = c.height = 128;
+    stops.forEach(function(s){ gr.addColorStop(s[0], s[1]); });
+    g.fillStyle = gr; g.fillRect(0, 0, 128, 128);
+    return c;
+  }
+  var GLOW = blazeSprite([[0, "rgba(255,130,40,.62)"], [0.57, "rgba(255,85,20,.26)"], [0.96, "rgba(255,60,10,0)"], [1, "rgba(255,60,10,0)"]]);
+  var SCAR = blazeSprite([[0, "rgba(16,11,8,.85)"], [0.7, "rgba(22,15,11,.7)"], [1, "rgba(22,15,11,0)"]]);
+  var PUFF = blazeSprite([[0, "rgba(128,120,112,.75)"], [0.64, "rgba(96,90,84,.38)"], [0.99, "rgba(80,74,70,0)"], [1, "rgba(80,74,70,0)"]]);
+  var SPARK = blazeSprite([[0, "rgba(255,226,160,1)"], [0.35, "rgba(255,179,71,.95)"], [1, "rgba(255,110,30,0)"]]);
+  function wakeBlazes(){ if(!blazeFrame) blazeFrame = requestAnimationFrame(tickBlazes); }
+  function tickBlazes(now){
+    blazeFrame = 0;
+    if(mapEl.hidden) return;   /* opened again, drawMap wakes it */
+    if(now - blazeLast < 33){ blazeFrame = requestAnimationFrame(tickBlazes); return; }   /* thirty a second is plenty for fire */
+    blazeLast = now;
+    if(drawBlazes(now)) blazeFrame = requestAnimationFrame(tickBlazes);
+  }
+  /* Draws them all as they are at `now`; true while any is still to catch or burning. */
+  function drawBlazes(now){
+    var g = fireCtx, dpr = Math.min(2, window.devicePixelRatio || 1);
+    var W = Math.round(mv.W * dpr), H = Math.round(mv.H * dpr);
+    if(fireCv.width !== W || fireCv.height !== H){ fireCv.width = W; fireCv.height = H; }
+    else if(blazes.length || blazeDirty){ g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, W, H); }
+    blazeDirty = blazes.length > 0;
+    if(!blazes.length) return false;
+    g.setTransform(dpr * mv.s, 0, 0, dpr * mv.s, dpr * mv.tx, dpr * mv.ty);   /* draw in world pixels */
+    var x0 = -mv.tx / mv.s, y0 = -mv.ty / mv.s, x1 = x0 + mv.W / mv.s, y1 = y0 + mv.H / mv.s;
+    var alive = false, burning = [], i, b, e, s;
+    function seen(b, r, dx){ return b.x + r + dx > x0 && b.x - r < x1 && b.y + r > y0 && b.y - r < y1; }
+    /* the black ground first, under every flame */
+    for(i = 0; i < blazes.length; i++){
+      b = blazes[i]; e = now - b.t0;
+      if(e < 0){ alive = true; continue; }
+      b.g = b.still ? 1 : 0.15 + 0.85 * (1 - Math.pow(1 - Math.min(1, e / (b.burn * 0.8)), 2.5));
+      if(!b.still && e < b.burn){ alive = true; burning.push(b); }
+      if(!seen(b, b.box, 0)) continue;
+      s = b.box * 1.05 * b.g;
+      g.globalAlpha = b.still ? 1 : Math.min(1, e / (b.burn * 0.08));
+      g.drawImage(SCAR, b.x - s / 2, b.y - s / 2, s, s);
+    }
+    /* then the fire on it */
+    for(i = 0; i < burning.length; i++){
+      b = burning[i];
+      if(!seen(b, b.box * 1.2, 0)) continue;
+      var f = (now - b.t0) / b.burn, a = f < 0.04 ? f / 0.04 : f < 0.78 ? 1 : (1 - f) / 0.22;
+      var pulse = 0.5 + 0.5 * Math.sin(now / 450 + b.seed);
+      s = b.box * 2.1 * b.g * (0.9 + 0.22 * pulse);
+      g.globalAlpha = a * (0.55 + 0.45 * pulse);
+      g.globalCompositeOperation = "lighter";   /* light adds up: fires side by side glow brighter */
+      g.drawImage(GLOW, b.x - s / 2, b.y - s / 2, s, s);
+      g.globalCompositeOperation = "source-over";
+      g.save();
+      g.translate(b.x, b.y);
+      g.rotate(b.rot);
+      s = b.box * b.g;
+      if(b.chr){ g.globalAlpha = a; g.drawImage(b.chr, -s / 2, -s / 2, s, s); }
+      for(var k = 0; k < b.embers.length; k++){
+        var em = b.embers[k], es = b.box * 0.07 * b.g;
+        g.globalAlpha = a * (0.25 + 0.75 * (0.5 + 0.5 * Math.sin(now / 280 + em.ph)));
+        g.drawImage(SPARK, em.x * s - es / 2, em.y * s - es / 2, es, es);
+      }
+      [b.front, b.front2].forEach(function(pic, n){
+        if(!pic) return;
+        var t = now / (n ? 290 : 210) + b.seed * (n + 1);
+        var fs = s * (n ? 1.08 : 1) * (1 + 0.05 * Math.sin(t * 1.3));
+        g.save();
+        g.rotate(0.07 * Math.sin(t * 0.7));
+        g.globalAlpha = a * (0.5 + 0.5 * Math.abs(Math.sin(t)));
+        g.globalCompositeOperation = "lighter";
+        g.drawImage(pic, -fs / 2, -fs / 2, fs, fs);
+        g.globalCompositeOperation = "source-over";
+        g.restore();
+      });
+      g.restore();
+    }
+    /* and the smoke over it all, blowing east and a little north as it spreads */
+    for(i = 0; i < burning.length; i++){
+      b = burning[i];
+      if(!b.smoke || !seen(b, b.box * 1.5, b.box * 3)) continue;
+      a = (now - b.t0) / b.burn; a = a < 0.04 ? a / 0.04 : a < 0.78 ? 1 : (1 - a) / 0.22;
+      for(var p = 0; p < 2; p++){
+        var c = ((now - b.t0) / 6000 + p / 2 + b.seed) % 1, ps = b.box * 0.6;
+        var sw = ps * (0.6 + 2.8 * c), sh = ps * (0.6 + 1.8 * c);
+        var cx = b.x + 1.92 * b.box * c, cy = b.y - 0.1 * b.box - 0.54 * b.box * c;
+        g.globalAlpha = a * (c < 0.1 ? c / 0.1 * 0.85 : 0.85 * (1 - c) / 0.9);
+        g.drawImage(PUFF, cx - sw / 2, cy - sh / 2, sw, sh);
+      }
+    }
+    g.globalAlpha = 1;
+    return alive;
+  }
   function clearImpact(keepFallout){
     mv.gen++;   /* a rock still falling from before lands nowhere */
-    if(!keepFallout){ mapFallout.textContent = ""; mv.craterR = 0; }
+    if(!keepFallout){ mapFallout.textContent = ""; mv.craterR = 0; blazes = []; drawBlazes(performance.now()); }
     quakeStop();
     mv.fx.forEach(function(a){ a.cancel(); });
     mv.fx = [];
@@ -3650,7 +3862,7 @@
   function fireArt(){
     if(fireArt.done) return fireArt.done;
     var waiting = [], left = 7;
-    var art = fireArt.done = {fronts: [], chars: [], whenReady: function(fn){ if(left) waiting.push(fn); else fn(); }};
+    var art = fireArt.done = {frontPics: [], charPics: [], whenReady: function(fn){ if(left) waiting.push(fn); else fn(); }};
     function settled(){ if(--left === 0) waiting.splice(0).forEach(function(fn){ fn(); }); }
     function paint(svg, into, px){
       var pic = new Image();
@@ -3658,9 +3870,8 @@
         var cv = document.createElement("canvas");
         cv.width = cv.height = px;
         cv.getContext("2d").drawImage(pic, 0, 0, px, px);
-        /* kept as a short blob address, not a long data: string copied into every fire's style */
-        try{ cv.toBlob(function(blob){ if(blob) into.push("url(" + URL.createObjectURL(blob) + ")"); settled(); }); }
-        catch(e){ settled(); }
+        into.push(cv);   /* drawn straight onto the fire canvas */
+        settled();
       };
       pic.onerror = settled;
       pic.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
@@ -3684,7 +3895,7 @@
       }
       paint('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="256" height="256"><defs>' + rough("w", ".04", 26, seed) +
             '<filter id="g" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3"/></filter></defs>' +
-            '<g fill="none" stroke-linecap="round" filter="url(#w)">' + arcs + '</g></svg>', art.fronts, 256);
+            '<g fill="none" stroke-linecap="round" filter="url(#w)">' + arcs + '</g></svg>', art.frontPics, 256);
     }
     for(var c = 0; c < 3; c++){
       var cs = 1 + Math.floor(Math.random() * 900);
@@ -3696,7 +3907,7 @@
               '<feColorMatrix values="0 0 0 0 1  0 0 0 0 .42  0 0 0 0 .08  5 0 0 0 -2.9"/><feComposite in2="SourceGraphic" operator="in"/>' +
               '<feGaussianBlur stdDeviation=".8"/></filter></defs>' +
             '<circle cx="100" cy="100" r="70" fill="url(#b)" filter="url(#w)"/>' +
-            '<circle cx="100" cy="100" r="58" fill="#fff" filter="url(#e)"/></svg>', art.chars, 160);   /* soft anyway: smaller is enough */
+            '<circle cx="100" cy="100" r="58" fill="#fff" filter="url(#e)"/></svg>', art.charPics, 160);   /* soft anyway: smaller is enough */
     }
     return art;
   }
@@ -4015,7 +4226,7 @@
       if(!ground) return;   /* not knowing where the sea is, no fires rather than fires on the water */
       var at = project(IMPACT), small = mv.W < 500, many = small ? 0.5 : 1, px = 1 / mv.s;
       var still = reduceMotion.matches || !document.body.animate;
-      var fires = [], room = small ? 110 : 280;   /* no more fires than a phone can carry */
+      var fires = [], room = small ? 180 : 520;   /* no more fires than a phone can carry */
       var heard = 0, hearMost = small ? 10 : 24;   /* nor more landings heard at once than it can play */
       /* Burning pieces thrown out every way, nearer ones thicker. Wherever one
          comes down:
@@ -4031,8 +4242,7 @@
           var spot = {x: x, y: y, d: d}, kind = ground(x, y);
           /* all thrown out at once by the blast; the further one goes, the faster and higher it flies, so it lands later */
           var thrown = Math.random() * 120, flight = 700 + Math.sqrt(d) * 125 + Math.random() * 300, lands = thrown + flight;
-          /* the nearer the crater, the bigger the blaze */
-          var size = (d < 150 ? 15 : d < 260 ? 11 : 8) * px * (0.8 + Math.random() * 0.5);
+          var size = (d < 260 ? 11 : 8) * px * (0.8 + Math.random() * 0.5);
           var loud = Math.max(0.25, 1 - d / 1100), heardIt = heard < hearMost && loud > 0.35;
           if(heardIt) heard++;
           jobs.push(piece.bind(null, spot, kind, size, thrown, flight, lands, loud, heardIt));
@@ -4046,8 +4256,8 @@
         if(!still) fly(at, spot, size, thrown, flight);
         if(heardIt) pieceLands(Math.max(0, lands) / 1000, kind, loud);
         if(kind === "sea"){ if(!still) splash(spot, size, lands); return; }
-        if(burns(kind)) catchFire(spot, size, lands, spot.d < 260 ? 4 : 3);
-        else if(roomFor(spot, size)) light(spot, size * 0.8, lands, 3500 + Math.random() * 2500);   /* nothing to burn: it flares and dies */
+        if(burns(kind)) catchFire(spot, size, lands, small ? 6 : 10, true);   /* on green it spreads, step after step, on through the forest */
+        else if(roomFor(spot, size, true)) light(spot, size * 0.8, lands, 24000 + Math.random() * 16000);   /* dry land: less to burn, so it burns out sooner, but it burns and smokes */
       }
       /* A fire in the forest: it burns a long while, and every few seconds it
          jumps to forest next to it, a few steps on from where it began. */
@@ -4055,81 +4265,45 @@
          but 66 million years ago the world was far warmer and there was no ice:
          both were covered in forest, so where the map is white, it burns too. */
       function burns(kind){ return kind === "forest" || kind === "ice"; }
-      function roomFor(spot, size){
-        if(fires.length >= room) return false;
-        for(var i = 0; i < fires.length; i++) if(Math.hypot(fires[i].x - spot.x, fires[i].y - spot.y) < size * 0.8) return false;
+      /* A piece that lands always gets its fire, even right beside another one;
+         a fire spreading on its own only takes what room is left. */
+      function roomFor(spot, size, landed){
+        if(fires.length >= (landed ? room * 1.6 : room)) return false;
+        var gap = landed ? size * 0.3 : size * 0.8;
+        for(var i = 0; i < fires.length; i++) if(Math.hypot(fires[i].x - spot.x, fires[i].y - spot.y) < gap) return false;
         fires.push(spot);
         return true;
       }
-      function catchFire(spot, size, when, steps){
-        if(!roomFor(spot, size)) return;
-        light(spot, size, when, 25000 + Math.random() * 30000);
+      function catchFire(spot, size, when, steps, landed){
+        if(!roomFor(spot, size, landed)) return;
+        light(spot, size, when, 50000 + Math.random() * 60000);
         if(!steps) return;
-        var jumps = 1 + Math.floor(Math.random() * 2);
+        var jumps = 2 + (Math.random() < 0.4 ? 1 : 0);
         for(var j = 0; j < jumps; j++){
           var a = Math.random() * Math.PI * 2, d = size * (1.1 + Math.random() * 0.8);
           var next = {x: spot.x + Math.cos(a) * d, y: spot.y + Math.sin(a) * d * 0.8};
           if(next.x < 0 || next.x >= WORLD_W || next.y < 0 || next.y >= WORLD_H || !burns(ground(next.x, next.y))) continue;
-          catchFire(next, size * (0.85 + Math.random() * 0.25), when + 2500 + Math.random() * 3500, steps - 1);
+          catchFire(next, size * (0.85 + Math.random() * 0.2), when + 2500 + Math.random() * 3500, steps - 1);
         }
       }
       /* One fire, centred on its spot. It starts small where it caught and
          spreads out in a ring as it burns, the black scar growing under it;
          then the flames die down and the scar stays. */
       function light(spot, size, wait, burn){
-        if(still) wait = 0;
-        var box = size * 2.2;
-        var scar = document.createElement("div");
-        scar.className = "scorch";
-        scar.style.width = scar.style.height = box * 1.05 + "px";
-        scar.style.left = (spot.x - box * 0.525) + "px"; scar.style.top = (spot.y - box * 0.525) + "px";
-        mapFallout.appendChild(scar);
-        if(still) return;   /* no flickering: only the black land they left */
-        var fire = document.createElement("div");
-        fire.className = "fire";
-        fire.style.width = fire.style.height = box + "px";
-        fire.style.left = (spot.x - box / 2) + "px"; fire.style.top = (spot.y - box / 2) + "px";
-        var spread = document.createElement("div");
-        spread.className = "spread";
-        spread.innerHTML = '<i class="light"></i>';
-        spread.style.rotate = Math.round(Math.random() * 360) + "deg";   /* every fire turned its own way */
-        var art = fireArt(), pick = function(list){ return list[Math.floor(Math.random() * list.length)]; };
-        var char = document.createElement("i");
-        char.className = "char";
-        if(art.chars.length) char.style.backgroundImage = pick(art.chars);
-        spread.appendChild(char);
-        for(var f = 0; f < (small ? 1 : 2); f++){
-          var front = document.createElement("i");
-          front.className = "front";
-          if(art.fronts.length) front.style.backgroundImage = pick(art.fronts);
-          spread.appendChild(front);
+        var art = fireArt(), pick = function(list){ return list.length ? list[Math.floor(Math.random() * list.length)] : null; };
+        var embers = [];
+        for(var k = 0; k < (small ? 1 : 2); k++){   /* embers left glowing in the black */
+          var ea = Math.random() * Math.PI * 2, ed = Math.random() * 0.28;
+          embers.push({x: Math.cos(ea) * ed, y: Math.sin(ea) * ed, ph: Math.random() * 7});
         }
-        for(var e = 0; e < (small ? 2 : 4); e++){   /* embers left glowing in the black */
-          var ember = document.createElement("i"), ea = Math.random() * Math.PI * 2, ed = Math.random() * 28;
-          ember.className = "ember";
-          ember.style.left = (47 + Math.cos(ea) * ed) + "%"; ember.style.top = (47 + Math.sin(ea) * ed) + "%";
-          ember.style.animationDelay = (-Math.random() * 1.1).toFixed(2) + "s";
-          spread.appendChild(ember);
-        }
-        fire.appendChild(spread);
-        for(var m = 0; m < (small ? 2 : 3); m++){
-          var puff = document.createElement("i");
-          puff.className = "smoke-puff";
-          fire.appendChild(puff);
-        }
-        mapFallout.appendChild(fire);
-        /* it spreads out from where it caught, quickly at first */
-        var grow = [{transform: "scale(.15)"}, {transform: "scale(1)"}], growing = {duration: burn * 0.8, delay: wait, easing: "cubic-bezier(.2,.7,.4,1)", fill: "both"};
-        spread.animate(grow, growing);
-        scar.animate([{transform: "scale(.15)", opacity: 0}, {opacity: 1, offset: .1}, {transform: "scale(1)", opacity: 1}], growing);
-        var flame = fire.animate([{opacity: 0, offset: 0}, {opacity: 1, offset: 0.04}, {opacity: 1, offset: 0.78}, {opacity: 0, offset: 1}],
-                                 {duration: burn, delay: wait, fill: "both", easing: "linear"});
-        fire.animate([{}, {}], {duration: 1, delay: wait}).onfinish = function(){ fire.dataset.lit = "true"; };
-        /* burnt out, it goes, so its flicker stops too */
-        flame.onfinish = function(){ fire.remove(); };
+        blazes.push({x: spot.x, y: spot.y, box: size * 2.2, t0: performance.now() + (still ? 0 : wait), burn: burn, still: still,
+                     rot: Math.random() * Math.PI * 2, seed: Math.random() * 100, g: 0.15,
+                     front: pick(art.frontPics), front2: small ? null : pick(art.frontPics), chr: pick(art.charPics),
+                     embers: embers, smoke: !small || Math.random() < 0.5});
+        wakeBlazes();
       }
       var jobs = [], base = performance.now();
-      throwSome(40, 150, 60 * many);    /* a ring of fire right round the crater, outside its molten middle */
+      throwSome(40, 150, 120 * many);   /* a ring of fire right round the crater, outside its molten middle */
       throwSome(150, 260, 50 * many);   /* round the Americas */
       throwSome(260, 1000, 40 * many);  /* far away, here and there */
       /* made a few at a time, a few milliseconds a frame, so the blast never stops on screen */
@@ -4180,7 +4354,7 @@
     /* What is on the ground there, from the colour of the old map: blue sea,
        white ice, green forest, and the tan of desert and dry land. */
     function groundOf66(){
-      return ground66.fn && ground66.src === mapImgs[66].currentSrc ? ground66.fn : null;
+      return ground66.fn && ground66.src === mapImgs[66].currentSrc ? ground66.fn : ground66Known;
     }
     /* Rocks and sparks thrown out every way from where it hit. Seen from above,
        each one rises towards us as it flies (it grows), then falls back and
@@ -4226,7 +4400,8 @@
         }
       }
       for(var i = 0; i < 70 * many; i++) throwOne("rock", 1.5 + Math.random() * 3.5, 0.28, 1700 + Math.random() * 1200, 720);
-      for(var j = 0; j < 60 * many; j++) throwOne("ember", 2 + Math.random() * 3, 0.45, 1100 + Math.random() * 1300, 0);
+      /* (no sparks that burn out in the air: everything that flies out glowing
+         is a burning piece, and each one starts a fire where it comes down - see spread) */
     }
   }
 
@@ -4247,10 +4422,17 @@
   var CRATER_TODAY = {id: "crater-today", today: true, name: "The crater today", head: "The crater today", site: IMPACT,
     text: "The crater is still there, but you cannot see it: it lies buried under the Yucatan, beneath about a kilometre of rock laid down since. " +
           "Only a ring of round, water-filled sinkholes called cenotes traces its edge, and instruments that feel the pull of gravity show the whole crater, about 180 kilometres wide."};
-  var MARKERS = SURVIVORS.concat([CRATER_TODAY]);
+  /* On the Devonian: where the fish that climbed out of the water was found */
+  var TIKTAALIK = {id: "tiktaalik", devonian: true, name: "Tiktaalik", head: "Tiktaalik, the fish that climbed out",
+    site: ["Ellesmere Island, Canada", 77.5, -84.5, "na"],
+    text: "Its fossils were found in 2004 on Ellesmere Island, in the far north of Canada, now a cold place but then a warm one near the equator. " +
+          "The scientists went looking for rocks of just the right age that had once been streams, and there it was. " +
+          "Its name means large freshwater fish in Inuktitut, the language of the Inuit who live there. The biggest was about 2.7 metres long."};
+  var MARKERS = SURVIVORS.concat([CRATER_TODAY, TIKTAALIK]);
   /* a survivor once the story has named it after the asteroid; the crater on Today */
   function markerSeen(sv){
     if(!survivorTip || mv.anim !== null) return false;
+    if(sv.devonian) return mv.stage === "devonian" && mv.anim === null;
     return sv.today ? mv.stage === "today" && mv.told : survivorsShown() && !!mv.revealed[sv.id];
   }
   var survivorTip = null, survivorOpen = null;
@@ -4270,6 +4452,7 @@
       b.setAttribute("aria-controls", "survivor-tip");
       b.title = sv.head || T("{name} survived", {name: sv.name});
       if(sv.today) b.classList.add("crater-spot");
+      if(sv.devonian) b.classList.add("long-ago");
       b.innerHTML = sv.today ? "<span></span>" : '<span><img alt="" src="img/survivors/' + sv.id + '-pin.webp"></span>';
       b.addEventListener("click", function(){ openSurvivor(survivorOpen === sv.id ? null : sv.id); });
       mapPinsEl.appendChild(b);
@@ -4319,6 +4502,8 @@
     });
     if(FI.places[IMPACT[0]]) IMPACT[0] = FI.places[IMPACT[0]];
     ["name", "head", "text"].forEach(function(k){ if(FI.craterToday[k]) CRATER_TODAY[k] = FI.craterToday[k]; });
+    ["head", "text"].forEach(function(k){ if(FI.tiktaalik && FI.tiktaalik[k]) TIKTAALIK[k] = FI.tiktaalik[k]; });
+    if(FI.places[TIKTAALIK.site[0]]) TIKTAALIK.site[0] = FI.places[TIKTAALIK.site[0]];
     SURVIVOR_WORDS = FI.survivorWords;
     if(FI.survivorCues) SURVIVOR_CUES = FI.survivorCues;
     if(FI.nowWords) NOW_WORDS = FI.nowWords;
@@ -4440,6 +4625,7 @@
      found in one place they are eased apart and tied back to it by a thread. */
   function drawMap(){
     mapWorld.style.transform = mapFallout.style.transform = "translate(" + mv.tx + "px," + mv.ty + "px) scale(" + mv.s + ")";
+    if(blazes.length || blazeDirty){ if(drawBlazes(performance.now())) wakeBlazes(); }
     var crater = toScreen(project(IMPACT)), craterX = crater.x, craterY = crater.y;
     var age = shownAge(), list = [];
     SPECIES.forEach(function(dino, i){
@@ -4721,7 +4907,7 @@
       /* nothing to hear, so a whole story reads the caption at its own pace */
       if(keys[0] === "asteroid") revealSlowly();
       clearTimeout(tellStory.quiet);
-      if(done) tellStory.quiet = setTimeout(done, keys[0] === "asteroid" ? 16000 : keys[0] === "now" ? 24000 : 7000);
+      if(done) tellStory.quiet = setTimeout(done, keys[0] === "asteroid" ? 16000 : keys[0] === "now" ? 24000 : keys.indexOf("devonian") >= 0 ? TIK_TIME + 1500 : 7000);
       return;
     }
     function next(){
@@ -4762,6 +4948,8 @@
           u.onend = u.onerror = function(){ if(voiceNow === u) finished(); };
           voiceNow = u;
           speechSynthesis.speak(u);
+          /* the browser's own voice: about fifteen letters a second */
+          if(key === "375" && keys[0] === "devonian" && !mapEl.hidden && mv.stage === "devonian") tiktaalikScene((STORY["375"].length + STORY.devonian.length) / 15 * 1000);
           speakingSide = 4; playing();
         }catch(e){ finished(); }
       }
@@ -4777,6 +4965,11 @@
         if(speech === clip && clip.ended){ revealSurvivors(); return; }
         requestAnimationFrame(watch);
       })();
+      /* the Devonian's film starts with its story and runs to the end of the telling of Tiktaalik */
+      if(key === "375" && keys[0] === "devonian") clip.addEventListener("playing", function(){
+        if(speech === clip && !mapEl.hidden && mv.stage === "devonian" && clip.currentTime < 1)
+          tiktaalikScene(isFinite(clip.duration) && tikClipLength ? (clip.duration + tikClipLength) * 1000 : 0);
+      });
       clip.play().then(function(){ if(speech === clip){ speakingSide = 4; playing(); } }).catch(fallback);
     }
     next();
@@ -4795,6 +4988,8 @@
   storyBtn.addEventListener("click", function(event){
     event.stopPropagation();
     if(storyBtn.dataset.playing === "true" || mv.run){ stopSpeech(); stopRun(); return; }
+    /* on the Devonian it plays the film of Tiktaalik, with its story told over it */
+    if(mv.stage === "devonian"){ playTiktaalik(); return; }
     /* today's story shows the poles freezing again, from a world without ice */
     if(mv.stage === "today") worldTo("today", stageById("today").say, null, 66);
     else tellStory(stageById(mv.stage).say);
@@ -4807,7 +5002,8 @@
     stopRun();
     var id = chip.dataset.stage;
     if(id === "today" && mv.stage === "today") worldTo(id, stageById(id).say, null, 66);   /* and the poles freeze again */
-    else if(id !== mv.stage || mv.anim !== null || id === "asteroid") worldTo(id, stageById(id).say);
+    else if(id !== mv.stage || mv.anim !== null || id === "asteroid") worldTo(id, stageById(id).quiet ? null : stageById(id).say);
+    else if(id === "devonian") playTiktaalik();
     else tellStory(stageById(id).say);
   });
 
@@ -4936,6 +5132,7 @@
     if(fell && mv.stage === "asteroid"){ mv.extinct = true; mapDust.dataset.on = "true"; }
     if(mv.frame){ cancelAnimationFrame(mv.frame); mv.frame = 0; }
     if(speakingSide === 3 || speakingSide === 4) stopSpeech();
+    hideTiktaalik();
     mapEl.hidden = true;
     touches = {};
     if(mv.from && document.body.contains(mv.from)) mv.from.focus();
@@ -4947,7 +5144,8 @@
     if(event.defaultPrevented || mapEl.hidden || !viewer.hidden) return;
     if(event.key === "Escape"){
       event.preventDefault();
-      if(survivorOpen){ var was = survivorOpen; openSurvivor(null); MARKERS.forEach(function(sv){ if(sv.id === was) sv.el.focus(); }); }
+      if(!tikScene.hidden){ shutTiktaalik(); storyBtn.focus(); }   /* the film first, then the map */
+      else if(survivorOpen){ var was = survivorOpen; openSurvivor(null); MARKERS.forEach(function(sv){ if(sv.id === was) sv.el.focus(); }); }
       else closeMap();
       return;
     }
@@ -6321,8 +6519,20 @@
      back button, a change inside one (another stage, another card) is not. */
   var routing = true;   /* quiet until the first view is in place */
   var stepping = false;   /* a step back is on its way: one is enough */
+  /* Played inside another page - naqugames.com shows it in a frame - the
+     address bar is that page's, so tell it the view and let it show it:
+     {type: "dinomemory:view", path: "map/jurassic"}. Only the path, nothing private. */
+  var toldParent = null;
+  function tellParent(){
+    if(window.parent === window) return;
+    var path = viewPath();
+    if(path === toldParent) return;
+    toldParent = path;
+    try{ window.parent.postMessage({type: "dinomemory:view", path: path}, "*"); }catch(e){}
+  }
   function syncAddress(){
     if(routing || stepping) return;
+    tellParent();
     var path = viewPath(), now = history.state && typeof history.state.path === "string" ? history.state.path : null;
     if(path === now) return;
     var view = function(p){ return p.replace(/^(fi|en)(\/|$)/, "").split("/")[0]; };
@@ -6383,8 +6593,9 @@
   }
   window.addEventListener("popstate", function(event){
     /* our own step back: the views are already shut, only the address had to follow */
-    if(stepping){ stepping = false; syncAddress(); return; }
+    if(stepping){ stepping = false; syncAddress(); tellParent(); return; }
     showPath(event.state && typeof event.state.path === "string" ? event.state.path : "");
+    tellParent();
   });
 
   /* ---------- boot ---------- */
@@ -6412,6 +6623,7 @@
     }
     var path = viewPath();
     try{ history.replaceState({path: path, prev: null}, "", addressOf(path)); }catch(e){}
+    tellParent();
   }
 
   try{

@@ -10,6 +10,7 @@ and land where the game looks for them:
     audio/more/<id>-1.mp3 .. -3    the three More facts
 
     python3 tools/tts_en.py utahraptor gastonia   these animals' clips
+    python3 tools/tts_en.py map/devonian          a story told on the map (audio/map/<key>.mp3)
     python3 tools/tts_en.py --list utahraptor     what would be said, recording nothing
 
 Same voice and pace as every English clip: Piper's en_GB-jenny_dioco-medium
@@ -34,10 +35,22 @@ STR = r'"((?:[^"\\]|\\.)*)"'
 
 
 def unquote(s):
-    return json.loads('"%s"' % s)
+    return json.loads('"%s"' % s.replace("\\'", "'"))   # JSON has no \' escape
+
+
+def story(html, key):
+    """a story told on the map, from STORY in index.html"""
+    if not re.fullmatch(r"[a-z0-9]+", key):
+        sys.exit("%s: a story's key is letters and digits only" % key)
+    m = re.search(r'\n    "%s": %s,?\n' % (re.escape(key), STR), html)
+    if not m:
+        sys.exit("map/%s: no such story in index.html" % key)
+    return [("map/%s.mp3" % key, tts.spoken(unquote(m.group(1))))]
 
 
 def clips(html, id_):
+    if id_.startswith("map/"):
+        return story(html, id_[4:])
     if not re.fullmatch(r"[a-z0-9]+", id_):
         sys.exit("%s: an id is the name in lower case, letters and digits only" % id_)
     card = re.search(r'\{id:"%s",.*?name:%s.*?fact:%s' % (re.escape(id_), STR, STR), html, re.S)
@@ -55,7 +68,7 @@ def clips(html, id_):
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("ids", nargs="+", help="the animals to record, by their id")
+    ap.add_argument("ids", nargs="+", help="the animals to record, by their id, or map/<key> for a map story")
     ap.add_argument("--list", action="store_true", help="print the clips and their text, record nothing")
     args = ap.parse_args()
 

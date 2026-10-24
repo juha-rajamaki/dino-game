@@ -3,7 +3,7 @@
    The body is plain JSON, so tools/tts.py can read it too. survivorCues are
    written by tools/tts.py when it records audio/fi/map/asteroid.mp3. */
 window.DINO_FI = {
- "version": 19,
+ "version": 20,
  "species": {
   "tyrannosaurus": {
    "means": "”Hirmuliskokuningas”",
@@ -1201,6 +1201,7 @@ window.DINO_FI = {
   "zuul": "lämmin rannikkotasanko, jolla oli jokia ja metsiä sisämeren rannalla"
  },
  "ageText": {
+  "375": "<b>375 miljoonaa vuotta sitten</b> — devonikausi, kauan ennen dinosauruksia. Kalat hallitsivat meriä ja jokia, ja yksi niistä oli alkamassa kiivetä ylös vedestä.",
   "66": "<b>66 miljoonaa vuotta sitten</b> — kymmenen kilometrin levyinen avaruuskivi iskeytyy mereen Meksikon lähellä, ja jättiläisdinosaurusten aika päättyy.",
   "70": "<b>70 miljoonaa vuotta sitten</b> — liitukauden loppu. Atlantti leveni, Intia oli saari, ja meri jakoi Pohjois-Amerikan kahtia.",
   "150": "<b>150 miljoonaa vuotta sitten</b> — jurakausi. Maa oli vielä melkein yhtenä palana, ja Atlantin valtameri oli vain kapea meri.",
@@ -1208,6 +1209,8 @@ window.DINO_FI = {
  },
  "nowText": "<b>Tänään</b> — jokainen eläin täällä on nyt fossiili, joka on kaivettu esiin siitä kohdasta, jossa sen merkki on. Rengas Meksikon lähellä näyttää, mihin asteroidi iskeytyi.",
  "story": {
+  "375": "Kolmesataaseitsemänkymmentäviisi miljoonaa vuotta sitten, devonikaudella, dinosauruksia ei ollut vielä lainkaan, eivät edes ensimmäiset. Maa ei ollut vielä tullut yhteen yhdeksi palaksi. Pohjois-Amerikka ja Eurooppa olivat kiinni toisissaan, ja ne olivat keskellä maailmaa, päiväntasaajalla, missä oli lämmintä. Kaukana etelässä Afrikka, Etelä-Amerikka, Etelämanner, Intia ja Australia olivat yhtä suurta maata, joka ulottui etelänavan yli.",
+  "devonian": "Devonikaudella melkein kaikki eläimet elivät vedessä. Maalla kasvoivat aivan ensimmäiset metsät, ja niiden seassa ryömi tuhatjalkaisia, skorpioneja ja hämähäkin kaltaisia otuksia, mutta ei yhtään selkärankaista eläintä. Sitten lämpimissä, matalissa puroissa Tiktaalik-niminen kala alkoi työntää itseään ylös vedestä. Sillä oli kidukset ja suomut kuin kalalla, mutta sillä oli myös keuhkot, joilla se hengitti ilmaa, kaula, jolla se käänsi päätään, ja vahvat etuevät, joiden sisällä oli luita kuin ranteessa, joten se pystyi nousemaan niiden varaan matalassa vedessä. Tiktaalikin kaltaiset kalat olivat alku kaikille nelijalkaisille eläimille: sammakoille, liskoille, dinosauruksille, linnuille, kissoille ja sinulle.",
   "70": "Seitsemänkymmentä miljoonaa vuotta sitten, liitukauden lopulla, jättimäinen manner oli haljennut palasiksi, ja palat ajelehtivat hitaasti erilleen. Atlantin valtameri leveni joka vuosi vähän. Intia oli saari, joka purjehti pohjoiseen kohti Aasiaa. Ja lämmin, matala meri virtasi keskeltä Pohjois-Amerikkaa ja jakoi sen kahtia.",
   "150": "Sata viisikymmentä miljoonaa vuotta sitten, jurakaudella, mantereet olivat puristuneet yhteen yhdeksi suureksi palaksi. Katso, miten maa liikkuu! Pohjois-Amerikka oli vielä kiinni Euroopassa ja Afrikassa, ja Atlantin valtameri oli vain kapea meri niiden välissä. Afrikka, Etelä-Amerikka, Etelämanner, Intia ja Australia olivat kaikki yhtä suurta maata etelässä.",
   "220": "Kaksisataakaksikymmentä miljoonaa vuotta sitten, triaskaudella, kaikki maapallon maa oli yhtä suurta jättimannerta. Sen nimi oli Pangea, ja sen ympärillä oli yksi valtava valtameri. Olisit voinut kävellä maailman laidalta toiselle ylittämättä merta kertaakaan. Pangean keskiosa oli kaukana merestä. Siellä oli kuumaa ja kuivaa, ja siellä oli suuria aavikoita.",
@@ -1235,6 +1238,10 @@ window.DINO_FI = {
    "text": "Jotkin pienet linnut jäivät henkiin, kuten vegaviksen sukulaiset. Vegavis oli ankan kaltainen lintu, jonka jäänteet on löydetty Etelämantereelta, jossa silloin kasvoi metsiä. Linnut ovat dinosauruksia, joten dinosaurukset eivät koskaan aivan kuolleet sukupuuttoon."
   }
  },
+ "tiktaalik": {
+  "head": "Tiktaalik, kala joka kiipesi ylös",
+  "text": "Sen fossiilit löytyivät vuonna 2004 Ellesmeren saarelta Kanadan kaukaisesta pohjoisesta. Nyt siellä on kylmää, mutta silloin se oli lämmin paikka lähellä päiväntasaajaa. Tutkijat etsivät juuri oikean ikäisiä kiviä, jotka olivat joskus olleet puroja, ja sieltä se löytyi. Sen nimi tarkoittaa suurta makean veden kalaa inuktitutiksi, joka on siellä asuvien inuiittien kieli. Suurin oli noin 2,7 metriä pitkä."
+ },
  "craterToday": {
   "name": "Kraatteri tänään",
   "head": "Kraatteri tänään",
@@ -1261,6 +1268,7 @@ window.DINO_FI = {
   "bird": 79.84
  },
  "places": {
+  "Ellesmere Island, Canada": "Ellesmeren saari, Kanada",
   "Hell Creek, Montana": "Hell Creek, Montana",
   "Frenchman River, Saskatchewan": "Frenchman River, Saskatchewan",
   "Lance Creek, Wyoming": "Lance Creek, Wyoming",
@@ -1383,6 +1391,13 @@ window.DINO_FI = {
   "Where they lived": "Missä ne elivät",
   "Tap an animal to see where its bones were found": "Napauta eläintä, niin näet, mistä sen luut löytyivät",
   "When": "Milloin",
+  "Devonian": "Devonikausi",
+  "From fins to legs": "Evistä jaloiksi",
+  "Watch it again": "Katso uudestaan",
+  "Tiktaalik swims in a warm, shallow stream, and lifts its head to breathe air": "Tiktaalik ui lämpimässä, matalassa purossa ja nostaa päänsä pinnalle hengittämään ilmaa",
+  "It props itself up on its strong front fins": "Se nousee vahvojen etueviensä varaan",
+  "It may even have pulled itself out onto the mud": "Se on ehkä jopa vetänyt itsensä ylös mudalle",
+  "Millions of years later, its family had legs with toes, and walked onto the land": "Miljoonia vuosia myöhemmin sen sukulaisilla oli jalat ja varpaat, ja ne kävelivät maalle",
   "Triassic": "Triaskausi",
   "Jurassic": "Jurakausi",
   "Cretaceous": "Liitukausi",
