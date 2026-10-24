@@ -1,5 +1,33 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script>
+  /* Every view has its own address - map/, map/jurassic/, cards/triceratops/,
+     picture/zuul/, with fi/ in front for Finnish - so it can be shared. The
+     game's own folder is whatever comes before the first of those words, and
+     the base below keeps img/, audio/ and lang/ pointing there whatever the
+     address. 404.html sends a shared address here as ?/map/, which works on
+     any server and from a file too. */
+  (function(){
+    var WORDS = ["fi", "en", "cards", "map", "picture"];
+    var parts = location.pathname.split("/"), j = 0;
+    /* a file on disk only ever has its address in ?/, whatever its folders are called */
+    if(location.protocol === "file:") j = parts.length;
+    while(j < parts.length && WORDS.indexOf(parts[j]) < 0) j++;
+    var root = j < parts.length ? parts.slice(0, j).join("/") + "/"
+             : location.pathname.replace(/[^\/]*$/, "");
+    /* one slash in front, never two: //elsewhere.com/ would be another site */
+    root = "/" + root.replace(/^[\/\\]+/, "");
+    var path = j < parts.length ? parts.slice(j).join("/") : "";
+    if(location.search.indexOf("?/") === 0){
+      path = location.search.slice(2).split("&")[0];
+      try{ path = decodeURIComponent(path); }catch(e){}
+    }
+    window.DINO_ROUTE = {words: WORDS, root: root, path: path.replace(/^\/+/, "")};
+    var base = document.createElement("base");
+    base.href = root;
+    document.head.appendChild(base);
+  })();
+</script>
 <title>Dinomemory</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Nunito:wght@400;600;700;800&display=swap">
@@ -513,7 +541,7 @@
   .fire{position:absolute; left:0; top:0}
   .fire .spread{position:absolute; inset:0}
   .fire .light{position:absolute; inset:-55%; border-radius:50%;
-    background:radial-gradient(circle, rgba(255,120,40,.42), rgba(255,80,20,.16) 40%, rgba(255,60,10,0) 68%);
+    background:radial-gradient(circle, rgba(255,130,40,.62), rgba(255,85,20,.26) 40%, rgba(255,60,10,0) 68%);
     animation:fire-light 1.7s ease-in-out infinite alternate}
   .fire .char{position:absolute; inset:0; background:center/100% 100% no-repeat}
   /* the flame front: a hot band round the edge, broken into lengths (the mask,
@@ -544,8 +572,8 @@
   /* a burning piece thrown out by the blast, on its way to where it starts a fire:
      a white-hot head and a tail of glowing air behind it */
   .ejecta{position:absolute; left:0; top:0; border-radius:50%; transform-origin:100% 50%;
-    background:linear-gradient(90deg, rgba(255,80,20,0), rgba(255,140,50,.7) 55%, #FFE9A8 88%, #FFF8E0);
-    box-shadow:0 0 3px 1px rgba(255,150,50,.8)}
+    background:linear-gradient(90deg, rgba(255,80,20,0), rgba(255,140,50,.8) 50%, #FFE9A8 86%, #FFF8E0);
+    box-shadow:0 0 6px 2px rgba(255,150,50,.9)}
   .splash{position:absolute; left:0; top:0; border-radius:50%; opacity:0;
     border:1.5px solid rgba(225,242,255,.9); box-shadow:0 0 4px rgba(190,225,255,.6), inset 0 0 4px rgba(190,225,255,.5)}
   .scorch{position:absolute; left:0; top:0; border-radius:47% 53% 51% 49% / 53% 47% 53% 47%;
@@ -1344,9 +1372,16 @@
      line, keyed by the English, and audio/fi/ its own recordings. The choice
      is remembered, and a Finnish browser starts in Finnish. */
   var LANG_KEY = "dinomemory-lang";
+  var ROUTE = window.DINO_ROUTE || {words: [], root: "", path: ""};
   var LANG = (function(){
     var pick = null;
     try{ pick = localStorage.getItem(LANG_KEY); }catch(e){}
+    /* an address with fi/ or en/ in front is a link someone shared: it wins */
+    var first = ROUTE.path.split("/")[0];
+    if(first === "fi" || first === "en"){
+      pick = first;
+      try{ localStorage.setItem(LANG_KEY, pick); }catch(e){}
+    }
     if(pick !== "fi" && pick !== "en") pick = /^fi\b/i.test(navigator.language || "") ? "fi" : "en";
     return pick === "fi" && window.DINO_FI ? "fi" : "en";
   })();
@@ -1366,7 +1401,7 @@
     if(state && state.mode !== "album" && !state.won && state.turns > 0 &&
        !window.confirm(T("Change the language? The game you are playing will end."))) return false;
     try{ localStorage.setItem(LANG_KEY, lang); }catch(e){}
-    location.reload();
+    location.replace(addressOf(viewPath(lang)));   /* the same view, in the other language */
   }
   /* the page's own words, in the markup: text, aria-labels and alt text */
   function translatePage(root){
@@ -2858,6 +2893,7 @@
     viewerName.textContent = dino.name;
     viewer.hidden = false;
     viewerClose.focus();
+    syncAddress();
   }
   function closeViewer(){
     if(viewer.hidden) return;
@@ -2866,6 +2902,7 @@
     viewerId = null;
     if(viewerFrom && document.body.contains(viewerFrom)) viewerFrom.focus();
     viewerFrom = null;
+    syncAddress();
   }
   viewerPlay.addEventListener("click", function(event){
     event.stopPropagation();
@@ -3155,6 +3192,7 @@
     mv.age = st.age;
     mv.then = st.age > 0;
     mv.period = st.period;
+    if(!mapEl.hidden) syncAddress();
   }
   function continentOf(site){
     var p = site[3];
@@ -3977,7 +4015,7 @@
       if(!ground) return;   /* not knowing where the sea is, no fires rather than fires on the water */
       var at = project(IMPACT), small = mv.W < 500, many = small ? 0.5 : 1, px = 1 / mv.s;
       var still = reduceMotion.matches || !document.body.animate;
-      var fires = [], room = small ? 55 : 120;   /* no more fires than a phone can carry */
+      var fires = [], room = small ? 110 : 280;   /* no more fires than a phone can carry */
       var heard = 0, hearMost = small ? 10 : 24;   /* nor more landings heard at once than it can play */
       /* Burning pieces thrown out every way, nearer ones thicker. Wherever one
          comes down:
@@ -3993,7 +4031,8 @@
           var spot = {x: x, y: y, d: d}, kind = ground(x, y);
           /* all thrown out at once by the blast; the further one goes, the faster and higher it flies, so it lands later */
           var thrown = Math.random() * 120, flight = 700 + Math.sqrt(d) * 125 + Math.random() * 300, lands = thrown + flight;
-          var size = (d < 260 ? 11 : 8) * px * (0.8 + Math.random() * 0.5);
+          /* the nearer the crater, the bigger the blaze */
+          var size = (d < 150 ? 15 : d < 260 ? 11 : 8) * px * (0.8 + Math.random() * 0.5);
           var loud = Math.max(0.25, 1 - d / 1100), heardIt = heard < hearMost && loud > 0.35;
           if(heardIt) heard++;
           jobs.push(piece.bind(null, spot, kind, size, thrown, flight, lands, loud, heardIt));
@@ -4007,7 +4046,7 @@
         if(!still) fly(at, spot, size, thrown, flight);
         if(heardIt) pieceLands(Math.max(0, lands) / 1000, kind, loud);
         if(kind === "sea"){ if(!still) splash(spot, size, lands); return; }
-        if(burns(kind)) catchFire(spot, size, lands, 3);
+        if(burns(kind)) catchFire(spot, size, lands, spot.d < 260 ? 4 : 3);
         else if(roomFor(spot, size)) light(spot, size * 0.8, lands, 3500 + Math.random() * 2500);   /* nothing to burn: it flares and dies */
       }
       /* A fire in the forest: it burns a long while, and every few seconds it
@@ -4090,8 +4129,9 @@
         flame.onfinish = function(){ fire.remove(); };
       }
       var jobs = [], base = performance.now();
-      throwSome(40, 260, 34 * many);    /* round the Americas, away from the molten crater */
-      throwSome(260, 1000, 18 * many);  /* far away, here and there */
+      throwSome(40, 150, 60 * many);    /* a ring of fire right round the crater, outside its molten middle */
+      throwSome(150, 260, 50 * many);   /* round the Americas */
+      throwSome(260, 1000, 40 * many);  /* far away, here and there */
       /* made a few at a time, a few milliseconds a frame, so the blast never stops on screen */
       (function pump(){
         if(gen !== mv.gen) return;
@@ -4117,7 +4157,7 @@
        onto the spot, pointing the way it is going, its tail behind it. */
     function fly(from, to, size, thrown, flight){
       var dx = to.x - from.x, dy = to.y - from.y, ang = Math.atan2(dy, dx) * 180 / Math.PI;
-      var len = size * 2.2, hi = size * 0.32, frames = [];
+      var len = size * 3.2, hi = size * 0.5, frames = [];
       var piece = document.createElement("div");
       piece.className = "ejecta";
       piece.style.width = len + "px"; piece.style.height = hi + "px";
@@ -4541,6 +4581,7 @@
   }
 
   function paintMapCard(){
+    syncAddress();
     var dino = mv.picked ? byId(mv.picked) : null;
     if(speakingSide === 3 && speakingId !== mv.picked) stopSpeech();
     mapCard.textContent = "";
@@ -4881,6 +4922,7 @@
     mapClose.focus();
     if(dino) pickOnMap(dino.id, true);
     else pickOnMap(null, false);
+    syncAddress();
   }
   function closeMap(){
     if(mapEl.hidden) return;
@@ -4898,6 +4940,7 @@
     touches = {};
     if(mv.from && document.body.contains(mv.from)) mv.from.focus();
     mv.from = null;
+    syncAddress();
   }
 
   document.addEventListener("keydown", function(event){
@@ -5212,6 +5255,7 @@
     /* on a phone the left box is the sheet that slides up over the board */
     var sheetOpen = !BOXES[0].panel.hidden;
     document.body.dataset.card = sheetOpen ? "open" : "shut";
+    syncAddress();
     cardsTab.setAttribute("aria-expanded", String(sheetOpen));
     renderPile();
   }
@@ -6201,6 +6245,7 @@
     });
     showRows();
     startOverlay.hidden = false;
+    syncAddress();
   }
   /* Shut without starting: the cards already dealt are still there to play,
      and the bar - all the cards, the map - is free to look through first. */
@@ -6210,6 +6255,7 @@
     jungleStart();
     if(startWasRunning && state.mode !== "album" && !state.won) startClock();
     startWasRunning = false;
+    syncAddress();
     document.getElementById("new-btn").focus({preventScroll: true});
   }
   document.getElementById("start-close").addEventListener("click", closeStart);
@@ -6246,6 +6292,101 @@
              speedrun: startSpeed === 1 && startPlayers === 1 && startPairs < EXTRA_PAIRS});
   });
 
+  /* ---------- addresses ---------- */
+  /* What is on screen, as a path: the picture over everything, then the map,
+     then the album and the card open in it. A game in play is the plain address. */
+  function viewPath(lang){
+    var p = [];
+    lang = lang || LANG;
+    if(lang === "fi" || (lang === "en" && saidEnglish)) p.push(lang);
+    if(!viewer.hidden && viewerId) p.push("picture", viewerId);
+    else if(!mapEl.hidden){
+      p.push("map");
+      if(mv.stage && mv.stage !== "today") p.push(mv.stage);
+      if(mv.picked) p.push(mv.picked);
+    } else if(startOverlay.hidden && state && state.mode === "album"){
+      p.push("cards");
+      if(state.sides[0].open && state.sides[0].last) p.push(state.sides[0].last);
+    }
+    return p.join("/");   /* map/jurassic/allosaurus, with no slash at the end */
+  }
+  /* an English link stays English for whoever it is sent to */
+  var saidEnglish = ROUTE.path.split("/")[0] === "en";
+  /* a file on disk cannot change its own path, so it keeps the ?/ form */
+  function addressOf(path){
+    if(location.protocol === "file:") return location.pathname + (path ? "?/" + path : "");
+    return ROUTE.root + path;
+  }
+  /* Called whenever a view opens or shuts: a new view is a new step for the
+     back button, a change inside one (another stage, another card) is not. */
+  var routing = true;   /* quiet until the first view is in place */
+  var stepping = false;   /* a step back is on its way: one is enough */
+  function syncAddress(){
+    if(routing || stepping) return;
+    var path = viewPath(), now = history.state && typeof history.state.path === "string" ? history.state.path : null;
+    if(path === now) return;
+    var view = function(p){ return p.replace(/^(fi|en)(\/|$)/, "").split("/")[0]; };
+    var push = now === null || view(path) !== view(now);
+    /* shutting a view goes back to the one it was opened from: the same step back, so Back never reopens it */
+    if(push && history.state && history.state.prev === path){ stepping = true; history.back(); return; }
+    try{
+      if(push) history.pushState({path: path, prev: now}, "", addressOf(path));
+      else history.replaceState({path: path, prev: history.state && history.state.prev}, "", addressOf(path));
+    }catch(e){}
+  }
+  /* Opens whatever an address names: on arrival, and on back and forward. */
+  function showPath(path){
+    var segs = path.split("/").filter(Boolean);
+    if(segs[0] === "fi" || segs[0] === "en"){
+      /* the other language needs the page again; but if the Finnish file never
+         came, that would only reload for ever, so stay in English instead */
+      if(segs[0] !== LANG && (segs[0] === "en" || window.DINO_FI)){ location.reload(); return; }
+      segs.shift();
+    }
+    var where = segs[0] || "", id = null, stage = null;
+    segs.slice(1).forEach(function(s){
+      if(stageById(s)) stage = s;
+      else if(byId(s)) id = s;
+    });
+    routing = true;
+    try{
+      if(where === "picture"){
+        if(id) openViewer(id);
+        else closeViewer();
+        return;
+      }
+      closeViewer();
+      if(where === "map"){
+        if(mapEl.hidden) openMap(null);
+        if(stage && stage !== mv.stage) worldTo(stage, null);
+        else if(!stage && mv.stage !== "today") worldTo("today", null);
+        if(id !== mv.picked) pickOnMap(id, !!id);
+        return;
+      }
+      closeMap();
+      if(where === "cards"){
+        var fromStart = !startOverlay.hidden;
+        if(fromStart){ startOverlay.hidden = true; jungleStart(); }
+        if(state.mode !== "album"){ albumFromStart = fromStart; openAlbum(); }
+        if(id) openCard(id);
+        else if(state.sides[0].open){ state.sides[0].open = false; renderFacts(); }
+        return;
+      }
+      /* the plain address: out of the album, back to where it was opened from */
+      if(state.mode === "album"){
+        if(albumFromStart) openStart();
+        else newGame();
+      }
+    } finally {
+      routing = false;
+    }
+  }
+  window.addEventListener("popstate", function(event){
+    /* our own step back: the views are already shut, only the address had to follow */
+    if(stepping){ stepping = false; syncAddress(); return; }
+    showPath(event.state && typeof event.state.path === "string" ? event.state.path : "");
+  });
+
   /* ---------- boot ---------- */
   function boot(data){
     if(data && data.state && data.state.deck){
@@ -6259,13 +6400,28 @@
       newGame({pairs: 10, players: 1});
     }
   }
+  /* the address it was opened with, once: then the address follows the views */
+  var arrived = false;
+  function arrive(){
+    if(arrived) return;
+    arrived = true;
+    try{
+      if(ROUTE.path.replace(/^(fi|en)\/?/, "")) showPath(ROUTE.path);
+    } finally {
+      routing = false;
+    }
+    var path = viewPath();
+    try{ history.replaceState({path: path, prev: null}, "", addressOf(path)); }catch(e){}
+  }
 
   try{
     if(window.claude && window.claude.hot){
       if(window.claude.hot.snapshot) window.claude.hot.snapshot(function(){ return {state: state, soundOn: soundOn}; });
-      if(window.claude.hot.ready) window.claude.hot.ready(boot);
+      if(window.claude.hot.ready) window.claude.hot.ready(function(data){ boot(data); arrive(); });
       else boot(window.claude.hot.data);
     } else { boot(null); }
   }catch(e){ boot(null); }
+  /* whatever happened above, the address is read and then kept */
+  if(!(window.claude && window.claude.hot && window.claude.hot.ready)) arrive();
 })();
 </script>

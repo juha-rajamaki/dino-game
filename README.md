@@ -145,11 +145,13 @@ It is a single static page with no build step and no dependencies:
 
 ```
 index.html      the whole game - markup, styles and logic
+404.html        hands a shared address like map/jurassic/ over to the game
 img/            70 card plates plus the background and the two foreground animals
 img/full/       the same 70 animals at full size, fetched only when one is opened
 img/map/        the Earth today, small and large, the worlds of 220, 150, 70 and 66
                 million years ago, and drift/, the land every five million years between
-tools/          paleomap.py, which draws those worlds (needs numpy and Pillow),
+tools/          serve.py, which serves the game locally the way GitHub Pages does,
+                paleomap.py, which draws those worlds (needs numpy and Pillow),
                 tts.py and tts_en.py, which record the Finnish and English
                 narration, and picture.py, which makes an animal's two pictures
 audio/          a narration clip per animal, plus the jungle loop
@@ -159,11 +161,37 @@ audio/fi/       the same clips again, in Finnish, laid out the same way
 lang/fi.js      the Finnish: every line of the game, keyed by the English
 ```
 
-Open `index.html` in a browser, or serve the folder with anything:
+Serve the folder the way GitHub Pages does, so every view has its tidy
+address, and open http://localhost:8000/:
 
 ```sh
-python3 -m http.server 8000
+python3 tools/serve.py
 ```
+
+Opening `index.html` straight from disk works too, but then the addresses
+read `index.html?/map`, since a file cannot change its own path.
+
+### Addresses
+
+Every view has its own address, so it can be shared and opens straight there:
+
+```
+/dino-game/                            the game
+/dino-game/map                         the map, today
+/dino-game/map/jurassic                the map at a stage: triassic, jurassic, cretaceous, asteroid
+/dino-game/map/jurassic/allosaurus     ... with an animal picked
+/dino-game/cards                       all the cards
+/dino-game/cards/triceratops           all the cards, with one open
+/dino-game/picture/zuul                an animal's picture, full size
+/dino-game/fi/map                      any of them in Finnish
+```
+
+There is no file behind those paths: GitHub Pages answers them with
+`404.html`, which turns `/dino-game/map/jurassic` into
+`/dino-game/?/map/jurassic`, and the game opens the view and puts the address
+back. `tools/serve.py` does the same on your own computer; a plain
+`python3 -m http.server` has no such fallback, so there only the `?/` form
+opens a view. A game in play keeps the plain address.
 
 ## Adding an animal
 
